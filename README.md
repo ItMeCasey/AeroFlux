@@ -1,5 +1,9 @@
 # AeroFlux
 
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.1.2%20%7C%201.21.1%20%7C%201.20.1-3C8527)](#targets)
+[![NeoForge](https://img.shields.io/badge/NeoForge-26.1.2%20%7C%201.21.1%20%7C%201.20.1-D7742D)](#targets)
+[![Forge](https://img.shields.io/badge/Forge-26.1.2%20%7C%201.21.1%20%7C%201.20.1-6A86B8)](#targets)
+
 A Minecraft mod where machines run on **Aero Flux**, gathered from the sun by day, and **Moon Flux**, gathered from the moon at night. Tiered collectors, tanks, conduit bundles, machines (furnace, grinder, sawmill, alloy smelter, infuser, enchanter, disenchanter, plant grower) and a Flux-powered chunk loader.
 
 See [PLAN.md](PLAN.md) for the full design and [PROJECT_STATUS.md](PROJECT_STATUS.md) for progress.
