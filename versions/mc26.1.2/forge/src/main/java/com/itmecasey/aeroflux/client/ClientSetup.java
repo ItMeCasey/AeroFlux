@@ -4,10 +4,13 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.client.model.BundleBlockStateModel;
 import com.itmecasey.aeroflux.client.model.BundleGeometryLoader;
+import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -16,6 +19,12 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID, value = Dist.CLIENT)
 public final class ClientSetup {
     private ClientSetup() {
+    }
+
+    /** Gives the tanks their fluid-level renderer. */
+    @SubscribeEvent
+    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
     }
 
     /** Teaches the model system the {@code aeroflux:conduit_bundle} model type. */

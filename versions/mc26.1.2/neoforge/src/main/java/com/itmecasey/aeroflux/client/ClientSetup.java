@@ -3,13 +3,16 @@ package com.itmecasey.aeroflux.client;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.client.model.BundleUnbakedModel;
+import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.fluid.FluidTintSources;
@@ -31,6 +34,12 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerBlockStateModels(RegisterBlockStateModels event) {
         event.registerModel(Ids.mod("conduit_bundle"), BundleUnbakedModel.CODEC);
+    }
+
+    /** Draws the fluid level inside each tank's glass. */
+    @SubscribeEvent
+    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
     }
 
     @SubscribeEvent

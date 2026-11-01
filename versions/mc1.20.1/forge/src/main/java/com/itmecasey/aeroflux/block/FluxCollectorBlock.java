@@ -19,6 +19,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * A collector. It faces the sky and turns sunlight into Aero Flux by day and moonlight into
  * Moon Flux by night. One class serves all six tiers; the tier decides speed and buffer size.
  */
+// Vanilla deprecates these hooks to stop other code calling them; overriding them is the intended way.
+@SuppressWarnings("deprecation")
 public class FluxCollectorBlock extends BaseEntityBlock {
     private final Tier tier;
 

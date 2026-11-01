@@ -29,6 +29,8 @@ import org.joml.Vector3f;
  * the block entity supplies as model data, and caches them by the bundle's look so that the many
  * bundles sharing the same set and connections cost one build.
  */
+// Vanilla deprecates these hooks to stop other code calling them; overriding them is the intended way.
+@SuppressWarnings("deprecation")
 public class BundleBakedModel implements IDynamicBakedModel {
     private static final FaceBakery FACE_BAKERY = new FaceBakery();
 

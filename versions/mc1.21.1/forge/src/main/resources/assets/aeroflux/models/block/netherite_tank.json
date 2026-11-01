@@ -1,4 +1,5 @@
 {
+  "render_type": "minecraft:translucent",
   "textures": {
     "frame": "aeroflux:block/frame_netherite",
     "glass": "aeroflux:block/tank_glass",

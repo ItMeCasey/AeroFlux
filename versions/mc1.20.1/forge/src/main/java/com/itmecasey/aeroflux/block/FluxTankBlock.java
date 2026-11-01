@@ -21,6 +21,8 @@ import net.minecraftforge.fluids.FluidUtil;
  * A storage tank for Aero Flux and Moon Flux. One class serves all six tiers; the tier decides
  * the capacity. Right-click with a bucket (or any fluid container) to fill or empty it.
  */
+// Vanilla deprecates these hooks to stop other code calling them; overriding them is the intended way.
+@SuppressWarnings("deprecation")
 public class FluxTankBlock extends BaseEntityBlock {
     private final Tier tier;
 

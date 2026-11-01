@@ -24,6 +24,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * pipe. What is inside, and how it connects, lives in the block entity; the block only decides
  * how it is drawn, how big it is and what it drops.
  */
+// Vanilla deprecates these hooks to stop other code calling them; overriding them is the intended way.
+@SuppressWarnings("deprecation")
 public class ConduitBundleBlock extends BaseEntityBlock {
     public ConduitBundleBlock(Properties properties) {
         super(properties);
