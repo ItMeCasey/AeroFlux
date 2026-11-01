@@ -6,8 +6,6 @@
 
 A Minecraft mod where machines run on **Aero Flux**, gathered from the sun by day, and **Moon Flux**, gathered from the moon at night. Tiered collectors, tanks, conduit bundles, machines (furnace, grinder, sawmill, alloy smelter, infuser, enchanter, disenchanter, plant grower) and a Flux-powered chunk loader.
 
-See [PLAN.md](PLAN.md) for the full design and [PROJECT_STATUS.md](PROJECT_STATUS.md) for progress.
-
 ## Targets
 
 | Minecraft | NeoForge | Forge | Java |
@@ -37,6 +35,10 @@ cd versions/mc1.21.1/neoforge
 ```
 
 The jar lands in `build/libs`, named `aeroflux-<loader>-<mc>-YYYY.M.N.jar` (for example `aeroflux-neoforge-1.21.1-2026.11.1.jar`). Versions are calendar based: year, month, and a release counter within that month. Each project sets its own Java toolchain, so JDK 17, 21 and 25 must be installed.
+
+## Self-test
+
+Each project has a development-only self-test in `devtest/SelfTest.java`. It does nothing unless the environment variable `AEROFLUX_SELFTEST` is set. With it set, `gradlew runServer` places conduit bundles, a pipe node, tanks and collectors in a forced chunk, checks joining, blocking, saving, shapes and drops, runs collectors through a day and a night, prints `AEROFLUX-SELFTEST PASS/FAIL` lines and stops the server. It checks game logic only, not how anything looks.
 
 ## License
 
