@@ -18,8 +18,8 @@ AeroFlux is in early development: only the two fluids, their buckets, and Flux D
 | Logo | `branding/aeroflux_icon_400.png` (square, 400x400; CHECK that no larger size is required) |
 | Description | [DESCRIPTION.md](DESCRIPTION.md) or [DESCRIPTION.html](DESCRIPTION.html) |
 | License | MIT (the repo's `LICENSE`) |
-| Source URL | REPLACE (the repo is not set up as a git remote yet) |
-| Issues URL | REPLACE |
+| Source URL | `ItMeCasey/AeroFlux` on GitHub (set on the Source tab) |
+| Issues URL | `https://github.com/ItMeCasey/AeroFlux/issues` (set as the external tracker on the Issues tab) |
 
 CurseForge's guidance says the summary should describe what the project does, and should not name the game, loader, or categories, which this one avoids.
 
