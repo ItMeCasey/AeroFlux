@@ -1,0 +1,40 @@
+{
+  "textures": {
+    "t": "aeroflux:block/pipe_node",
+    "particle": "aeroflux:block/pipe_node"
+  },
+  "elements": [
+    {
+      "from": [
+        3.0,
+        3.0,
+        0
+      ],
+      "to": [
+        13.0,
+        13.0,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#t"
+        },
+        "south": {
+          "texture": "#t"
+        },
+        "east": {
+          "texture": "#t"
+        },
+        "west": {
+          "texture": "#t"
+        },
+        "up": {
+          "texture": "#t"
+        },
+        "down": {
+          "texture": "#t"
+        }
+      }
+    }
+  ]
+}

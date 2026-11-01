@@ -1,0 +1,32 @@
+package com.itmecasey.aeroflux.datagen;
+
+import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.registry.ModItems;
+import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+
+/** Generates the item models. Plain flat items use the standard generated-item model. */
+public class ModItemModelProvider extends ItemModelProvider {
+    public ModItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
+        super(output, AeroFlux.MODID, existingFileHelper);
+    }
+
+    @Override
+    protected void registerModels() {
+        basicItem(ModItems.FLUX_DUST.get());
+        fluidBucket("aero_flux_bucket", ModFluids.AERO_FLUX.get());
+        fluidBucket("moon_flux_bucket", ModFluids.MOON_FLUX.get());
+    }
+
+    /** A bucket that draws the fluid it holds, tinted, through NeoForge's dynamic container model. */
+    private void fluidBucket(String name, Fluid fluid) {
+        withExistingParent(name, ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket"))
+                .customLoader(DynamicFluidContainerModelBuilder::begin)
+                .fluid(fluid);
+    }
+}

@@ -1,0 +1,5 @@
+{
+  "parent": "forge:item/bucket",
+  "fluid": "aeroflux:aero_flux",
+  "loader": "forge:fluid_container"
+}

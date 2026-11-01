@@ -1,0 +1,14 @@
+// 1.20.1	2026-11-01T10:16:50.9963086	Loot Tables
+d72da9ce963f39dcd2cfadd5b8d67c9d91f4bfee data/aeroflux/loot_tables/blocks/copper_collector.json
+a5c2d67daa65dd83defb764a95493be0adb4019e data/aeroflux/loot_tables/blocks/copper_tank.json
+9835f132e112b85a50273eed8e65c8dd5fb3cbf9 data/aeroflux/loot_tables/blocks/diamond_collector.json
+d2176ae1d9ec2f9dabab10fac17c1f5403a66d8d data/aeroflux/loot_tables/blocks/diamond_tank.json
+7c5df3953a8ae5b19dc6eedaaf76af6a724ab3c4 data/aeroflux/loot_tables/blocks/fluxium_collector.json
+6fc87b624dca1a85b2c8ee7b47864a4537e43068 data/aeroflux/loot_tables/blocks/fluxium_tank.json
+94565231def956578509708d1674d625eaa4b070 data/aeroflux/loot_tables/blocks/gold_collector.json
+2e5b2e5859dc67847ba04cab4e2939312c98c7ce data/aeroflux/loot_tables/blocks/gold_tank.json
+2acb57a2acab9cf8532f3d2144fb87005df90d94 data/aeroflux/loot_tables/blocks/iron_collector.json
+3ed0ea594de6788cf4182214867db84676ab034e data/aeroflux/loot_tables/blocks/iron_tank.json
+639d8cf2868e0900ee782ee8c4bc6ac06d7f424a data/aeroflux/loot_tables/blocks/netherite_collector.json
+db7b2564eb22794ee4f6b76323c983c73dd283c1 data/aeroflux/loot_tables/blocks/netherite_tank.json
+93ec4ca1c7c3bfe212d9d015be8d30e5be18d9cb data/aeroflux/loot_tables/blocks/pipe_node.json

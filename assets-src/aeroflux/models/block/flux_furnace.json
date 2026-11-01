@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "aeroflux:block/furnace_front",
+    "side": "aeroflux:block/machine_stone_side",
+    "top": "aeroflux:block/machine_stone_side",
+    "particle": "aeroflux:block/machine_stone_side"
+  }
+}

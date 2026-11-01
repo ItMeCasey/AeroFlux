@@ -1,0 +1,81 @@
+name: Bug report
+description: Something is broken, crashes, or does not work as described
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The more of this you fill in, the faster it can be fixed.
+        Please check the existing issues first in case it is already reported.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem in a sentence or two. A screenshot helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we make it happen again?
+      description: Numbered steps, from a fresh world if you can.
+      placeholder: |
+        1. Place a copper collector under open sky
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: false
+  - type: dropdown
+    id: minecraft
+    attributes:
+      label: Minecraft version
+      options:
+        - 26.1.2
+        - 1.21.1
+        - 1.20.1
+    validations:
+      required: true
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Mod loader
+      options:
+        - NeoForge
+        - Forge
+    validations:
+      required: true
+  - type: input
+    id: mod-version
+    attributes:
+      label: AeroFlux version
+      description: The number in the file name, for example 2026.11.1
+    validations:
+      required: true
+  - type: textarea
+    id: other-mods
+    attributes:
+      label: Other mods
+      description: List them, or say "none". If you can, try again with only AeroFlux.
+    validations:
+      required: false
+  - type: input
+    id: log
+    attributes:
+      label: Log or crash report link
+      description: Upload `logs/latest.log` (or the crash report) to https://mclo.gs and paste the link. Please do not paste the whole log here.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I searched the existing issues
+          required: true
+        - label: I am using the latest AeroFlux version for my Minecraft version and loader
+          required: false

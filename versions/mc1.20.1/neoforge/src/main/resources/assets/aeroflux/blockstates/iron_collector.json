@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "aeroflux:block/iron_collector"
+    }
+  }
+}

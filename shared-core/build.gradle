@@ -1,0 +1,37 @@
+// shared-core holds AeroFlux's game rules that need no Minecraft classes (tiers, collection
+// math, dimension rules). The loader projects compile these sources directly, and this
+// standalone build runs the unit tests without launching the game.
+plugins {
+    id 'java-library'
+}
+
+group = 'com.itmecasey.aeroflux'
+version = '2026.11.1'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    // Java 17 is the lowest level any of the six targets uses (Minecraft 1.20.1).
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events 'failed', 'passed'
+        exceptionFormat = 'full'
+    }
+}

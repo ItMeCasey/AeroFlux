@@ -1,0 +1,39 @@
+# AeroFlux
+
+A Minecraft mod where machines run on **Aero Flux**, gathered from the sun by day, and **Moon Flux**, gathered from the moon at night. Tiered collectors, tanks, conduit bundles, machines (furnace, grinder, sawmill, alloy smelter, infuser, enchanter, disenchanter, plant grower) and a Flux-powered chunk loader.
+
+See [PLAN.md](PLAN.md) for the full design and [PROJECT_STATUS.md](PROJECT_STATUS.md) for progress.
+
+## Targets
+
+| Minecraft | NeoForge | Forge | Java |
+|---|---|---|---|
+| 26.1.2 | `26.1.2.125` | `26.1.2-64.1.5` | 25 |
+| 1.21.1 | `21.1.265` | `1.21.1-52.1.20` | 21 |
+| 1.20.1 | `1.20.1-47.1.106` (legacy fork) | `1.20.1-47.4.28` | 17 |
+
+## Layout
+
+```
+versions/
+  mc26.1.2/{neoforge,forge}
+  mc1.21.1/{neoforge,forge}
+  mc1.20.1/{neoforge,forge}
+```
+
+Each folder is a standalone Gradle project. Rules that need no Minecraft classes live in [shared-core](shared-core) and are compiled into every build; run its unit tests with `cd shared-core && ./gradlew test`. CI (`.github/workflows/build.yml`) tests it and builds all six targets.
+
+## Building
+
+Use the Gradle wrapper inside a version folder:
+
+```
+cd versions/mc1.21.1/neoforge
+./gradlew build
+```
+
+The jar lands in `build/libs`, named `aeroflux-<loader>-<mc>-YYYY.M.N.jar` (for example `aeroflux-neoforge-1.21.1-2026.11.1.jar`). Versions are calendar based: year, month, and a release counter within that month. Each project sets its own Java toolchain, so JDK 17, 21 and 25 must be installed.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "aeroflux:block/fluxium_tank"
+    }
+  }
+}

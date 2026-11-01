@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a new idea or an improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+      description: Describe it in plain words. What problem does it solve for you?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: How would you use it?
+      description: A short example of how it would fit into your game or modpack.
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you do today instead?
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I searched the existing issues and requests
+          required: true

@@ -1,0 +1,18 @@
+{
+  "values": [
+    "aeroflux:conduit_bundle",
+    "aeroflux:pipe_node",
+    "aeroflux:copper_collector",
+    "aeroflux:copper_tank",
+    "aeroflux:iron_collector",
+    "aeroflux:iron_tank",
+    "aeroflux:gold_collector",
+    "aeroflux:gold_tank",
+    "aeroflux:diamond_collector",
+    "aeroflux:diamond_tank",
+    "aeroflux:netherite_collector",
+    "aeroflux:netherite_tank",
+    "aeroflux:fluxium_collector",
+    "aeroflux:fluxium_tank"
+  ]
+}
