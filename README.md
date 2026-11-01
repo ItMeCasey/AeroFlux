@@ -1,8 +1,8 @@
 # AeroFlux
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.1.2%20%7C%201.21.1%20%7C%201.20.1-3C8527)](#targets)
-[![NeoForge](https://img.shields.io/badge/NeoForge-26.1.2%20%7C%201.21.1%20%7C%201.20.1-D7742D)](#targets)
-[![Forge](https://img.shields.io/badge/Forge-26.1.2%20%7C%201.21.1%20%7C%201.20.1-6A86B8)](#targets)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.1.2%20%7C%201.21.1%20%7C%201.20.1-3C8527?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPGcgZmlsbD0iI2ZmZiI%2BPHBhdGggZD0iTTEyIDIuNiAxOS44IDcgMTIgMTEuNCA0LjIgN3oiLz48cGF0aCBkPSJNMy44IDguMSAxMS40IDEyLjR2OC40TDMuOCAxNi41eiIvPjxwYXRoIGQ9Ik0yMC4yIDguMSAxMi42IDEyLjR2OC40bDcuNi00LjN6Ii8%2BPC9nPjwvc3ZnPg%3D%3D)](#targets)
+[![NeoForge](https://img.shields.io/badge/NeoForge-26.1.2%20%7C%201.21.1%20%7C%201.20.1-D7742D?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTEgNmgyMnY0aC03bC0xIDRoLTZsLTEtNEgxek03IDE0aDEwdjJoMnYzSDV2LTNoMnoiLz48L3N2Zz4%3D)](#targets)
+[![Forge](https://img.shields.io/badge/Forge-26.1.2%20%7C%201.21.1%20%7C%201.20.1-6A86B8?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTEgNmgyMnY0aC03bC0xIDRoLTZsLTEtNEgxek03IDE0aDEwdjJoMnYzSDV2LTNoMnoiLz48L3N2Zz4%3D)](#targets)
 
 A Minecraft mod where machines run on **Aero Flux**, gathered from the sun by day, and **Moon Flux**, gathered from the moon at night. Tiered collectors, tanks, conduit bundles, machines (furnace, grinder, sawmill, alloy smelter, infuser, enchanter, disenchanter, plant grower) and a Flux-powered chunk loader.
 
