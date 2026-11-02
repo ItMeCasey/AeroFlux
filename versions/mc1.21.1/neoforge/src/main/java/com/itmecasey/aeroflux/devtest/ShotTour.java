@@ -1,6 +1,8 @@
 package com.itmecasey.aeroflux.devtest;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
+import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.client.screen.FluxMachineScreen;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.conduit.PipeItem;
@@ -12,6 +14,8 @@ import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
+import com.itmecasey.aeroflux.core.machine.FluxCost;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.SideCommand;
 import com.itmecasey.aeroflux.core.machine.SideResource;
@@ -47,10 +51,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
@@ -62,6 +69,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /**
  * A development-only camera tour: it opens a fresh creative superflat world, builds the pipe
@@ -417,6 +425,80 @@ public final class ShotTour {
             shoot("screen_" + type.id(), 10);
             then(2, () -> player().closeContainer());
         }
+        fluxScreenShots();
+    }
+
+    /**
+     * The flux badge and cost bar on machine screens (a furnace at work with less than one smelt of
+     * Flux, one with none, and a Plant Grower holding Moon Flux for the two-flux badge), then a
+     * collector feeding a tank, a collector under leaves, and the screens of all three.
+     */
+    private static void fluxScreenShots() {
+        BlockPos working = at(62, 6);
+        BlockPos starved = at(64, 6);
+        BlockPos grower = at(66, 6);
+        Item furnace = ModBlocks.machine(MachineType.FURNACE, Tier.IRON).get().asItem();
+        placeBlock(furnace, working);
+        placeBlock(furnace, starved);
+        placeBlock(ModBlocks.machine(MachineType.PLANT_GROWER, Tier.GOLD).get().asItem(), grower);
+        then(SETTLE, () -> onServer(server -> {
+            ServerLevel level = server.overworld();
+            if (level.getBlockEntity(working) instanceof FluxMachineBlockEntity machine) {
+                // Three quarters of a smelt, so the cost bar shows part full while it works.
+                int smelt = FluxCost.perOperation(MachineUpgrades.fluxPerTick(Tier.IRON, 0),
+                        MachineUpgrades.ticksFor(200, Tier.IRON, 0), 0);
+                machine.setFlux(new FluidStack(ModFluids.AERO_FLUX.get(), smelt * 3 / 4));
+                machine.setStackIn(0, new ItemStack(Items.RAW_IRON, 8));
+            }
+            if (level.getBlockEntity(starved) instanceof FluxMachineBlockEntity machine) {
+                machine.setStackIn(0, new ItemStack(Items.RAW_IRON, 8));
+            }
+            if (level.getBlockEntity(grower) instanceof FluxMachineBlockEntity machine) {
+                machine.setFlux(new FluidStack(ModFluids.MOON_FLUX.get(), 3_000));
+            }
+        }));
+        openShot(working, "screen_cost_working");
+        openShot(starved, "screen_cost_starved");
+        openShot(grower, "screen_badge_either");
+
+        // A collector pushing into the tank beside it, and a second collector under a leaf roof.
+        BlockPos collector = at(70, 6);
+        BlockPos tank = at(71, 6);
+        BlockPos covered = at(74, 6);
+        placeBlock(ModBlocks.collector(Tier.GOLD).get().asItem(), collector);
+        placeBlock(ModBlocks.tank(Tier.GOLD).get().asItem(), tank);
+        placeBlock(ModBlocks.collector(Tier.IRON).get().asItem(), covered);
+        then(2, () -> onServer(server -> {
+            server.overworld().setBlockAndUpdate(covered.above(3), Blocks.OAK_LEAVES.defaultBlockState());
+            if (server.overworld().getBlockEntity(tank) instanceof FluxTankBlockEntity entity) {
+                entity.tank().fill(new FluidStack(ModFluids.AERO_FLUX.get(), 40_000), IFluidHandler.FluidAction.EXECUTE);
+            }
+        }));
+        // Long enough for the sky checks and a full second of flow for the rates.
+        then(60, () -> {
+        });
+        openShot(collector, "screen_collector");
+        openShot(covered, "screen_collector_blocked");
+        openShot(tank, "screen_tank");
+    }
+
+    /** Opens the screen of the block at {@code pos} the way the server opens it for a player, and shoots it. */
+    private static void openShot(BlockPos pos, String name) {
+        then(5, () -> onServer(server -> {
+            ServerPlayer player = serverPlayer(server);
+            BlockEntity entity = server.overworld().getBlockEntity(pos);
+            if (entity instanceof FluxMachineBlockEntity machine) {
+                player.openMenu(machine, machine::writeOpenData);
+            } else if (entity instanceof FluxCollectorBlockEntity collector) {
+                player.openMenu(collector, collector::writeOpenData);
+            } else if (entity instanceof FluxTankBlockEntity tank) {
+                player.openMenu(tank, tank::writeOpenData);
+            } else {
+                AeroFlux.LOGGER.warn("AEROFLUX-SHOTS nothing to open for {}", name);
+            }
+        }));
+        shoot(name, 10);
+        then(2, () -> player().closeContainer());
     }
 
     /** Sets the item mode of one face of a machine the way a click in the side-config window does. */

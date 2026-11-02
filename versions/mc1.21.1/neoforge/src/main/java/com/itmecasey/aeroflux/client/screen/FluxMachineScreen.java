@@ -1,6 +1,8 @@
 package com.itmecasey.aeroflux.client.screen;
 
+import com.itmecasey.aeroflux.client.screen.widget.FluxCostBar;
 import com.itmecasey.aeroflux.client.screen.widget.FluxGauge;
+import com.itmecasey.aeroflux.client.screen.widget.FluxTypeBadge;
 import com.itmecasey.aeroflux.client.screen.widget.Glyphs;
 import com.itmecasey.aeroflux.client.screen.widget.HoverInfo;
 import com.itmecasey.aeroflux.client.screen.widget.Panel;
@@ -46,7 +48,8 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * The shared look of every machine screen, as the plan lays it out: the Flux gauge on the far left,
  * input slots, the progress arrow and output slots (the arrow and the lit front show whether it
- * works, so there is no status line), the side-config window
+ * works, so there is no status line), a sun or moon badge on top of the gauge for the flux the
+ * machine runs on, a thin cost bar over the arrow, the side-config window
  * docked to the panel's edge, and a strip on the right with the redstone button over the upgrade
  * slots. The tier shows as a colored bar along the top; the title is just the block's name, with
  * nothing repeated beside it. Like the pipe screen it draws everything with plain fills, so it
@@ -56,11 +59,18 @@ import net.minecraft.world.level.block.state.BlockState;
 public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends AbstractContainerScreen<M> {
     /** Aero Flux gold, for the progress fill. */
     private static final int PROGRESS_FILL = 0xFFF2C94C;
+    /** The flux badge's cell on top of the gauge: room for a 13 pixel glyph inside a frame. */
+    private static final int BADGE_HEIGHT = 15;
+    /** The cost bar sits this far above the progress arrow. */
+    private static final int COST_BAR_GAP = 3;
+    private static final int COST_BAR_HEIGHT = 5;
 
     private final MachineLayout layout;
     private final int accent;
     private FluxGauge gauge;
+    private FluxTypeBadge badge;
     private ProgressArrow arrow;
+    private FluxCostBar costBar;
     private SideConfigPanel sidePanel;
     private UpgradeSlots upgradeSlots;
     private RedstoneButton redstoneButton;
@@ -123,11 +133,17 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
             extraGauges.add(addRenderableWidget(new FluxGauge(leftPos + spot.x(), topPos + spot.y(), spot.width(), spot.height())));
         }
 
+        // The flux badge takes the top of the gauge's spot and the gauge fills the rest below it.
         MachineLayout.Rect gaugeRect = layout.gauge();
-        gauge = addRenderableWidget(new FluxGauge(leftPos + gaugeRect.x(), topPos + gaugeRect.y(), gaugeRect.width(), gaugeRect.height()));
+        badge = addRenderableWidget(new FluxTypeBadge(leftPos + gaugeRect.x(), topPos + gaugeRect.y(), gaugeRect.width(),
+                BADGE_HEIGHT, menu.machine().acceptedFlux()));
+        gauge = addRenderableWidget(new FluxGauge(leftPos + gaugeRect.x(), topPos + gaugeRect.y() + BADGE_HEIGHT + 1,
+                gaugeRect.width(), gaugeRect.height() - BADGE_HEIGHT - 1));
         MachineLayout.Rect arrowRect = layout.arrow();
         arrow = addRenderableWidget(new ProgressArrow(leftPos + arrowRect.x(), topPos + arrowRect.y(),
                 arrowRect.width(), arrowRect.height(), PROGRESS_FILL));
+        costBar = addRenderableWidget(new FluxCostBar(leftPos + arrowRect.x(), topPos + arrowRect.y() - COST_BAR_GAP - COST_BAR_HEIGHT,
+                arrowRect.width(), COST_BAR_HEIGHT));
 
         // The side-config window docks to the left of the panel, or to the right, beyond the
         // upgrade strip, when there is no room.
@@ -302,6 +318,8 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
         MachineStatus status = menu.status();
         gauge.update(menu.fluxAmount(), menu.fluxCapacity(), menu.fluxType(), menu.fluxPerTick(), status == MachineStatus.RUNNING);
         arrow.update(menu.progress(), menu.totalTime());
+        badge.update(menu.fluxType(), menu.fluxAmount());
+        costBar.update(menu.fluxAmount(), menu.fluxPerOperation(), menu.nextTickCost());
         for (int i = 0; i < extraGauges.size(); i++) {
             extraGauges.get(i).updateFluid(menu.extraAmount(i), menu.fluxCapacity(),
                     ExtraTanks.fluid(menu.machine().extraTanks().get(i)));
@@ -309,7 +327,7 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
 
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
-        List<HoverInfo> infos = new ArrayList<>(List.of(gauge, arrow, sidePanel, redstoneButton, upgradeSlots));
+        List<HoverInfo> infos = new ArrayList<>(List.of(gauge, badge, arrow, costBar, sidePanel, redstoneButton, upgradeSlots));
         infos.addAll(extraGauges);
         for (HoverInfo info : infos) {
             List<Component> lines = info.tooltip(mouseX, mouseY);

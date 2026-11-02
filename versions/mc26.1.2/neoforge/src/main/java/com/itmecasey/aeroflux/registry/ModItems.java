@@ -24,6 +24,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -135,6 +136,7 @@ public final class ModItems {
                 ITEMS.registerSimpleBlockItem(ModBlocks.lamp(kind, tier));
             }
         }
+        ITEMS.registerSimpleBlockItem(ModBlocks.CREATIVE_TANK, properties -> properties.rarity(Rarity.EPIC));
     }
 
     private ModItems() {

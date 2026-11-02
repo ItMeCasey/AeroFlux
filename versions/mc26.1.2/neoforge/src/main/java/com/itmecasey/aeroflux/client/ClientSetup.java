@@ -6,14 +6,18 @@ import com.itmecasey.aeroflux.client.model.BundleUnbakedModel;
 import com.itmecasey.aeroflux.client.model.PlantGrowerModel;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
 import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
+import com.itmecasey.aeroflux.client.screen.CollectorScreen;
 import com.itmecasey.aeroflux.client.screen.ConverterScreen;
 import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
+import com.itmecasey.aeroflux.client.screen.TankScreen;
+import com.itmecasey.aeroflux.client.sound.MachineSounds;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
+import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.MachineRecipes;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
@@ -73,16 +77,18 @@ public final class ClientSetup {
         }
     }
 
-    /** Lets the guidebook item open its screen, which only exists on the client. */
+    /** Lets the guidebook item open its screen and the machines play their running sounds, both client only. */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         GuidebookItem.setOpener(GuideScreen::open);
+        FluxMachineBlock.setClientTicker(MachineSounds::tick);
     }
 
-    /** Draws the fluid level inside each tank's glass. */
+    /** Draws the fluid level inside each tank's glass, and the endless fluid of the creative tank. */
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_TANK.get(), FluxTankRenderer::new);
     }
 
     /** Pairs the pipe menu with its screen. */
@@ -91,6 +97,8 @@ public final class ClientSetup {
         event.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
         event.register(ModMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
         event.register(ModMenus.CONVERTER.get(), ConverterScreen::new);
+        event.register(ModMenus.COLLECTOR.get(), CollectorScreen::new);
+        event.register(ModMenus.TANK.get(), TankScreen::new);
         for (MachineType machine : MachineType.values()) {
             event.register(ModMenus.machine(machine).get(), MachineScreen::new);
         }

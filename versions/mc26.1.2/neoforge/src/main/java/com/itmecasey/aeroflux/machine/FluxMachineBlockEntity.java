@@ -8,6 +8,7 @@ import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.FaceRules;
+import com.itmecasey.aeroflux.core.machine.FluxCost;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
@@ -20,6 +21,7 @@ import com.itmecasey.aeroflux.core.machine.SideConfigs;
 import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.registry.ModSounds;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +36,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -98,6 +102,8 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     /** An idle machine looks for new work this often instead of every tick. */
     private static final int IDLE_CHECK_INTERVAL = 10;
+    /** The start, stop and done sounds are cues, kept a little under full volume. */
+    private static final float ONE_SHOT_VOLUME = 0.5F;
 
     /**
      * One piece of work: the thing the inputs are being turned into right now. A subclass makes a
@@ -146,6 +152,8 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     /** False until the machine has looked at its redstone signal since it was placed or loaded. */
     private boolean signalRead;
     private @Nullable Object activeKey;
+    /** The current job's {@link Job#extraFlux}, for the cost the screen shows; 0 with no job. */
+    private int jobExtraFlux;
     /** True while there was nothing to do, so the machine only checks now and then. */
     private boolean sleeping;
     /** What a plant grower shows in its chamber; see {@link CropDisplay}. Always null for other machines. */
@@ -543,6 +551,16 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return MachineUpgrades.fluxPerTick(tier, speedUpgrades(), upgrades(MachineUpgrades.Special.EFFICIENCY));
     }
 
+    /** Flux the current job takes from start to finish, in mB; 0 with no job. See {@link FluxCost#perOperation}. */
+    public int fluxPerOperation() {
+        return FluxCost.perOperation(fluxPerTick(), totalTime(), jobExtraFlux);
+    }
+
+    /** Flux the next tick of the current job takes, in mB; 0 with no job. See {@link FluxCost#nextTick}. */
+    public int nextTickCost() {
+        return FluxCost.nextTick(fluxPerTick(), progress(), totalTime(), jobExtraFlux);
+    }
+
     /** The size of the Flux tank in mB, with Capacity upgrades counted. */
     public int fluxCapacity() {
         return StorageSizes.machine(tier, capacityUpgrades());
@@ -821,6 +839,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             // Nothing to do: forget any half-finished work and sleep until the inventory changes.
             timer.reset();
             activeKey = null;
+            jobExtraFlux = 0;
             sleeping = true;
             status = MachineStatus.IDLE;
             showWorking(level, false);
@@ -834,6 +853,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             timer.reset();
         }
         timer.setTotal(MachineUpgrades.ticksFor(job.baseTicks(), tier, speedUpgrades()));
+        jobExtraFlux = job.extraFlux();
 
         // The last tick of a job also pays the job's extra Flux.
         boolean lastTick = timer.progress() + 1 >= timer.total();
@@ -849,6 +869,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             drainFlux(cost, false);
             if (timer.advance()) {
                 job.complete();
+                playSound(level, ModSounds.MACHINE_DONE.get());
                 timer.reset();
                 activeKey = null;
                 redstone.jobFinished();
@@ -922,12 +943,20 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     /**
      * Switches the block's {@link FluxMachineBlock#LIT} state to match whether the machine is
      * working. Only a real change touches the world, so a steady machine costs no block updates.
+     * The change is also when the start or stop sound plays; the running loop is the client's
+     * business (it follows the same property).
      */
     private void showWorking(Level level, boolean working) {
         BlockState state = getBlockState();
         if (state.hasProperty(FluxMachineBlock.LIT) && state.getValue(FluxMachineBlock.LIT) != working) {
             level.setBlock(worldPosition, state.setValue(FluxMachineBlock.LIT, working), Block.UPDATE_ALL);
+            playSound(level, working ? ModSounds.MACHINE_START.get() : ModSounds.MACHINE_STOP.get());
         }
+    }
+
+    /** Plays one of the shared one-shot machine sounds at the machine, for everyone nearby. */
+    private void playSound(Level level, SoundEvent sound) {
+        level.playSound(null, worldPosition, sound, SoundSource.BLOCKS, ONE_SHOT_VOLUME, 1.0F);
     }
 
     /**

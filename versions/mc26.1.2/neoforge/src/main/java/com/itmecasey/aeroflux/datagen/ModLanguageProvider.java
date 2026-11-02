@@ -57,6 +57,97 @@ public class ModLanguageProvider extends LanguageProvider {
         add("fluid_type." + AeroFlux.MODID + ".twilight_flux", "Twilight Flux");
     }
 
+    /** The machine sound subtitles and the creative-only blocks. */
+    private void addSoundAndCreativeTranslations() {
+        String subtitle = "subtitles." + AeroFlux.MODID + ".machine.";
+        add(subtitle + "furnace", "Flux Furnace running");
+        add(subtitle + "grinder", "Flux Grinder running");
+        add(subtitle + "smelter", "Alloy Smelter running");
+        add(subtitle + "sawmill", "Flux Sawmill running");
+        add(subtitle + "infuser", "Flux Infuser running");
+        add(subtitle + "enchanter", "Flux Enchanter running");
+        add(subtitle + "disenchanter", "Flux Disenchanter running");
+        add(subtitle + "grower", "Plant Grower running");
+        add(subtitle + "start", "Machine powers up");
+        add(subtitle + "stop", "Machine powers down");
+        add(subtitle + "done", "Machine finishes");
+
+        addBlock(ModBlocks.CREATIVE_TANK, "Creative Flux Tank");
+        add("message." + AeroFlux.MODID + ".creative_tank.flux", "Creative Flux Tank now gives %s");
+    }
+
+    /** The flux badge and cost bar on the machine screens, and the collector and tank screens. */
+    private void addFluxScreenTranslations() {
+        add("gui.aeroflux.badge.name", "Flux type");
+        add("gui.aeroflux.badge.takes.aero", "Runs on Aero Flux");
+        add("gui.aeroflux.badge.takes.moon", "Runs on Moon Flux");
+        add("gui.aeroflux.badge.takes.either", "Runs on Aero Flux or Moon Flux");
+        add("gui.aeroflux.badge.has.aero", "Has Aero Flux");
+        add("gui.aeroflux.badge.has.moon", "Has Moon Flux");
+        add("gui.aeroflux.badge.has.twilight", "Has Twilight Flux");
+        add("gui.aeroflux.badge.none", "No Flux in the tank");
+
+        add("gui.aeroflux.cost.name", "Flux cost");
+        add("gui.aeroflux.cost.no_job", "Nothing to work on");
+        add("gui.aeroflux.cost.per_operation", "Per job: %s mB");
+        add("gui.aeroflux.cost.in_tank", "In the tank: %s mB (%s jobs)");
+        add("gui.aeroflux.cost.next_tick", "Next tick: %s mB");
+        add("gui.aeroflux.cost.short", "Not enough Flux for the next tick");
+
+        String collector = "gui.aeroflux.collector.";
+        add(collector + "phase.day", "Day");
+        add(collector + "phase.dusk", "Dusk");
+        add(collector + "phase.night", "Night");
+        add(collector + "phase.dawn", "Dawn");
+        add(collector + "phase.always_day", "Always day");
+        add(collector + "phase.always_night", "Always night");
+        add(collector + "phase.always_both", "Day and night");
+        add(collector + "clock", "%s, next change in %s");
+        add(collector + "offer.making", "%s: %s");
+        add(collector + "offer.making.tooltip", "The sky gives %s now.");
+        add(collector + "offer.none", "%s: nothing");
+        add(collector + "offer.none.tooltip", "Between day and night the sky gives no Flux.");
+        add(collector + "offer.locked", "%s: waiting");
+        add(collector + "offer.locked.tooltip", "The sky gives %s, but the buffer still holds the other Flux. Empty it first.");
+        add(collector + "sky.open", "Open sky");
+        add(collector + "sky.open.tooltip", "Nothing blocks the sky above.");
+        add(collector + "sky.blocked", "Sky blocked");
+        add(collector + "sky.blocked_by", "Blocked by %s");
+        add(collector + "sky.blocked_at", "At %s, %s, %s");
+        add(collector + "sky.blocked.tooltip", "A collector needs open sky above it. Glass lets the light through.");
+        add(collector + "sky.not_needed", "Sky not needed here");
+        add(collector + "sky.not_needed.tooltip", "In this dimension collectors work under a roof.");
+        add(collector + "weather.clear", "Clear: %s%%");
+        add(collector + "weather.rain", "Rain: %s%%");
+        add(collector + "weather.thunder", "Thunder: %s%%");
+        add(collector + "weather.tooltip", "Rain halves Aero Flux and thunder cuts it to a quarter. Moon Flux does not mind.");
+        add(collector + "weather.ignored", "Weather ignored here");
+        add(collector + "weather.ignored.tooltip", "In this dimension the weather changes nothing.");
+        add(collector + "moon", "%s: %s%%");
+        add(collector + "moon.tooltip", "Moon Flux is strongest at a full moon and weakest at a new moon.");
+        add(collector + "moon.0", "Full moon");
+        add(collector + "moon.1", "Waning gibbous");
+        add(collector + "moon.2", "Last quarter");
+        add(collector + "moon.3", "Waning crescent");
+        add(collector + "moon.4", "New moon");
+        add(collector + "moon.5", "Waxing crescent");
+        add(collector + "moon.6", "First quarter");
+        add(collector + "moon.7", "Waxing gibbous");
+        add(collector + "rate", "Making %s mB/t");
+        add(collector + "rate.tooltip", "Made last tick: %s mB");
+        add(collector + "out.tooltip", "Passed on to neighbors: %s mB/t");
+        add(collector + "full.in", "Full in %s");
+        add(collector + "full.now", "Full");
+        add(collector + "full.never", "Not filling");
+        add(collector + "full.tooltip", "At the current rates, counting what is passed on.");
+
+        add("gui.aeroflux.tank.percent", "%s%%");
+        add("gui.aeroflux.tank.in", "In: %s mB/t");
+        add("gui.aeroflux.tank.out", "Out: %s mB/t");
+        add("gui.aeroflux.tank.empty_in", "Empty in %s");
+        add("gui.aeroflux.tank.steady", "Steady");
+    }
+
     /** Names of the machines and the new items, and every text of the machine screens. */
     private void addMachineTranslations() {
         addItem(ModItems.AERO_CRYSTAL, "Aero Crystal");
@@ -193,6 +284,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui.aeroflux.progress.percent", "Progress: %s%%");
         add("gui.aeroflux.progress.left", "%s s left");
         add("gui.aeroflux.status.name", "Machine status");
+        addFluxScreenTranslations();
+        addSoundAndCreativeTranslations();
 
         String status = "machine." + AeroFlux.MODID + ".status.";
         add(status + "idle", "Idle");

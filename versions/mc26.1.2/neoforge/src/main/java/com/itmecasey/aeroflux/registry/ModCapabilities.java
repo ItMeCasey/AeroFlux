@@ -25,6 +25,10 @@ public final class ModCapabilities {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ModBlockEntities.TANK.get(),
                 (tank, side) -> tank.tank());
 
+        // The creative tank gives its flux and swallows any flux on every side.
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ModBlockEntities.CREATIVE_TANK.get(),
+                (tank, side) -> tank.tank());
+
         // Machines show what their face settings allow; a blocked face shows nothing at all.
         event.registerBlockEntity(Capabilities.Item.BLOCK, ModBlockEntities.MACHINE.get(),
                 FluxMachineBlockEntity::itemHandler);

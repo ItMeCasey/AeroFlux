@@ -798,7 +798,7 @@ final class MachineSelfTest {
     }
 
     /** Hands everything the server would send a player to another menu, cut to 16 bits like the network does. */
-    private record Mirror(AbstractContainerMenu target) implements ContainerSynchronizer {
+    record Mirror(AbstractContainerMenu target) implements ContainerSynchronizer {
         @Override
         public void sendInitialData(AbstractContainerMenu container, NonNullList<ItemStack> items, ItemStack carried, int[] data) {
             for (int i = 0; i < items.size(); i++) {

@@ -7,10 +7,12 @@ import com.itmecasey.aeroflux.client.model.BundleGeometryLoader;
 import com.itmecasey.aeroflux.client.model.PlantGrowerModel;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
 import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
+import com.itmecasey.aeroflux.client.screen.CollectorScreen;
 import com.itmecasey.aeroflux.client.screen.ConverterScreen;
 import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
+import com.itmecasey.aeroflux.client.screen.TankScreen;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
@@ -53,6 +55,8 @@ public final class ClientSetup {
             MenuScreens.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
             MenuScreens.register(ModMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
             MenuScreens.register(ModMenus.CONVERTER.get(), ConverterScreen::new);
+            MenuScreens.register(ModMenus.COLLECTOR.get(), CollectorScreen::new);
+            MenuScreens.register(ModMenus.TANK.get(), TankScreen::new);
             for (MachineType machine : MachineType.values()) {
                 MenuScreens.register(ModMenus.machine(machine).get(), MachineScreen::new);
             }

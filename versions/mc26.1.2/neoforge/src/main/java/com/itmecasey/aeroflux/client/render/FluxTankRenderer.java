@@ -1,6 +1,6 @@
 package com.itmecasey.aeroflux.client.render;
 
-import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.block.entity.TankView;
 import com.itmecasey.aeroflux.core.FillLevel;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -26,9 +27,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * Draws the fluid inside a tank's glass. The fluid is a box that fills the glass from the bottom
  * up to the tank's fill level, textured with the fluid's own animated sprite and tinted with its
- * flux color, and it glows a little so a full tank stays readable in the dark.
+ * flux color, and it glows a little so a full tank stays readable in the dark. It serves every
+ * {@link TankView}: the Flux Tanks and the Creative Flux Tank.
  */
-public class FluxTankRenderer implements BlockEntityRenderer<FluxTankBlockEntity, FluxTankRenderer.State> {
+public class FluxTankRenderer<T extends BlockEntity & TankView> implements BlockEntityRenderer<T, FluxTankRenderer.State> {
     /** The fluid box sits just inside the glass, which spans 2 to 14 pixels. */
     private static final float INSET = 2.25F / 16.0F;
     private static final float FLOOR = 2.25F / 16.0F;
@@ -54,7 +56,7 @@ public class FluxTankRenderer implements BlockEntityRenderer<FluxTankBlockEntity
     }
 
     @Override
-    public void extractRenderState(FluxTankBlockEntity tank, State state, float partialTicks, Vec3 cameraPosition,
+    public void extractRenderState(T tank, State state, float partialTicks, Vec3 cameraPosition,
                                    ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(tank, state, partialTicks, cameraPosition, breakProgress);
         state.sprite = null;

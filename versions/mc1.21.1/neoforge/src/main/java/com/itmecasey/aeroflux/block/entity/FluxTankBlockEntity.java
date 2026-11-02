@@ -2,8 +2,11 @@ package com.itmecasey.aeroflux.block.entity;
 
 import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.block.FluxTankBlock;
+import com.itmecasey.aeroflux.block.menu.TankMenu;
 import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.RateMeter;
+import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModDataComponents;
@@ -12,30 +15,60 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Holds the fluid of a {@link FluxTankBlock}: Aero Flux or Moon Flux, never both at once.
  *
  * <p>Clients draw the fluid level inside the glass, so they are sent the tank whenever its
- * picture changes (see {@link FillLevel}); a tank being filled does not resend every tick.
+ * picture changes (see {@link FillLevel}); a tank being filled does not resend every tick. Its
+ * screen gets the exact numbers, and the in and out rates, through {@link TankMenu} instead.
  */
-public class FluxTankBlockEntity extends BlockEntity {
+public class FluxTankBlockEntity extends BlockEntity implements MenuProvider {
+    private final Tier tier;
     private final FluidTank tank;
+    /** Counts what goes in and out, for the in and out rates on the tank's screen. */
+    private final RateMeter meter = new RateMeter();
     /** The {@link FillLevel#syncKey} last sent to clients. */
     private int syncedKey;
 
     public FluxTankBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TANK.get(), pos, state);
-        int capacity = StorageSizes.tank(((FluxTankBlock) state.getBlock()).tier());
+        this.tier = ((FluxTankBlock) state.getBlock()).tier();
+        int capacity = StorageSizes.tank(tier);
         this.tank = new FluxFluidTank(capacity, stack -> ModFluids.isAnyFlux(stack.getFluid())) {
+            @Override
+            public int fill(FluidStack resource, FluidAction action) {
+                int filled = super.fill(resource, action);
+                if (action.execute()) {
+                    record(filled);
+                }
+                return filled;
+            }
+
+            @Override
+            public FluidStack drain(int maxDrain, FluidAction action) {
+                FluidStack drained = super.drain(maxDrain, action);
+                if (action.execute()) {
+                    record(-drained.getAmount());
+                }
+                return drained;
+            }
+
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update); it still takes nothing more, and probes such as Jade, which refuse a fill above
@@ -57,6 +90,58 @@ public class FluxTankBlockEntity extends BlockEntity {
     /** The tank itself, exposed to pipes and containers through the fluid capability. */
     public FluidTank tank() {
         return tank;
+    }
+
+    /** Counts a change of the tank for the screen's rates; NeoForge's tank does not say how much changed. */
+    private void record(int delta) {
+        if (level != null && !level.isClientSide && delta != 0) {
+            meter.record(delta, level.getGameTime());
+        }
+    }
+
+    public Tier tier() {
+        return tier;
+    }
+
+    /** Flux in the tank, in mB. */
+    public int amount() {
+        return tank.getFluidAmount();
+    }
+
+    /** The tank's size, in mB. */
+    public int capacity() {
+        return tank.getCapacity();
+    }
+
+    /** The flux in the tank, or {@code null} if it is empty. */
+    @Nullable
+    public FluxType storedFlux() {
+        return tank.isEmpty() ? null : ModFluids.fluxTypeOf(tank.getFluid().getFluid());
+    }
+
+    /** mB that went in during the last finished second. */
+    public long inLastWindow() {
+        return level == null ? 0 : meter.lastIn(level.getGameTime());
+    }
+
+    /** mB that came out during the last finished second. */
+    public long outLastWindow() {
+        return level == null ? 0 : meter.lastOut(level.getGameTime());
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return getBlockState().getBlock().getName();
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new TankMenu(containerId, playerInventory, this);
+    }
+
+    /** What the client needs to build its copy of the menu. */
+    public void writeOpenData(RegistryFriendlyByteBuf buf) {
+        TankMenu.writeOpenData(buf, worldPosition, tier);
     }
 
     /** Tells clients about the tank, but only when what they would draw has changed. */
