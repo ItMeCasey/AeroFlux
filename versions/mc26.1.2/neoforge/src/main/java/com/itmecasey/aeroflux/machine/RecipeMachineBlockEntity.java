@@ -55,7 +55,9 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
         if (recipe == null || !recipe.value().matches(input, server)) {
             Optional<RecipeHolder<FluxRecipe>> found =
                     server.recipeAccess().getRecipeFor(ModRecipes.type(machine()).get(), input, server);
-            recipe = found.orElse(null);
+            // The machine's own recipes win; recipes imported from other mods fill the gaps.
+            recipe = found.orElseGet(() -> RecipeImports.of(server, machine()).stream()
+                    .filter(imported -> imported.value().matches(input, server)).findFirst().orElse(null));
             lastRecipe = recipe;
         }
         return recipe == null ? null : new RecipeJob(recipe);
@@ -84,10 +86,20 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             return holder.value().time();
         }
 
+        /**
+         * Only the products a run always makes must have room. Chance byproducts (seeds, sawdust)
+         * take whatever space is left, so a slot full of them never stops the machine while its
+         * main product still fits.
+         */
         @Override
         public boolean outputFits() {
-            // Judged on the full set of products, so a lucky roll can never find the outputs full.
-            return canFitOutputs(holder.value().possibleProducts());
+            List<ItemStack> certain = new ArrayList<>();
+            for (FluxRecipe.Output output : holder.value().outputs()) {
+                if (output.chance() >= 1.0) {
+                    certain.add(output.stack());
+                }
+            }
+            return canFitOutputs(certain);
         }
 
         @Override

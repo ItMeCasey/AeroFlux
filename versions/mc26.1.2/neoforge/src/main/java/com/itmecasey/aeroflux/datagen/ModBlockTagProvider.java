@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.concurrent.CompletableFuture;
@@ -19,8 +20,7 @@ public class ModBlockTagProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider registries) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
-                .add(ModBlocks.CONDUIT_BUNDLE.get())
-                .add(ModBlocks.PIPE_NODE.get());
+                .add(ModBlocks.CONDUIT_BUNDLE.get());
 
         for (Tier tier : Tier.values()) {
             tag(BlockTags.MINEABLE_WITH_PICKAXE)
@@ -32,6 +32,12 @@ public class ModBlockTagProvider extends BlockTagsProvider {
             for (MachineType machine : MachineType.values()) {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.machine(machine, tier).get());
                 tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.machine(machine, tier).get());
+            }
+            tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.chunkLoader(tier).get());
+            tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.chunkLoader(tier).get());
+            for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
+                tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.converter(type, tier).get());
+                tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.converter(type, tier).get());
             }
         }
     }

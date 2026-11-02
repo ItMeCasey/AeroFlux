@@ -17,7 +17,7 @@ public final class MachineMath {
     /** Flux burned per tick while working, in mB, copper to fluxium. */
     private static final int[] FLUX_PER_TICK = {2, 3, 4, 5, 6, 8};
     /** Input tank capacity in buckets, copper to fluxium. */
-    private static final int[] INPUT_BUCKETS = {4, 8, 16, 32, 64, 128};
+    private static final int[] INPUT_BUCKETS = {1, 2, 4, 8, 16, 32};
 
     private static final int MB_PER_BUCKET = 1_000;
 
@@ -32,6 +32,19 @@ public final class MachineMath {
     /** Flux a machine of this tier burns each tick it is working, in mB. */
     public static int fluxPerTick(Tier tier) {
         return FLUX_PER_TICK[tier.ordinal()];
+    }
+
+    /** How often a machine with Auto Import or Auto Export on moves things, in ticks. */
+    public static final int AUTO_INTERVAL = 10;
+
+    /** Items moved per face each {@link #AUTO_INTERVAL}: 4 for copper, doubling each tier up to 128. */
+    public static int autoItems(Tier tier) {
+        return 4 << tier.ordinal();
+    }
+
+    /** Flux moved in through a face each {@link #AUTO_INTERVAL}, in mB: a quarter of the tank. */
+    public static int autoFlux(Tier tier) {
+        return inputCapacity(tier) / 4;
     }
 
     /** Capacity of a machine's Flux input tank, in mB. */

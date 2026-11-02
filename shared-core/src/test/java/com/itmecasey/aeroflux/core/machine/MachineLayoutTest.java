@@ -126,4 +126,85 @@ class MachineLayoutTest {
         assertEquals(front.x(), layout.face(FaceLabel.BOTTOM).x());
         assertTrue(layout.face(FaceLabel.BOTTOM).y() > front.y());
     }
+
+    // --- The glyph-only side-config window ---------------------------------------------------
+
+    @Test
+    void glyphWindowPartsFitInsideTheBorderAndDoNotOverlap() {
+        for (int tabs = 1; tabs <= 5; tabs++) {
+            GlyphSidePanelLayout layout = new GlyphSidePanelLayout(tabs);
+            List<MachineLayout.Rect> all = layout.clickable();
+            for (int i = 0; i < all.size(); i++) {
+                MachineLayout.Rect a = all.get(i);
+                // The raised border takes two pixels on every side.
+                assertTrue(a.x() >= 2 && a.y() >= 2 && a.x() + a.width() <= GlyphSidePanelLayout.WIDTH - 2
+                        && a.y() + a.height() <= GlyphSidePanelLayout.HEIGHT - 2, tabs + " tabs: part " + i + " leaves the window");
+                for (int j = i + 1; j < all.size(); j++) {
+                    assertFalse(a.overlaps(all.get(j)), tabs + " tabs: parts " + i + " and " + j + " overlap");
+                }
+            }
+        }
+    }
+
+    @Test
+    void glyphWindowMatchesTheMockup() {
+        GlyphSidePanelLayout five = new GlyphSidePanelLayout(5);
+        assertEquals(17, five.tabSize());
+        assertEquals(new MachineLayout.Rect(5, 4, 17, 17), five.tab(0));
+        assertEquals(15, five.cubeX());
+        assertEquals(27, five.cubeY());
+        assertEquals(new MachineLayout.Rect(37, 27, 21, 21), five.face(FaceLabel.TOP));
+        assertEquals(new MachineLayout.Rect(15, 49, 21, 21), five.face(FaceLabel.LEFT));
+        assertEquals(new MachineLayout.Rect(59, 71, 21, 21), five.face(FaceLabel.BACK));
+        assertEquals(new MachineLayout.Rect(11, 98, 22, 22), five.allOffButton());
+        assertEquals(new MachineLayout.Rect(37, 98, 22, 22), five.copyButton());
+        assertEquals(new MachineLayout.Rect(63, 98, 22, 22), five.resetButton());
+
+        // Two tabs keep the five-tab size and sit in the middle, so nothing else moves.
+        GlyphSidePanelLayout two = new GlyphSidePanelLayout(2);
+        assertEquals(new MachineLayout.Rect(31, 4, 17, 17), two.tab(0));
+        assertEquals(five.face(FaceLabel.FRONT), two.face(FaceLabel.FRONT));
+    }
+
+    @Test
+    void glyphWindowPutsBackUnderRight() {
+        GlyphSidePanelLayout layout = new GlyphSidePanelLayout(2);
+        MachineLayout.Rect front = layout.face(FaceLabel.FRONT);
+        MachineLayout.Rect right = layout.face(FaceLabel.RIGHT);
+        MachineLayout.Rect bottom = layout.face(FaceLabel.BOTTOM);
+        MachineLayout.Rect back = layout.face(FaceLabel.BACK);
+        assertEquals(front.y(), layout.face(FaceLabel.LEFT).y());
+        assertEquals(front.y(), right.y());
+        assertEquals(front.x(), layout.face(FaceLabel.TOP).x());
+        assertEquals(front.x(), bottom.x());
+        assertEquals(right.x(), back.x());
+        assertEquals(bottom.y(), back.y());
+    }
+
+    @Test
+    void glyphWindowClicksLandWhereThePictureSaysTheyDo() {
+        GlyphSidePanelLayout layout = new GlyphSidePanelLayout(2);
+        for (FaceLabel label : FaceLabel.values()) {
+            MachineLayout.Rect rect = layout.face(label);
+            SidePanelLayout.Hit hit = layout.hit(rect.x() + rect.width() / 2.0, rect.y() + rect.height() / 2.0);
+            assertEquals(SidePanelLayout.Part.FACE, hit.part());
+            assertEquals(label.ordinal(), hit.index());
+        }
+        for (int i = 0; i < 2; i++) {
+            MachineLayout.Rect rect = layout.tab(i);
+            SidePanelLayout.Hit hit = layout.hit(rect.x() + rect.width() - 1, rect.y() + 1);
+            assertEquals(SidePanelLayout.Part.TAB, hit.part());
+            assertEquals(i, hit.index());
+        }
+        assertEquals(SidePanelLayout.Part.ALL_OFF, layout.hit(layout.allOffButton().x() + 1, layout.allOffButton().y() + 1).part());
+        assertEquals(SidePanelLayout.Part.COPY_TO_ALL, layout.hit(layout.copyButton().x() + 1, layout.copyButton().y() + 1).part());
+        assertEquals(SidePanelLayout.Part.RESET, layout.hit(layout.resetButton().x() + 1, layout.resetButton().y() + 1).part());
+        assertEquals(SidePanelLayout.Part.AUTO_IMPORT, layout.hit(layout.autoImportButton().x() + 1, layout.autoImportButton().y() + 1).part());
+        assertEquals(SidePanelLayout.Part.AUTO_EXPORT, layout.hit(layout.autoExportButton().x() + 1, layout.autoExportButton().y() + 1).part());
+        // The gap between two faces belongs to nothing.
+        MachineLayout.Rect front = layout.face(FaceLabel.FRONT);
+        assertEquals(SidePanelLayout.Part.NOTHING, layout.hit(front.x() + front.width(), front.y() + 5).part());
+        assertEquals(SidePanelLayout.Part.NOTHING, layout.hit(0, 0).part());
+        assertEquals(SidePanelLayout.Part.NOTHING, layout.hit(-5, 500).part());
+    }
 }

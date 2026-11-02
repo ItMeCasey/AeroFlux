@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "#c:gems/diamond",
+    "P": "aeroflux:gold_gas_pipe",
+    "S": "aeroflux:fluxsteel_ingot",
+    "T": "#c:gems/diamond"
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "id": "aeroflux:diamond_gas_pipe"
+  }
+}

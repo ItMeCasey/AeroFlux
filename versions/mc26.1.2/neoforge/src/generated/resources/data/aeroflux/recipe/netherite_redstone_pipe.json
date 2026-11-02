@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": "aeroflux:aerogold_ingot",
+    "P": "aeroflux:diamond_redstone_pipe",
+    "S": "aeroflux:aerogold_ingot",
+    "T": "#c:ingots/netherite"
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "id": "aeroflux:netherite_redstone_pipe"
+  }
+}

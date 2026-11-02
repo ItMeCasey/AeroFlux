@@ -12,6 +12,7 @@ import com.itmecasey.aeroflux.core.machine.MachineLayout;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.SideCommand;
 import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
@@ -398,7 +399,8 @@ final class MachineSelfTest {
         FluidResource aero = FluidResource.of(ModFluids.AERO_FLUX.get());
         FluidResource moon = FluidResource.of(ModFluids.MOON_FLUX.get());
         ResourceHandler<FluidResource> fluid = fluid(pos, Direction.UP);
-        SelfTest.check("faces: the furnace takes Aero Flux", fill(fluid, aero, 1_000, false) == 1_000);
+        // Half the copper tank, so there is room left for the "both" face to fill below.
+        SelfTest.check("faces: the furnace takes Aero Flux", fill(fluid, aero, 500, false) == 500);
         SelfTest.check("faces: it refuses Moon Flux", fill(fluid, moon, 1_000, true) == 0);
         SelfTest.check("faces: it refuses water", fill(fluid, FluidResource.of(Fluids.WATER), 1_000, true) == 0);
         SelfTest.check("faces: the fluid tank reports it is a Flux tank only",
@@ -633,7 +635,7 @@ final class MachineSelfTest {
 
         MachineLayout layout = MachineLayout.of(1, 1);
         SelfTest.check("menu: the slots sit where the layout says",
-                server.slots.size() == 2 + 36
+                server.slots.size() == 2 + MachineUpgrades.slots(Tier.FLUXIUM) + 36
                         && server.getSlot(0).x == layout.inputSlot(0).x() && server.getSlot(0).y == layout.inputSlot(0).y()
                         && server.getSlot(1).x == layout.outputSlot(0).x() && server.getSlot(1).y == layout.outputSlot(0).y());
 
@@ -702,7 +704,8 @@ final class MachineSelfTest {
             level.setBlock(at, ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
             player.setPos(at.getX() + 0.5, at.getY(), at.getZ() - 1.5);
             MachineMenu menu = new MachineMenu(2, player.getInventory(), machine(at));
-            slots &= menu.slots.size() == type.inputSlots() + type.outputSlots() + 36 && menu.stillValid(player)
+            slots &= menu.slots.size() == type.inputSlots() + type.outputSlots() + MachineUpgrades.slots(Tier.COPPER) + 36
+                    && menu.stillValid(player)
                     && menu.machine() == type;
         }
         SelfTest.check("menu: all eight machines open a menu with their own slot counts", slots);
@@ -866,8 +869,11 @@ final class MachineSelfTest {
         return book;
     }
 
-    /** Hands everything the server would send a player to another menu, cut to 16 bits like the network does. */
-    private record Mirror(AbstractContainerMenu target) implements ContainerSynchronizer {
+    /**
+     * Hands everything the server would send a player to another menu, cut to 16 bits like the
+     * network does. {@link MachineUpgradeSelfTest} uses it too.
+     */
+    record Mirror(AbstractContainerMenu target) implements ContainerSynchronizer {
         @Override
         public void sendInitialData(AbstractContainerMenu container, List<ItemStack> items, ItemStack carried, int[] data) {
             for (int i = 0; i < items.size(); i++) {

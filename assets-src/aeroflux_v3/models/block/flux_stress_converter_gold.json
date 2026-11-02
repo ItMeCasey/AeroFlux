@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_stress_converter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_stress_converter_side_gold",
+    "back": "aeroflux:block/flux_stress_converter_back_gold",
+    "top": "aeroflux:block/flux_stress_converter_top_gold",
+    "bottom": "aeroflux:block/flux_stress_converter_bottom_gold",
+    "front": "aeroflux:block/flux_stress_converter_front_gold",
+    "particle": "aeroflux:block/flux_stress_converter_side_gold"
+  }
+}

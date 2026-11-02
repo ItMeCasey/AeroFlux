@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "T": "aeroflux:copper_tank",
+    "X": "#c:storage_blocks/redstone"
+  },
+  "pattern": [
+    "CXC",
+    "DTD",
+    "CXC"
+  ],
+  "result": {
+    "id": "aeroflux:flux_energy_converter"
+  }
+}

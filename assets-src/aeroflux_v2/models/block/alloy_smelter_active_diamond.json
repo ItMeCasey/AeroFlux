@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/alloy_smelter_base",
+  "textures": {
+    "side": "aeroflux:block/alloy_smelter_side_diamond",
+    "back": "aeroflux:block/alloy_smelter_back_diamond",
+    "top": "aeroflux:block/alloy_smelter_top_diamond",
+    "bottom": "aeroflux:block/alloy_smelter_bottom_diamond",
+    "front": "aeroflux:block/alloy_smelter_front_active_diamond",
+    "particle": "aeroflux:block/alloy_smelter_side_diamond"
+  }
+}

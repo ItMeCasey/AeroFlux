@@ -38,6 +38,16 @@ public class FluxTankBlockEntity extends BlockEntity {
         int capacity = AeroFluxConfig.tankCapacity(((FluxTankBlock) state.getBlock()).tier());
         // A single slot, so the tank can only ever hold one kind of flux.
         this.tank = new FluidStacksResourceHandler(1, capacity) {
+            /**
+             * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
+             * update, or a Capacity upgrade came out); it still takes nothing more, and probes such as
+             * Jade, which refuse a fill above 100%, see a full tank instead of crashing.
+             */
+            @Override
+            public long getCapacityAsLong(int index, FluidResource resource) {
+                return Math.max(super.getCapacityAsLong(index, resource), getAmountAsLong(index));
+            }
+
             @Override
             public boolean isValid(int index, FluidResource resource) {
                 return ModFluids.isFlux(resource);

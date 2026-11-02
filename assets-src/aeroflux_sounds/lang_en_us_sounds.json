@@ -1,0 +1,13 @@
+{
+  "subtitles.aeroflux.machine.furnace": "Flux Furnace running",
+  "subtitles.aeroflux.machine.grinder": "Flux Grinder running",
+  "subtitles.aeroflux.machine.smelter": "Alloy Smelter running",
+  "subtitles.aeroflux.machine.sawmill": "Flux Sawmill running",
+  "subtitles.aeroflux.machine.infuser": "Flux Infuser running",
+  "subtitles.aeroflux.machine.enchanter": "Flux Enchanter running",
+  "subtitles.aeroflux.machine.disenchanter": "Flux Disenchanter running",
+  "subtitles.aeroflux.machine.grower": "Plant Grower running",
+  "subtitles.aeroflux.machine.start": "Machine powers up",
+  "subtitles.aeroflux.machine.stop": "Machine powers down",
+  "subtitles.aeroflux.machine.done": "Machine finishes"
+}

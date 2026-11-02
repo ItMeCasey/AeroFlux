@@ -23,7 +23,11 @@ public final class SidePanelLayout {
         FACE,
         ALL_OFF,
         COPY_TO_ALL,
-        RESET
+        RESET,
+        /** The machine pulls from its neighbors through its import faces by itself. */
+        AUTO_IMPORT,
+        /** The machine pushes to its neighbors through its export faces by itself. */
+        AUTO_EXPORT
     }
 
     /** The part under a point and its index (the tab number or face label ordinal, otherwise 0). */

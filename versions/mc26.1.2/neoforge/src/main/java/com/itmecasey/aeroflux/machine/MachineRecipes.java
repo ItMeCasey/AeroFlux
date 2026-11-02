@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModRecipes;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeMap;
@@ -48,7 +49,9 @@ public final class MachineRecipes {
     public static Collection<RecipeHolder<FluxRecipe>> of(Level level, MachineType machine) {
         RecipeType<FluxRecipe> type = ModRecipes.type(machine).get();
         if (level instanceof ServerLevel server) {
-            return new ArrayList<>(server.recipeAccess().recipeMap().byType(type));
+            List<RecipeHolder<FluxRecipe>> recipes = new ArrayList<>(server.recipeAccess().recipeMap().byType(type));
+            recipes.addAll(RecipeImports.of(server, machine));
+            return recipes;
         }
         return new ArrayList<>(received.byType(type));
     }

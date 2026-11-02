@@ -3,8 +3,8 @@ package com.itmecasey.aeroflux.datagen;
 import com.itmecasey.aeroflux.AeroFlux;
 import java.util.List;
 import java.util.Set;
+import net.minecraft.data.advancements.AdvancementProvider;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -20,20 +20,17 @@ public final class DataGenerators {
     private DataGenerators() {
     }
 
-    /**
-     * Registers the client-side providers: translations and item/block models. The model provider
-     * reads the hand-made models and textures through the client resources, which hold the
-     * {@code --existing} pack ({@code src/main/resources}).
-     */
+    /** Registers the client-side providers: translations and item/block models. */
     @SubscribeEvent
     public static void gatherClientData(GatherDataEvent.Client event) {
         event.createProvider(ModLanguageProvider::new);
-        // Not a lambda here: it would become a method of this class that names the client-only
-        // model provider, and the dedicated server fails while scanning this class for events.
-        event.createProvider(ModModelProvider.reading(event.getResourceManager(PackType.CLIENT_RESOURCES)));
+        // A constructor reference, not a lambda: a lambda would become a method of this class that
+        // names the client-only model provider, and the dedicated server fails while scanning this
+        // class for events.
+        event.createProvider(ModModelProvider::new);
     }
 
-    /** Registers the server-side providers: recipes, block tags and loot tables. */
+    /** Registers the server-side providers: recipes, block tags, loot tables and advancements. */
     @SubscribeEvent
     public static void gatherServerData(GatherDataEvent.Server event) {
         event.createProvider(ModBlockTagProvider::new);
@@ -41,5 +38,6 @@ public final class DataGenerators {
         event.createProvider((output, lookupProvider) -> new LootTableProvider(output, Set.of(), List.of(
                 new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK)),
                 lookupProvider));
+        event.createProvider((output, lookupProvider) -> new AdvancementProvider(output, lookupProvider, List.of(new ModAdvancements())));
     }
 }

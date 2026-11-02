@@ -1,6 +1,8 @@
 package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
+import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -28,5 +30,18 @@ public final class ModCapabilities {
                 FluxMachineBlockEntity::itemHandler);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ModBlockEntities.MACHINE.get(),
                 FluxMachineBlockEntity::fluidHandler);
+
+        // Chunk loaders take Flux on every side and never give it back.
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ModBlockEntities.CHUNK_LOADER.get(),
+                (loader, side) -> loader.fluidHandler());
+
+        // Converters take Flux on every side; the FE converter also lets anything draw its energy.
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ModBlockEntities.CONVERTER.get(),
+                (converter, side) -> converter.fluidHandler());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, ModBlockEntities.CONVERTER.get(),
+                FluxConverterBlockEntity::energyHandler);
+
+        // With AE2 installed, a bundle's ME pipe is a grid node AE2 can join.
+        Ae2Compat.registerCapabilities(event);
     }
 }

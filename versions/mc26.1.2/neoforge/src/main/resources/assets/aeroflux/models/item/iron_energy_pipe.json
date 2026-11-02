@@ -1,7 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "aeroflux:block/pipe_energy"
-  }
+  "parent": "aeroflux:item/pipe_energy"
 }
-

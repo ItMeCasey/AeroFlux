@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_furnace_base",
+  "textures": {
+    "side": "aeroflux:block/flux_furnace_side",
+    "back": "aeroflux:block/flux_furnace_back",
+    "top": "aeroflux:block/flux_furnace_top",
+    "bottom": "aeroflux:block/flux_furnace_bottom",
+    "front": "aeroflux:block/flux_furnace_front",
+    "particle": "aeroflux:block/flux_furnace_side"
+  }
+}

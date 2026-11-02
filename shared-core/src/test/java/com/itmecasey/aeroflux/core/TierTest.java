@@ -21,8 +21,8 @@ class TierTest {
 
     @Test
     void capacitiesAreStoredInMillibuckets() {
-        assertEquals(32_000, Tier.COPPER.tankCapacity());
-        assertEquals(32_768_000, Tier.FLUXIUM.tankCapacity());
+        assertEquals(6_400, Tier.COPPER.tankCapacity());
+        assertEquals(6_553_600, Tier.FLUXIUM.tankCapacity());
     }
 
     @Test

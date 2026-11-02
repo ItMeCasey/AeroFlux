@@ -27,7 +27,16 @@ sourceSets.main.resources {
 }
 
 repositories {
-    // Add here additional repositories if required by some of the dependencies below.
+    // Modrinth's Maven, for the optional mods AeroFlux talks to (Jade, The One Probe).
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup 'maven.modrinth' }
+    }
 }
 
 base {
@@ -125,6 +134,34 @@ configurations {
 }
 
 dependencies {
+    // Look-at tooltips. Both are optional at play time: AeroFlux only registers its plugins when
+    // they are installed. They are on the dev runtime too, so the plugins can be seen working.
+    compileOnly "maven.modrinth:jade:${jade_version}"
+    localRuntime "maven.modrinth:jade:${jade_version}"
+    compileOnly "maven.modrinth:the-one-probe:${top_version}"
+    localRuntime "maven.modrinth:the-one-probe:${top_version}"
+
+    // Applied Energistics 2, for the ME and dense ME pipes. Optional like the two above.
+    compileOnly "maven.modrinth:ae2:${ae2_version}"
+    localRuntime "maven.modrinth:ae2:${ae2_version}"
+    localRuntime "maven.modrinth:guideme:${guideme_version}"
+
+    // JEI, to show the machine recipes. Optional too.
+    compileOnly "maven.modrinth:jei:${jei_version}"
+    localRuntime "maven.modrinth:jei:${jei_version}"
+
+    // KubeJS, so modpacks can add and change machine recipes from scripts. Optional.
+    compileOnly "maven.modrinth:kubejs:${kubejs_version}"
+    compileOnly "maven.modrinth:rhino:${rhino_version}"
+    localRuntime "maven.modrinth:kubejs:${kubejs_version}"
+    localRuntime "maven.modrinth:rhino:${rhino_version}"
+    localRuntime "maven.modrinth:better-advanced-tooltips:${better_tooltips_version}"
+
+    // REI, the other recipe viewer. Compiled against only: the dev run already has JEI.
+    compileOnly "maven.modrinth:rei:${rei_version}"
+    compileOnly "maven.modrinth:cloth-config:${cloth_config_version}"
+    compileOnly "maven.modrinth:architectury-api:${architectury_version}"
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"

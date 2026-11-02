@@ -1,84 +1,15 @@
 {
+  "parent": "aeroflux:block/plant_grower_base",
   "textures": {
-    "soil": "aeroflux:block/soil_top",
-    "sun": "aeroflux:block/sun_panel",
-    "moon": "aeroflux:block/moon_panel",
-    "frame": "aeroflux:block/frame_copper",
-    "sprout": "aeroflux:block/sprout",
-    "particle": "aeroflux:block/frame_copper"
-  },
-  "elements": [
-    {
-      "from": [
-        0,
-        0,
-        0
-      ],
-      "to": [
-        16,
-        10,
-        16
-      ],
-      "faces": {
-        "north": {
-          "texture": "#sun"
-        },
-        "south": {
-          "texture": "#moon"
-        },
-        "east": {
-          "texture": "#frame"
-        },
-        "west": {
-          "texture": "#frame"
-        },
-        "up": {
-          "texture": "#soil"
-        },
-        "down": {
-          "texture": "#frame"
-        }
-      }
-    },
-    {
-      "from": [
-        8,
-        10,
-        0.5
-      ],
-      "to": [
-        8,
-        15,
-        15.5
-      ],
-      "faces": {
-        "east": {
-          "texture": "#sprout"
-        },
-        "west": {
-          "texture": "#sprout"
-        }
-      }
-    },
-    {
-      "from": [
-        0.5,
-        10,
-        8
-      ],
-      "to": [
-        15.5,
-        15,
-        8
-      ],
-      "faces": {
-        "north": {
-          "texture": "#sprout"
-        },
-        "south": {
-          "texture": "#sprout"
-        }
-      }
-    }
-  ]
+    "side": "aeroflux:block/plant_grower_side",
+    "back": "aeroflux:block/plant_grower_back",
+    "top": "aeroflux:block/plant_grower_top",
+    "bottom": "aeroflux:block/plant_grower_bottom",
+    "front": "aeroflux:block/plant_grower_front",
+    "particle": "aeroflux:block/plant_grower_side",
+    "inner": "aeroflux:block/plant_grower_inner",
+    "soil": "aeroflux:block/plant_grower_soil",
+    "lamp": "aeroflux:block/plant_grower_lamp",
+    "glass": "aeroflux:block/plant_grower_glass"
+  }
 }

@@ -26,7 +26,7 @@ final class EnergyMover implements ResourceMover {
                 continue;
             }
             // The handler has no "can extract" flag; a machine that cannot give simply reports nothing available.
-            EnergyPort port = new EnergyPort(endpoint.target(), handler);
+            EnergyPort port = new EnergyPort(endpoint.target(), handler, endpoint.priority());
             if (endpoint.pulls()) {
                 sources.add(port);
                 modes.add(endpoint.distribution());
@@ -38,8 +38,8 @@ final class EnergyMover implements ResourceMover {
         AmountMover.move(sources, sinks, modes.toArray(new DistributionMode[0]), limit, state);
     }
 
-    /** A machine's energy handler. Energy has one kind, so no filtering is needed. */
-    private record EnergyPort(BlockPos target, EnergyHandler handler) implements AmountMover.Port {
+    /** A machine's energy handler. Energy has one kind, so no filtering is needed; only priority applies. */
+    private record EnergyPort(BlockPos target, EnergyHandler handler, int priority) implements AmountMover.Port {
         @Override
         public long available(long limit) {
             return HandlerAccess.extractEnergy(handler, (int) limit, true);

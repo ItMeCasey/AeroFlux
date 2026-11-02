@@ -3,14 +3,17 @@ package com.itmecasey.aeroflux.devtest;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
+import com.itmecasey.aeroflux.conduit.config.PipeConfigActions;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
+import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -91,6 +94,12 @@ final class TransferSelfTest {
     private static BlockPos lever;
     private static BlockPos redstoneBundle;
     private static BlockPos lamp;
+
+    // (i) Filter and Priority upgrades.
+    private static Star prioritized;
+    private static Star filtered;
+    private static ItemLine whitelisted;
+    private static ItemLine blacklisted;
 
     /** A source tank, some pipe bundles in a row, and a sink tank. */
     private record Line(BlockPos source, List<BlockPos> bundles, BlockPos sink) {
@@ -186,6 +195,58 @@ final class TransferSelfTest {
                 .setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR)
                 .setValue(BlockStateProperties.POWERED, true), Block.UPDATE_ALL);
         entity(redstoneBundle).refreshConnections();
+
+        buildEndpointUpgrades();
+    }
+
+    /**
+     * (i) Filter and Priority upgrades, installed through the same actions the pipe screen uses.
+     * A first-to-last star whose last sink has a higher priority fills that sink first. A round
+     * robin star whose first sink only allows Moon Flux and whose second sink blacklists Aero Flux
+     * sends everything to the third. Two netherite item lines end in a cobblestone whitelist and a
+     * cobblestone blacklist.
+     */
+    private static void buildEndpointUpgrades() {
+        EndpointSettings.Upgrade filter = EndpointSettings.Upgrade.FILTER;
+        prioritized = star(238, 300, 0, DistributionMode.FIRST_TO_LAST);
+        ConduitBundleBlockEntity ranked = entity(prioritized.bundle());
+        boolean installed = PipeConfigActions.installEndpointUpgrade(ranked, PipeType.FLUID, Face.EAST,
+                EndpointSettings.Upgrade.PRIORITY);
+        installed &= PipeConfigActions.adjustPriority(ranked, PipeType.FLUID, Face.EAST, 2);
+        SelfTest.check("endpoint upgrades: a Priority upgrade installs and takes a value", installed
+                && ranked.endpoints().priority(PipeType.FLUID.lane(), Face.EAST) == 2);
+        SelfTest.check("endpoint upgrades: energy pipes take no filter, ME pipes no priority",
+                !EndpointSettings.supportsFilter(PipeType.ENERGY) && !EndpointSettings.supportsPriority(PipeType.ME));
+
+        filtered = star(240, 300, 0, DistributionMode.ROUND_ROBIN);
+        ConduitBundleBlockEntity sieve = entity(filtered.bundle());
+        PipeConfigActions.installEndpointUpgrade(sieve, PipeType.FLUID, Face.NORTH, filter);
+        boolean fluidEntry = PipeConfigActions.setFilterEntry(sieve, PipeType.FLUID, Face.NORTH, 0,
+                new ItemStack(ModItems.MOON_FLUX_BUCKET.get()));
+        PipeConfigActions.installEndpointUpgrade(sieve, PipeType.FLUID, Face.SOUTH, filter);
+        PipeConfigActions.toggleFilterMode(sieve, PipeType.FLUID, Face.SOUTH);
+        PipeConfigActions.setFilterEntry(sieve, PipeType.FLUID, Face.SOUTH, 4, new ItemStack(ModItems.AERO_FLUX_BUCKET.get()));
+        SelfTest.check("endpoint upgrades: a bucket sets a fluid filter entry", fluidEntry
+                && PipeConfigActions.fluidId(ModFluids.MOON_FLUX.get())
+                        .equals(sieve.endpoints().filter(PipeType.FLUID.lane(), Face.NORTH).entry(0)));
+        SelfTest.check("endpoint upgrades: a second filter on the same face is refused",
+                !PipeConfigActions.installEndpointUpgrade(sieve, PipeType.FLUID, Face.NORTH, filter));
+
+        whitelisted = itemLine(242, 2, Tier.NETHERITE);
+        blacklisted = itemLine(242, 6, Tier.NETHERITE);
+        for (ItemLine line : List.of(whitelisted, blacklisted)) {
+            ConduitBundleBlockEntity last = entity(line.sink().west());
+            PipeConfigActions.installEndpointUpgrade(last, PipeType.ITEM, Face.EAST, filter);
+            PipeConfigActions.setFilterEntry(last, PipeType.ITEM, Face.EAST, 0, new ItemStack(Items.COBBLESTONE));
+        }
+        PipeConfigActions.toggleFilterMode(entity(blacklisted.sink().west()), PipeType.ITEM, Face.EAST);
+
+        // Persistence of both upgrades rides on the bundle that the persistence check already reloads.
+        ConduitBundleBlockEntity kept = entity(persistent);
+        PipeConfigActions.installEndpointUpgrade(kept, PipeType.ITEM, Face.UP, filter);
+        PipeConfigActions.setFilterEntry(kept, PipeType.ITEM, Face.UP, 8, new ItemStack(Items.DIRT));
+        PipeConfigActions.installEndpointUpgrade(kept, PipeType.FLUID, Face.DOWN, EndpointSettings.Upgrade.PRIORITY);
+        PipeConfigActions.adjustPriority(kept, PipeType.FLUID, Face.DOWN, -3);
     }
 
     /** Advances the scenarios by one server tick and runs whichever checks are due. */
@@ -229,10 +290,12 @@ final class TransferSelfTest {
             checkPlainFluid();
             checkGating();
             checkDistribution();
+            checkEndpointFluid();
         }
         if (tick == CHECK_ITEMS) {
             checkItems();
             checkPersistence();
+            checkEndpointItems();
         }
         if (tick >= LAST_CHECK) {
             finished = true;
@@ -291,6 +354,21 @@ final class TransferSelfTest {
         SelfTest.check("items: a netherite line empties the chest", netherite == 64 && count(netheriteItems.source()) == 0);
     }
 
+    private static void checkEndpointFluid() {
+        int[] ranked = amounts(prioritized);
+        SelfTest.check("priority: the higher-priority sink fills before first-to-last order",
+                ranked[2] == 300 && ranked[0] == 0 && ranked[1] == 0);
+        int[] sieved = amounts(filtered);
+        SelfTest.check("filter: a whitelist and a blacklist keep the fluid out of their sinks",
+                sieved[0] == 0 && sieved[1] == 0 && sieved[2] == 300);
+    }
+
+    private static void checkEndpointItems() {
+        SelfTest.check("filter: a cobblestone whitelist lets the cobblestone through", count(whitelisted.sink()) == 64);
+        SelfTest.check("filter: a cobblestone blacklist stops it", count(blacklisted.sink()) == 0
+                && count(blacklisted.source()) == 64);
+    }
+
     private static void checkSpeed() {
         int base = tankAmount(baseline.sink());
         int fast = tankAmount(upgraded.sink());
@@ -317,6 +395,10 @@ final class TransferSelfTest {
                 restored.bundle().speedUpgrades(fluid) == 2 && restored.bundle().capacityUpgrades(fluid) == 1);
         SelfTest.check("persistence: the whole bundle compares equal after a round trip",
                 restored.bundle().equals(entity(persistent).bundle()));
+        SelfTest.check("persistence: Filter and Priority upgrades survive saving and loading",
+                restored.endpoints().equals(entity(persistent).endpoints())
+                        && restored.endpoints().priority(fluid, Face.DOWN) == -3
+                        && "minecraft:dirt".equals(restored.endpoints().filter(PipeType.ITEM.lane(), Face.UP).entry(8)));
     }
 
     private static void checkRedstoneOn() {

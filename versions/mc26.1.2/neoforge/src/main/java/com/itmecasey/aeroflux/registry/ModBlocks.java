@@ -3,10 +3,12 @@ package com.itmecasey.aeroflux.registry;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.block.FluxTankBlock;
+import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlock;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlock;
-import com.itmecasey.aeroflux.conduit.PipeNodeBlock;
+import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import java.util.ArrayList;
@@ -31,6 +33,14 @@ public final class ModBlocks {
     private static final Map<Tier, DeferredBlock<FluxCollectorBlock>> COLLECTORS = new EnumMap<>(Tier.class);
     private static final Map<Tier, DeferredBlock<FluxTankBlock>> TANKS = new EnumMap<>(Tier.class);
     private static final Map<MachineType, Map<Tier, DeferredBlock<FluxMachineBlock>>> MACHINES = new EnumMap<>(MachineType.class);
+    private static final Map<Tier, DeferredBlock<FluxChunkLoaderBlock>> CHUNK_LOADERS = new EnumMap<>(Tier.class);
+    private static final Map<ConverterType, Map<Tier, DeferredBlock<FluxConverterBlock>>> CONVERTERS = new EnumMap<>(ConverterType.class);
+
+    /**
+     * The converters this version has. The stress converter needs Create, which has no build for
+     * this Minecraft version yet, so it is left out here.
+     */
+    public static final List<ConverterType> CONVERTER_TYPES = List.of(ConverterType.ENERGY, ConverterType.AE);
 
     /** The in-world block for Aero Flux; behaves like water apart from the glow. */
     public static final DeferredBlock<LiquidBlock> AERO_FLUX = BLOCKS.registerBlock("aero_flux",
@@ -44,10 +54,6 @@ public final class ModBlocks {
     public static final DeferredBlock<ConduitBundleBlock> CONDUIT_BUNDLE = BLOCKS.registerBlock("conduit_bundle",
             ConduitBundleBlock::new, ModBlocks::bundleProperties);
 
-    /** Where pipes break off or change set; a plain dark gray block. */
-    public static final DeferredBlock<PipeNodeBlock> PIPE_NODE = BLOCKS.registerBlock("pipe_node",
-            PipeNodeBlock::new, ModBlocks::nodeProperties);
-
     static {
         for (Tier tier : Tier.values()) {
             COLLECTORS.put(tier, BLOCKS.registerBlock(tier.id() + "_collector",
@@ -59,9 +65,21 @@ public final class ModBlocks {
             Map<Tier, DeferredBlock<FluxMachineBlock>> byTier = new EnumMap<>(Tier.class);
             for (Tier tier : Tier.values()) {
                 byTier.put(tier, BLOCKS.registerBlock(machineBlockName(machine, tier),
-                        properties -> new FluxMachineBlock(tier, machine, properties), () -> factoryProperties(machine)));
+                        properties -> new FluxMachineBlock(tier, machine, properties), ModBlocks::factoryProperties));
             }
             MACHINES.put(machine, byTier);
+        }
+        for (Tier tier : Tier.values()) {
+            CHUNK_LOADERS.put(tier, BLOCKS.registerBlock(chunkLoaderName(tier),
+                    properties -> new FluxChunkLoaderBlock(tier, properties), ModBlocks::machineProperties));
+        }
+        for (ConverterType type : CONVERTER_TYPES) {
+            Map<Tier, DeferredBlock<FluxConverterBlock>> byTier = new EnumMap<>(Tier.class);
+            for (Tier tier : Tier.values()) {
+                byTier.put(tier, BLOCKS.registerBlock(converterName(type, tier),
+                        properties -> new FluxConverterBlock(type, tier, properties), ModBlocks::factoryProperties));
+            }
+            CONVERTERS.put(type, byTier);
         }
     }
 
@@ -112,17 +130,53 @@ public final class ModBlocks {
     }
 
     /**
-     * The furnace, grinder and alloy smelter models are plain cubes; the others have parts that
-     * do not fill the block, so they must not hide the faces of their neighbors.
+     * The registry name of a chunk loader. Like the machines, the copper one keeps the bare name
+     * its art is delivered under ({@code chunk_loader}) and the others share its model.
      */
-    private static BlockBehaviour.Properties factoryProperties(MachineType machine) {
-        BlockBehaviour.Properties properties = BlockBehaviour.Properties.of()
+    public static String chunkLoaderName(Tier tier) {
+        return tier == Tier.COPPER ? "chunk_loader" : tier.id() + "_chunk_loader";
+    }
+
+    /** The chunk loader block of one tier. */
+    public static DeferredBlock<FluxChunkLoaderBlock> chunkLoader(Tier tier) {
+        return CHUNK_LOADERS.get(tier);
+    }
+
+    /** The registry name of a converter: the bare name for copper, the tier in front for the rest. */
+    public static String converterName(ConverterType type, Tier tier) {
+        return tier == Tier.COPPER ? type.blockId() : tier.id() + "_" + type.blockId();
+    }
+
+    /** The converter block of one kind and tier. */
+    public static DeferredBlock<FluxConverterBlock> converter(ConverterType type, Tier tier) {
+        return CONVERTERS.get(type).get(tier);
+    }
+
+    /** All converter blocks, kind by kind, lowest tier first. */
+    public static List<DeferredBlock<FluxConverterBlock>> converters() {
+        List<DeferredBlock<FluxConverterBlock>> all = new ArrayList<>();
+        CONVERTERS.values().forEach(byTier -> all.addAll(byTier.values()));
+        return all;
+    }
+
+    /** All chunk loader blocks, lowest tier first. */
+    public static Collection<DeferredBlock<FluxChunkLoaderBlock>> chunkLoaders() {
+        return CHUNK_LOADERS.values();
+    }
+
+    /**
+     * Every machine is a full block to touch, but the casings have recessed windows (and the plant
+     * grower a glass chamber), so none of them may hide the faces of their neighbors. A working
+     * machine glows like a lit furnace.
+     */
+    private static BlockBehaviour.Properties factoryProperties() {
+        return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.METAL)
                 .strength(3.0F, 6.0F)
                 .sound(SoundType.METAL)
-                .requiresCorrectToolForDrops();
-        boolean cube = machine == MachineType.FURNACE || machine == MachineType.GRINDER || machine == MachineType.ALLOY_SMELTER;
-        return cube ? properties : properties.noOcclusion();
+                .requiresCorrectToolForDrops()
+                .lightLevel(state -> state.getValue(FluxMachineBlock.LIT) ? FluxMachineBlock.LIT_LIGHT : 0)
+                .noOcclusion();
     }
 
     private static BlockBehaviour.Properties machineProperties() {
@@ -151,13 +205,6 @@ public final class ModBlocks {
                 .dynamicShape()
                 .isViewBlocking((state, level, pos) -> false)
                 .isSuffocating((state, level, pos) -> false);
-    }
-
-    private static BlockBehaviour.Properties nodeProperties() {
-        return BlockBehaviour.Properties.of()
-                .mapColor(MapColor.COLOR_GRAY)
-                .strength(1.5F, 4.0F)
-                .sound(SoundType.METAL);
     }
 
     private static BlockBehaviour.Properties fluidProperties() {

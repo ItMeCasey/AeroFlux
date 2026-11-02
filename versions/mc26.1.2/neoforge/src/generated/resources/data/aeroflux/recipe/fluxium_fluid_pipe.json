@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "aeroflux:moon_crystal",
+    "P": "aeroflux:netherite_fluid_pipe",
+    "S": "aeroflux:fluxsteel_ingot",
+    "T": "aeroflux:aero_crystal"
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "id": "aeroflux:fluxium_fluid_pipe"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_infuser_base",
+  "textures": {
+    "side": "aeroflux:block/flux_infuser_side",
+    "back": "aeroflux:block/flux_infuser_back",
+    "top": "aeroflux:block/flux_infuser_top",
+    "bottom": "aeroflux:block/flux_infuser_bottom",
+    "front": "aeroflux:block/flux_infuser_front_active",
+    "particle": "aeroflux:block/flux_infuser_side"
+  }
+}

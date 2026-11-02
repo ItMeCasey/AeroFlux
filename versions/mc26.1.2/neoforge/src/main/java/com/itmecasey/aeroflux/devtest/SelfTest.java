@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
@@ -39,7 +40,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  *
  * <p>Results are written to the log as {@code AEROFLUX-SELFTEST PASS/FAIL <name>}, followed by a
  * summary line, and the server then stops. The transfer scenarios (pipes moving fluid, items and
- * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}. The machines and their screens' menus are in {@link MachineSelfTest}.
+ * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}. The machines and their screens' menus are in {@link MachineSelfTest}, and machine upgrades and redstone control in {@link MachineUpgradeSelfTest}. The chunk loaders are in {@link ChunkLoaderSelfTest}.
  */
 @EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SelfTest {
@@ -86,6 +87,8 @@ public final class SelfTest {
         ToolSelfTest.setUp(level);
         ScreenSelfTest.setUp(level);
         MachineSelfTest.setUp(level);
+        MachineUpgradeSelfTest.setUp(level);
+        ChunkLoaderSelfTest.setUp(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;
@@ -110,11 +113,15 @@ public final class SelfTest {
         // chunk and use no timing the other two disturb. They still wait for the timed transfer checks.
         if (TransferSelfTest.finished()) {
             MachineSelfTest.tick();
+            // The upgrade and redstone checks build in a layer of their own above the machine checks.
+            MachineUpgradeSelfTest.tick();
+            // The chunk loaders build in a layer of their own too, below the tool checks.
+            ChunkLoaderSelfTest.tick();
         }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer, tool, screen and machine checks to finish too.
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
-                    && MachineSelfTest.finished()) {
+                    && MachineSelfTest.finished() && MachineUpgradeSelfTest.finished() && ChunkLoaderSelfTest.finished()) {
                 finish();
             }
             return;
@@ -154,19 +161,20 @@ public final class SelfTest {
         check("a taken lane refuses a second pipe", !bundleA.addPipe(PipeType.FLUID));
         bundleB.addPipe(PipeType.FLUID);
         int fluid = PipeType.FLUID.lane();
-        check("equal sets join (A east)", bundleA.bundle().isConnected(fluid, Face.EAST)
+        check("matching pipes join (A east)", bundleA.bundle().isConnected(fluid, Face.EAST)
                 && !bundleA.bundle().isExternal(fluid, Face.EAST));
-        check("equal sets join (B west)", bundleB.bundle().isConnected(fluid, Face.WEST));
+        check("matching pipes join (B west)", bundleB.bundle().isConnected(fluid, Face.WEST));
 
         bundleB.addPipe(PipeType.ITEM);
-        check("different sets do not join", !bundleA.bundle().isConnected(fluid, Face.EAST));
-
-        level.setBlock(b, ModBlocks.PIPE_NODE.get().defaultBlockState(), Block.UPDATE_ALL);
-        check("a pipe node joins any set", bundleA.bundle().isConnected(fluid, Face.EAST));
+        check("a pipe still joins its kind next to a bundle with more pipes",
+                bundleA.bundle().isConnected(fluid, Face.EAST) && bundleB.bundle().isConnected(fluid, Face.WEST));
+        check("a pipe with no match next door does not join",
+                !bundleB.bundle().isConnected(PipeType.ITEM.lane(), Face.WEST));
 
         bundleA.bundle().setMode(fluid, Face.EAST, ConnectionMode.BLOCKED);
-        bundleA.refreshConnections();
+        bundleA.changed();
         check("a blocked face never connects", !bundleA.bundle().isConnected(fluid, Face.EAST));
+        check("blocking one side drops the other side too", !bundleB.bundle().isConnected(fluid, Face.WEST));
 
         // A fluid pipe should attach to a tank, which draws a machine connector.
         BlockPos tankPos = a.south();
@@ -174,7 +182,7 @@ public final class SelfTest {
         bundleA.refreshConnections();
         check("a fluid pipe attaches to a tank", bundleA.bundle().isConnected(fluid, Face.SOUTH)
                 && bundleA.bundle().isExternal(fluid, Face.SOUTH));
-        check("an attachment adds one connector box", bundleA.bundle().connectorBoxes().size() == 1);
+        check("an attachment adds a plate", ConduitLayout.of(bundleA.bundle()).plateOf(Face.SOUTH) != null);
 
         BlockState state = level.getBlockState(a);
         VoxelShape shape = state.getShape(level, a);

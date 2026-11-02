@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AeroFlux Sound Player</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1d2026; --panel2: #262a32; --line: #353a44;
+    --text: #e8eaee; --dim: #9aa1ad; --sun: #f2c94c; --moon: #8fb8ff; --void: #b07cff; --leaf: #6fcf6f; --stop: #ff7a66;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
+  header { padding: 20px 16px 8px; max-width: 980px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p.sub { margin: 0; color: var(--dim); }
+  .bar { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .bar .in { max-width: 980px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  button:hover { border-color: #5a6272; }
+  button.primary { background: #2c3a52; border-color: #44587c; }
+  select { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; width: 100%; }
+  label.vol { display: flex; align-items: center; gap: 8px; color: var(--dim); margin-left: auto; }
+  input[type=range] { width: 160px; accent-color: var(--moon); }
+  main { max-width: 980px; margin: 0 auto; padding: 8px 16px 40px; }
+  h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 22px 0 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent, var(--sun)); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .card.playing { background: #222833; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .name { font-weight: 600; }
+  .len { color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .desc { color: var(--dim); font-size: 13px; min-height: 36px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 18px; width: 22px; opacity: .25; }
+  .playing .eq { opacity: 1; }
+  .eq i { flex: 1; background: var(--accent, var(--sun)); height: 4px; border-radius: 1px; }
+  .playing .eq i { animation: bounce .7s ease-in-out infinite alternate; }
+  .eq i:nth-child(2) { animation-delay: .15s; } .eq i:nth-child(3) { animation-delay: .3s; } .eq i:nth-child(4) { animation-delay: .45s; }
+  @keyframes bounce { from { height: 3px; } to { height: 18px; } }
+  label.loop { color: var(--dim); font-size: 13px; display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .note { color: var(--dim); font-size: 13px; margin-top: 18px; }
+  .err { color: var(--stop); font-size: 13px; }
+  @media (prefers-reduced-motion: reduce) { .playing .eq i { animation: none; height: 12px; } }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <strong>AeroFlux sounds</strong>
+  <button class="primary" id="stopAll">Stop all</button>
+  <button id="allLoops">Play all loops together</button>
+  <label class="vol">Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.7"><span id="volv">70%</span></label>
+</div></div>
+<header>
+  <h1>Machine sound player</h1>
+  <p class="sub">Loops repeat until you stop them, like the machines will in game. In game the volume also falls off with distance, and the config will have a volume setting.</p>
+</header>
+<main id="app"></main>
+<script>
+const LOOPS = [
+  ["furnace", "Flux Furnace", "Crackling fire over a low rumble.", "--sun"],
+  ["grinder", "Flux Grinder", "Motor with gritty grinding and the odd clink.", "--sun"],
+  ["smelter", "Alloy Smelter", "Bubbling molten metal and a low roar.", "--sun"],
+  ["sawmill", "Flux Sawmill", "Whirring blade with a cut every second.", "--sun"],
+  ["infuser", "Flux Infuser", "Shimmering hum with high sparkles.", "--moon"],
+  ["enchanter", "Flux Enchanter", "Warm chord with falling chimes.", "--moon"],
+  ["disenchanter", "Flux Disenchanter", "Low drone with reversed pings.", "--void"],
+  ["grower", "Plant Grower", "Soft hum, water drips and leaf rustle.", "--leaf"],
+];
+const SHOTS = [
+  ["start", "Power up", "Plays when a machine starts a job. Rising sweep.", "--moon"],
+  ["stop", "Power down", "Plays when it stops or loses power. Falling sweep.", "--stop"],
+  ["done", "Done", "Plays when an output is finished. Two-note chime.", "--sun"],
+];
+const BASE = "assets/aeroflux/sounds/machine/";
+const app = document.getElementById("app");
+const vol = document.getElementById("vol");
+const volv = document.getElementById("volv");
+const audios = [];
+
+function section(title, list, loop) {
+  const h = document.createElement("h2"); h.textContent = title; app.appendChild(h);
+  const grid = document.createElement("div"); grid.className = "grid"; app.appendChild(grid);
+  for (const [id, name, desc, accent] of list) {
+    const stem = loop ? id + "_loop" : id;
+    const sources = {
+      "ElevenLabs take 1": "eleven_ogg/" + stem + "_1.ogg",
+      "ElevenLabs take 2": "eleven_ogg/" + stem + "_2.ogg",
+      "Synthesized": BASE + stem + ".ogg",
+    };
+    let file = sources["ElevenLabs take 1"];
+    const a = new Audio(file); a.preload = "auto"; a.loop = loop; a.volume = +vol.value;
+    const card = document.createElement("div"); card.className = "card"; card.style.setProperty("--accent", "var(" + accent + ")");
+    card.innerHTML = '<div class="top"><span class="name"></span><span class="len"></span></div><div class="desc"></div>' +
+      '<div class="row"><select class="ver"></select></div>' +
+      '<div class="row"><button class="play">Play</button><span class="eq"><i></i><i></i><i></i><i></i></span>' +
+      '<label class="loop"><input type="checkbox" class="lp"> Loop</label></div><div class="err" hidden></div>';
+    const ver = card.querySelector(".ver");
+    for (const label of Object.keys(sources)) ver.add(new Option(label, label));
+    card.querySelector(".name").textContent = name;
+    card.querySelector(".desc").textContent = desc;
+    const btn = card.querySelector(".play"), lp = card.querySelector(".lp"), len = card.querySelector(".len"), err = card.querySelector(".err");
+    lp.checked = loop;
+    lp.onchange = () => { a.loop = lp.checked; };
+    ver.onchange = () => {
+      const was = !a.paused; a.pause(); err.hidden = true;
+      file = sources[ver.value]; a.src = file; a.load();
+      if (was) a.play();
+    };
+    a.addEventListener("loadedmetadata", () => { len.textContent = a.duration.toFixed(1) + " s"; });
+    a.addEventListener("error", () => { err.hidden = false; err.textContent = "Could not load " + file; });
+    a.addEventListener("play", () => { card.classList.add("playing"); btn.textContent = "Stop"; });
+    const done = () => { card.classList.remove("playing"); btn.textContent = "Play"; };
+    a.addEventListener("pause", done); a.addEventListener("ended", done);
+    btn.onclick = () => { if (a.paused) { a.currentTime = 0; a.play(); } else { a.pause(); a.currentTime = 0; } };
+    grid.appendChild(card);
+    audios.push({ a, loop });
+  }
+}
+section("Machine loops", LOOPS, true);
+section("One-shots", SHOTS, false);
+const note = document.createElement("p"); note.className = "note";
+note.textContent = "Each sound has two ElevenLabs takes plus the synthesized version from before. Tell me which take you prefer for each, and which ones need another try.";
+app.appendChild(note);
+
+vol.oninput = () => { volv.textContent = Math.round(vol.value * 100) + "%"; audios.forEach(x => x.a.volume = +vol.value); };
+document.getElementById("stopAll").onclick = () => audios.forEach(x => { x.a.pause(); x.a.currentTime = 0; });
+document.getElementById("allLoops").onclick = () => audios.filter(x => x.loop).forEach(x => { x.a.currentTime = 0; x.a.play(); });
+</script>
+</body>
+</html>

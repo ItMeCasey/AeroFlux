@@ -1,0 +1,132 @@
+{
+  "parent": "aeroflux:upgrade_card",
+  "criteria": {
+    "aeroflux:fluxium_alloy_smelter": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_alloy_smelter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_collector": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_collector"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_flux_disenchanter": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_flux_disenchanter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_flux_enchanter": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_flux_enchanter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_flux_grinder": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_flux_grinder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_flux_infuser": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_flux_infuser"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_flux_sawmill": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_flux_sawmill"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_plant_grower"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_tank": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_tank"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.aeroflux.fluxium.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "aeroflux:fluxium_flux_furnace"
+    },
+    "title": {
+      "translate": "advancements.aeroflux.fluxium.title"
+    }
+  },
+  "requirements": [
+    [
+      "aeroflux:fluxium_collector",
+      "aeroflux:fluxium_tank",
+      "aeroflux:fluxium_flux_furnace",
+      "aeroflux:fluxium_flux_grinder",
+      "aeroflux:fluxium_flux_sawmill",
+      "aeroflux:fluxium_alloy_smelter",
+      "aeroflux:fluxium_flux_infuser",
+      "aeroflux:fluxium_flux_enchanter",
+      "aeroflux:fluxium_flux_disenchanter",
+      "aeroflux:fluxium_plant_grower"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

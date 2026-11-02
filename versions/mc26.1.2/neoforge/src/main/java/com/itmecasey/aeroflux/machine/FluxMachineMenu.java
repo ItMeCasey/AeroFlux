@@ -1,16 +1,19 @@
 package com.itmecasey.aeroflux.machine;
 
+import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.machine.MachineLayout;
-import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
+import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfig;
 import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.core.machine.SplitInt;
+import com.itmecasey.aeroflux.core.machine.UpgradeStripLayout;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,14 +32,15 @@ import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The menu behind every machine screen: input slots, output slots, the player's inventory and the
- * numbers the screen draws (Flux, progress, status and the face settings).
+ * The menu behind every machine screen: input slots, output slots, upgrade slots, the player's
+ * inventory and the numbers the screen draws (Flux, progress, status, the face settings, the
+ * upgrade counts and the redstone mode).
  *
  * <p>The server's copy reads straight from the {@link FluxMachineBlockEntity}; the client's copy
  * only displays what the server sends. Menu data slots carry 16 bits each on the wire, so the
  * bigger numbers are sent in two halves (see {@link SplitInt}). Every change a player makes to the
- * face settings comes back as a menu button click, and the server applies it through
- * {@link MachineConfigActions}, so a modified client cannot set anything the rules forbid.
+ * face settings or the redstone mode comes back as a menu button click, and the server applies it
+ * through {@link MachineConfigActions}, so a modified client cannot set anything the rules forbid.
  */
 public abstract class FluxMachineMenu extends AbstractContainerMenu {
     // Indexes of the synced values.
@@ -45,8 +49,16 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
     private static final int DATA_PROGRESS = 3;      // two slots
     private static final int DATA_TOTAL = 5;         // two slots
     private static final int DATA_STATUS = 7;
-    private static final int DATA_SIDES = 8;         // one slot per SideResource
-    private static final int DATA_COUNT = DATA_SIDES + SideResource.values().length;
+    private static final int DATA_SPEED_UPGRADES = 8;
+    private static final int DATA_CAPACITY_UPGRADES = 9;
+    private static final int DATA_REDSTONE_MODE = 10;
+    private static final int DATA_REDSTONE_DISABLED = 11;
+    // The face settings come last, one slot per SideResource, so a new resource only adds to the end.
+    private static final int DATA_SIDES = 12;
+    private static final int DATA_AUTO_INSERT = DATA_SIDES + SideResource.values().length;
+    /** Bit 0 Auto Import, bit 1 Auto Export. */
+    private static final int DATA_AUTO_IO = DATA_AUTO_INSERT + 1;
+    private static final int DATA_COUNT = DATA_AUTO_IO + 1;
 
     /** How far from the machine a player may be and keep the screen open, like a chest. */
     private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
@@ -60,10 +72,12 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
     private final Tier tier;
     private final Face facing;
     private final MachineLayout layout;
+    private final UpgradeStripLayout strip;
     private final ContainerData data;
     /** The server's machine; {@code null} on the client, which has nothing to check against. */
     private final @Nullable FluxMachineBlockEntity entity;
     private final ItemStacksResourceHandler items;
+    private final MachineUpgradeSlots upgrades;
     private final Level level;
 
     protected FluxMachineMenu(MenuType<?> type, int containerId, Inventory inventory, OpenData open,
@@ -76,8 +90,10 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         this.entity = entity;
         this.level = inventory.player.level();
         this.layout = MachineLayout.of(machine.inputSlots(), machine.outputSlots());
+        this.strip = new UpgradeStripLayout(MachineUpgrades.slots(tier));
         this.items = entity == null
                 ? new ItemStacksResourceHandler(machine.inputSlots() + machine.outputSlots()) : entity.inventory();
+        this.upgrades = entity == null ? new MachineUpgradeSlots(strip.slotCount()) : entity.upgrades();
         this.data = entity == null ? new SimpleContainerData(DATA_COUNT) : new MachineData(entity);
         addDataSlots(data);
 
@@ -86,6 +102,10 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         }
         for (int i = 0; i < layout.outputCount(); i++) {
             addSlot(new OutputSlot(items, layout.inputCount() + i, layout.outputSlot(i).x(), layout.outputSlot(i).y()));
+        }
+        // The upgrade slots come right after the machine's own, before the player's inventory.
+        for (int i = 0; i < strip.slotCount(); i++) {
+            addSlot(new ResourceHandlerSlot(upgrades, upgrades::set, i, strip.slot(i).x(), strip.slot(i).y()));
         }
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -152,9 +172,58 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         return SplitInt.join(data.get(DATA_FLUX), data.get(DATA_FLUX + 1));
     }
 
-    /** The tank's size in mB; it follows from the tier. */
+    /** The tank's size in mB; it follows from the tier and the Capacity upgrades. */
     public int fluxCapacity() {
-        return MachineMath.inputCapacity(tier);
+        return MachineUpgrades.inputCapacity(tier, capacityUpgrades());
+    }
+
+    /** Where the redstone button and the upgrade slots sit. */
+    public UpgradeStripLayout strip() {
+        return strip;
+    }
+
+    /** The index of the first upgrade slot in {@link #slots}. */
+    public int firstUpgradeSlot() {
+        return layout.inputCount() + layout.outputCount();
+    }
+
+    /** Speed upgrades installed, as last synced. */
+    public int speedUpgrades() {
+        return data.get(DATA_SPEED_UPGRADES);
+    }
+
+    /** Capacity upgrades installed, as last synced. */
+    public int capacityUpgrades() {
+        return data.get(DATA_CAPACITY_UPGRADES);
+    }
+
+    /** The work speed against the tier's own, in percent; see {@link MachineUpgrades#speedPercent}. */
+    public int speedPercent() {
+        return MachineUpgrades.speedPercent(speedUpgrades());
+    }
+
+    public RedstoneMode redstoneMode() {
+        return RedstoneMode.byIndex(data.get(DATA_REDSTONE_MODE));
+    }
+
+    /** Whether a plant grower refills its input from its outputs. */
+    public boolean autoInsert() {
+        return data.get(DATA_AUTO_INSERT) != 0;
+    }
+
+    /** Whether the machine pulls from its neighbors through its import faces. */
+    public boolean autoImport() {
+        return (data.get(DATA_AUTO_IO) & 1) != 0;
+    }
+
+    /** Whether the machine pushes its products out through its export faces. */
+    public boolean autoExport() {
+        return (data.get(DATA_AUTO_IO) & 2) != 0;
+    }
+
+    /** Whether the redstone mode is holding the machine back, as last synced. */
+    public boolean redstoneDisabled() {
+        return data.get(DATA_REDSTONE_DISABLED) != 0;
     }
 
     /** The flux type in the tank, or {@code null} if it is empty. */
@@ -175,9 +244,9 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         return MachineStatus.byIndex(data.get(DATA_STATUS));
     }
 
-    /** Flux burned per tick while working, in mB. */
+    /** Flux burned per tick while working, in mB, with Speed upgrades counted. */
     public int fluxPerTick() {
-        return MachineMath.fluxPerTick(tier);
+        return MachineUpgrades.fluxPerTick(tier, speedUpgrades());
     }
 
     /** The mode of a face for a resource, as last synced. */
@@ -187,13 +256,17 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
 
     // --- What the server does ----------------------------------------------------------------
 
-    /** A click on the side-config window; the id says what to do. Returns whether anything changed. */
+    /** A click on the side-config window or the redstone button; the id says what to do. Returns whether anything changed. */
     @Override
     public boolean clickMenuButton(Player player, int id) {
         return entity != null && stillValid(player) && MachineConfigActions.applyButton(entity, id);
     }
 
-    /** Shift-click: items go to the input slots if they fit there, otherwise between the inventory and the hotbar. */
+    /**
+     * Shift-click: upgrades go to the upgrade slots and other items to the input slots if they fit
+     * there, otherwise between the inventory and the hotbar. Anything in the machine goes back to
+     * the player.
+     */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
@@ -202,12 +275,16 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
-        int machineSlots = layout.inputCount() + layout.outputCount();
+        int upgradeStart = firstUpgradeSlot();
+        int machineSlots = upgradeStart + strip.slotCount();
         int mainEnd = machineSlots + 27;
 
         boolean moved;
         if (index < machineSlots) {
             moved = moveItemStackTo(stack, machineSlots, slots.size(), true);
+        } else if (stack.getItem() instanceof UpgradeItem) {
+            // An upgrade never counts as an input, so it only looks for a free upgrade slot.
+            moved = moveItemStackTo(stack, upgradeStart, machineSlots, false);
         } else {
             moved = moveItemStackTo(stack, 0, layout.inputCount(), false)
                     || (index < mainEnd
@@ -277,7 +354,17 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
                 case DATA_TOTAL -> SplitInt.low(machine.totalTime());
                 case DATA_TOTAL + 1 -> SplitInt.high(machine.totalTime());
                 case DATA_STATUS -> machine.status().ordinal();
+                case DATA_SPEED_UPGRADES -> machine.speedUpgrades();
+                case DATA_CAPACITY_UPGRADES -> machine.capacityUpgrades();
+                case DATA_REDSTONE_MODE -> machine.redstoneMode().ordinal();
+                case DATA_REDSTONE_DISABLED -> machine.redstoneDisabled() ? 1 : 0;
                 default -> {
+                    if (index == DATA_AUTO_INSERT) {
+                        yield machine.autoInsert() ? 1 : 0;
+                    }
+                    if (index == DATA_AUTO_IO) {
+                        yield (machine.autoImport() ? 1 : 0) | (machine.autoExport() ? 2 : 0);
+                    }
                     int resource = index - DATA_SIDES;
                     yield resource >= 0 && resource < SideResource.values().length
                             ? machine.sides().packed(SideResource.values()[resource]) : 0;

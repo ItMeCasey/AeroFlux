@@ -3,21 +3,34 @@ package com.itmecasey.aeroflux.client;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.client.model.BundleUnbakedModel;
+import com.itmecasey.aeroflux.client.model.PlantGrowerModel;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
+import com.itmecasey.aeroflux.client.screen.ConverterScreen;
+import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.machine.MachineRecipes;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModMenus;
+import java.util.Map;
 import net.minecraft.client.renderer.block.FluidModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
 import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
@@ -43,6 +56,29 @@ public final class ClientSetup {
         event.registerModel(Ids.mod("conduit_bundle"), BundleUnbakedModel.CODEC);
     }
 
+    /**
+     * Wraps every plant grower state's model so it also draws the planted crop in its chamber.
+     * The casing models come from the block state files as usual; only the crop is added.
+     */
+    @SubscribeEvent
+    public static void wrapPlantGrowers(ModelEvent.ModifyBakingResult event) {
+        Map<BlockState, BlockStateModel> models = event.getBakingResult().blockStateModels();
+        for (Tier tier : Tier.values()) {
+            for (BlockState state : ModBlocks.machine(MachineType.PLANT_GROWER, tier).get().getStateDefinition().getPossibleStates()) {
+                BlockStateModel casing = models.get(state);
+                if (casing != null) {
+                    models.put(state, new PlantGrowerModel(casing));
+                }
+            }
+        }
+    }
+
+    /** Lets the guidebook item open its screen, which only exists on the client. */
+    @SubscribeEvent
+    public static void onClientSetup(FMLClientSetupEvent event) {
+        GuidebookItem.setOpener(GuideScreen::open);
+    }
+
     /** Draws the fluid level inside each tank's glass. */
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -53,13 +89,18 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
+        event.register(ModMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
+        event.register(ModMenus.CONVERTER.get(), ConverterScreen::new);
         for (MachineType machine : MachineType.values()) {
             event.register(ModMenus.machine(machine).get(), MachineScreen::new);
         }
     }
 
-    /** Keeps the machine recipes the server sends, so the menus can judge items on the client too. */
-    @SubscribeEvent
+    /**
+     * Keeps the machine recipes the server sends, so the menus can judge items on the client too.
+     * It runs first, so recipe viewers that read the same event find the recipes already stored.
+     */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onRecipesReceived(RecipesReceivedEvent event) {
         MachineRecipes.receive(event.getRecipeMap());
     }

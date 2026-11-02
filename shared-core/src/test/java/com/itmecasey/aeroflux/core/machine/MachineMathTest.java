@@ -59,8 +59,8 @@ class MachineMathTest {
 
     @Test
     void inputCapacityGrowsWithTier() {
-        assertEquals(4_000, MachineMath.inputCapacity(Tier.COPPER));
-        assertEquals(128_000, MachineMath.inputCapacity(Tier.FLUXIUM));
+        assertEquals(1_000, MachineMath.inputCapacity(Tier.COPPER));
+        assertEquals(32_000, MachineMath.inputCapacity(Tier.FLUXIUM));
         for (int i = 1; i < Tier.values().length; i++) {
             assertTrue(MachineMath.inputCapacity(Tier.values()[i]) > MachineMath.inputCapacity(Tier.values()[i - 1]));
         }
@@ -69,7 +69,7 @@ class MachineMathTest {
     @Test
     void aFullTankAlwaysPaysForAWholeJob() {
         for (Tier tier : Tier.values()) {
-            assertTrue(MachineMath.inputCapacity(tier) >= MachineMath.fluxForJob(VANILLA_SMELT * 8, tier));
+            assertTrue(MachineMath.inputCapacity(tier) >= MachineMath.fluxForJob(VANILLA_SMELT, tier));
         }
     }
 
@@ -113,5 +113,15 @@ class MachineMathTest {
         assertEquals(0xFFFF, SplitInt.low(-1));
         assertEquals(0xFFFF, SplitInt.high(-1));
         assertFalse(SplitInt.low(Integer.MAX_VALUE) < 0);
+    }
+
+    @Test
+    void autoTransferGrowsWithTier() {
+        assertEquals(4, MachineMath.autoItems(Tier.COPPER));
+        assertEquals(250, MachineMath.autoFlux(Tier.COPPER));
+        for (Tier tier : Tier.values()) {
+            assertTrue(MachineMath.autoItems(tier) <= 128);
+            assertTrue(MachineMath.autoFlux(tier) > 0 && MachineMath.autoFlux(tier) < MachineMath.inputCapacity(tier));
+        }
     }
 }

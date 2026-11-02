@@ -1,10 +1,8 @@
 package com.itmecasey.aeroflux.client.model;
 
-import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelDebugName;
@@ -14,9 +12,10 @@ import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
 
 /**
  * The conduit bundle model as written in the block state file: a {@code type} of
- * {@code aeroflux:conduit_bundle} and a {@code textures} map. Baking looks up one texture per
- * pipe type (keyed by the type's id), plus {@code node} for the machine connectors and
- * {@code particle} for break particles. The quads themselves are built later, per bundle.
+ * {@code aeroflux:conduit_bundle} and a {@code textures} map. Baking looks up {@code side} and
+ * {@code end}, the two white pipe textures every pipe shares in its own tint, plus {@code node}
+ * for junctions and machine plates and {@code particle} for break particles. The quads themselves
+ * are built later, per bundle.
  *
  * @param textures texture key to texture, from the block state file
  */
@@ -30,11 +29,8 @@ public record BundleUnbakedModel(Map<String, Material> textures) implements Cust
     @Override
     public BundleBakedModel bake(ModelBaker baker) {
         MaterialBaker materials = baker.materials();
-        Map<PipeType, Material.Baked> pipes = new EnumMap<>(PipeType.class);
-        for (PipeType type : PipeType.values()) {
-            pipes.put(type, resolve(materials, type.id()));
-        }
-        return new BundleBakedModel(pipes, resolve(materials, "node"), resolve(materials, "particle"));
+        return new BundleBakedModel(resolve(materials, "side"), resolve(materials, "end"),
+                resolve(materials, "node"), resolve(materials, "particle"));
     }
 
     private Material.Baked resolve(MaterialBaker materials, String key) {

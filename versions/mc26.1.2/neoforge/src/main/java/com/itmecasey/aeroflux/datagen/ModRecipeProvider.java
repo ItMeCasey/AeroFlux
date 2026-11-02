@@ -2,16 +2,23 @@ package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.conduit.PipeTiers;
+import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
+import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -21,10 +28,16 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Generates the machine recipes that ship with the mod: the defaults the plan derives from vanilla
+ * Generates the recipes that ship with the mod. The crafting recipes build the whole survival chain
+ * from vanilla items: Flux Dust and crystals by hand, the copper collector, tank, pipes and machines
+ * from vanilla parts, and every higher tier from the tier below. Each one unlocks in the recipe book
+ * the way vanilla's do, when the player picks up its key ingredient.
+ *
+ * <p>The machine recipes are the defaults the plan derives from vanilla
  * (ores into double raw material, logs into planks, seeds into crops and so on). Packs can add
  * their own files next to these in {@code data/<namespace>/recipe/} with the machine's recipe type.
  * Every recipe is checked against its machine's slot counts, so a recipe that could never run
@@ -57,11 +70,426 @@ public class ModRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
+        materials();
+        tools();
+        collectorsAndTanks();
+        machines();
+        chunkLoaders();
+        converters();
+        pipes();
+        upgradeCards();
+
         grinder();
         sawmill();
         alloySmelter();
         infuser();
         plantGrower();
+    }
+
+    // --- Crafting: materials -----------------------------------------------------------------
+
+    /**
+     * The hand-made start of the chain. Flux Dust is the plan's glowstone, quartz and redstone. The
+     * crystals can be crafted from four dust around their gem before there is an Infuser, which later
+     * makes the same crystal from a single dust and some Moon Flux. Fluxsteel and Aerogold have no
+     * crafting recipe on purpose: the plan makes them in the Alloy Smelter, and nothing needed to build
+     * the first Alloy Smelter calls for either of them.
+     */
+    private void materials() {
+        shapeless(RecipeCategory.MISC, ModItems.FLUX_DUST.get(), 2)
+                .requires(Tags.Items.DUSTS_GLOWSTONE)
+                .requires(Tags.Items.GEMS_QUARTZ)
+                .requires(Tags.Items.DUSTS_REDSTONE)
+                .unlockedBy("has_glowstone_dust", has(Tags.Items.DUSTS_GLOWSTONE))
+                .save(output);
+        crystal(ModItems.AERO_CRYSTAL.get(), Tags.Items.GEMS_QUARTZ);
+        crystal(ModItems.MOON_CRYSTAL.get(), Tags.Items.GEMS_AMETHYST);
+    }
+
+    /** A gem with Flux Dust on its four sides; the slow way to a crystal, before the Infuser. */
+    private void crystal(ItemLike crystal, TagKey<Item> gem) {
+        shaped(RecipeCategory.MISC, crystal)
+                .define('D', ModItems.FLUX_DUST.get())
+                .define('G', gem)
+                .pattern(" D ")
+                .pattern("DGD")
+                .pattern(" D ")
+                .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
+                .save(output);
+    }
+
+    // --- Crafting: tools and upgrades --------------------------------------------------------
+
+    /**
+     * The plan puts the wrench in the hand-made bootstrap set, so it takes only copper and dust. The
+     * Conduit Tool is the plan's Fluxsteel tool and comes after the Alloy Smelter. The two pipe
+     * upgrades use the plan's ingredients: Aero Crystal, redstone and gold for Speed; Moon Crystal,
+     * iron and quartz for Capacity.
+     */
+    private void tools() {
+        shapeless(RecipeCategory.MISC, ModItems.GUIDEBOOK.get())
+                .requires(Items.BOOK)
+                .requires(ModItems.FLUX_DUST.get())
+                .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
+                .save(output);
+        shaped(RecipeCategory.TOOLS, ModItems.FLUX_WRENCH.get())
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('D', ModItems.FLUX_DUST.get())
+                .pattern("C C")
+                .pattern(" D ")
+                .pattern(" C ")
+                .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
+                .save(output);
+        shaped(RecipeCategory.TOOLS, ModItems.CONDUIT_TOOL.get())
+                .define('F', ModItems.FLUXSTEEL_INGOT.get())
+                .define('A', ModItems.AERO_CRYSTAL.get())
+                .pattern("F F")
+                .pattern(" A ")
+                .pattern(" F ")
+                .unlockedBy(getHasName(ModItems.FLUXSTEEL_INGOT.get()), has(ModItems.FLUXSTEEL_INGOT.get()))
+                .save(output);
+
+        shaped(RecipeCategory.MISC, ModItems.SPEED_UPGRADE.get())
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('A', ModItems.AERO_CRYSTAL.get())
+                .pattern("RGR")
+                .pattern("RAR")
+                .pattern("RGR")
+                .unlockedBy(getHasName(ModItems.AERO_CRYSTAL.get()), has(ModItems.AERO_CRYSTAL.get()))
+                .save(output);
+        shaped(RecipeCategory.MISC, ModItems.CAPACITY_UPGRADE.get())
+                .define('Q', Tags.Items.GEMS_QUARTZ)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('M', ModItems.MOON_CRYSTAL.get())
+                .pattern("QIQ")
+                .pattern("QMQ")
+                .pattern("QIQ")
+                .unlockedBy(getHasName(ModItems.MOON_CRYSTAL.get()), has(ModItems.MOON_CRYSTAL.get()))
+                .save(output);
+        // The plan: Filter and Priority come from Fluxsteel with a hopper and a comparator.
+        shaped(RecipeCategory.MISC, ModItems.FILTER_UPGRADE.get())
+                .define('F', ModItems.FLUXSTEEL_INGOT.get())
+                .define('P', Items.PAPER)
+                .define('H', Items.HOPPER)
+                .pattern("FPF")
+                .pattern("PHP")
+                .pattern("FPF")
+                .unlockedBy(getHasName(ModItems.FLUXSTEEL_INGOT.get()), has(ModItems.FLUXSTEEL_INGOT.get()))
+                .save(output);
+        shaped(RecipeCategory.MISC, ModItems.PRIORITY_UPGRADE.get())
+                .define('F', ModItems.FLUXSTEEL_INGOT.get())
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('C', Items.COMPARATOR)
+                .pattern("FRF")
+                .pattern("RCR")
+                .pattern("FRF")
+                .unlockedBy(getHasName(ModItems.FLUXSTEEL_INGOT.get()), has(ModItems.FLUXSTEEL_INGOT.get()))
+                .save(output);
+    }
+
+    // --- Crafting: tiers ---------------------------------------------------------------------
+
+    /**
+     * What it takes to raise a block or a run of pipe to one tier: the slots above, beside and below
+     * the thing being upgraded. The materials follow the plan's frame column (gold comes with
+     * amethyst, Fluxium is Fluxsteel and both crystals). Diamond and Netherite also take the mod's
+     * alloys, so that the top tiers lean on the machines rather than on raw ore alone.
+     */
+    private record TierKit(Ingredient top, Ingredient side, Ingredient bottom) {
+    }
+
+    /** The upgrade kit for a tier above copper; copper is the base tier, so nothing upgrades into it. */
+    private TierKit kit(Tier tier) {
+        return switch (tier) {
+            case COPPER -> throw new IllegalArgumentException("Copper is crafted from scratch, not upgraded into");
+            case IRON -> new TierKit(tag(Tags.Items.INGOTS_IRON), tag(Tags.Items.INGOTS_IRON), tag(Tags.Items.INGOTS_IRON));
+            case GOLD -> new TierKit(tag(Tags.Items.INGOTS_GOLD), tag(Tags.Items.GEMS_AMETHYST), tag(Tags.Items.INGOTS_GOLD));
+            case DIAMOND -> new TierKit(tag(Tags.Items.GEMS_DIAMOND), Ingredient.of(ModItems.FLUXSTEEL_INGOT.get()),
+                    tag(Tags.Items.GEMS_DIAMOND));
+            case NETHERITE -> new TierKit(tag(Tags.Items.INGOTS_NETHERITE), Ingredient.of(ModItems.AEROGOLD_INGOT.get()),
+                    Ingredient.of(ModItems.AEROGOLD_INGOT.get()));
+            case FLUXIUM -> new TierKit(Ingredient.of(ModItems.AERO_CRYSTAL.get()), Ingredient.of(ModItems.FLUXSTEEL_INGOT.get()),
+                    Ingredient.of(ModItems.MOON_CRYSTAL.get()));
+        };
+    }
+
+    /** One block of a tier from the same block one tier down, wrapped in that tier's kit. */
+    private void upgrade(ItemLike result, ItemLike previous, Tier tier) {
+        TierKit kit = kit(tier);
+        shaped(RecipeCategory.MISC, result)
+                .define('T', kit.top())
+                .define('S', kit.side())
+                .define('B', kit.bottom())
+                .define('P', previous)
+                .pattern(" T ")
+                .pattern("SPS")
+                .pattern(" B ")
+                .unlockedBy(getHasName(previous), has(previous))
+                .save(output);
+    }
+
+    /**
+     * The upgrade cards: a tier's kit around one Flux Dust. Unlike the block upgrade recipes they
+     * need no block of the tier below, since the card works on a block that is already placed.
+     */
+    private void upgradeCards() {
+        for (Tier tier : Tier.values()) {
+            if (tier == Tier.COPPER) {
+                continue;
+            }
+            TierKit kit = kit(tier);
+            shaped(RecipeCategory.MISC, ModItems.upgradeCard(tier).get())
+                    .define('T', kit.top())
+                    .define('S', kit.side())
+                    .define('B', kit.bottom())
+                    .define('D', ModItems.FLUX_DUST.get())
+                    .pattern(" T ")
+                    .pattern("SDS")
+                    .pattern(" B ")
+                    .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
+                    .save(output);
+        }
+    }
+
+    // --- Crafting: collectors and tanks ------------------------------------------------------
+
+    /**
+     * The copper collector and tank are part of the hand-made bootstrap. A collector is a daylight
+     * detector under glass on a copper base; a tank is a bucket boxed in glass and copper. Every
+     * higher tier is the tier below plus that tier's kit.
+     */
+    private void collectorsAndTanks() {
+        shaped(RecipeCategory.MISC, ModBlocks.collector(Tier.COPPER).get())
+                .define('G', Tags.Items.GLASS_BLOCKS_COLORLESS)
+                .define('S', Items.DAYLIGHT_DETECTOR)
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('D', ModItems.FLUX_DUST.get())
+                .pattern("GSG")
+                .pattern("CDC")
+                .pattern("CCC")
+                .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
+                .save(output);
+        shaped(RecipeCategory.MISC, ModBlocks.tank(Tier.COPPER).get())
+                .define('G', Tags.Items.GLASS_BLOCKS_COLORLESS)
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('B', Items.BUCKET)
+                .pattern("CGC")
+                .pattern("GBG")
+                .pattern("CGC")
+                .unlockedBy(getHasName(ModBlocks.collector(Tier.COPPER).get()), has(ModBlocks.collector(Tier.COPPER).get()))
+                .save(output);
+
+        Tier[] tiers = Tier.values();
+        for (int i = 1; i < tiers.length; i++) {
+            upgrade(ModBlocks.collector(tiers[i]).get(), ModBlocks.collector(tiers[i - 1]).get(), tiers[i]);
+            upgrade(ModBlocks.tank(tiers[i]).get(), ModBlocks.tank(tiers[i - 1]).get(), tiers[i]);
+        }
+    }
+
+    // --- Crafting: machines ------------------------------------------------------------------
+
+    /**
+     * The vanilla block a copper machine is built around, the accent above it and the pair beside it,
+     * and the item whose pickup unlocks the recipe.
+     */
+    private record MachineParts(ItemLike core, Ingredient top, Ingredient sides, ItemLike unlock) {
+    }
+
+    /**
+     * Each machine wraps the vanilla block that already does its job. The first five need nothing the
+     * player cannot make by hand, so the Alloy Smelter can be built before there is any Fluxsteel. The
+     * enchanting pair come later, as the plan's advancement order has them, and take Fluxsteel.
+     */
+    private MachineParts parts(MachineType machine) {
+        Ingredient copper = tag(Tags.Items.INGOTS_COPPER);
+        Ingredient fluxsteel = Ingredient.of(ModItems.FLUXSTEEL_INGOT.get());
+        Ingredient moonCrystal = Ingredient.of(ModItems.MOON_CRYSTAL.get());
+        return switch (machine) {
+            case FURNACE -> new MachineParts(Items.FURNACE, copper, copper, ModItems.FLUX_DUST.get());
+            case GRINDER -> new MachineParts(Items.GRINDSTONE, Ingredient.of(Items.FLINT), copper, ModItems.FLUX_DUST.get());
+            case SAWMILL -> new MachineParts(Items.STONECUTTER, tag(Tags.Items.INGOTS_IRON), copper, ModItems.FLUX_DUST.get());
+            case ALLOY_SMELTER -> new MachineParts(Items.BLAST_FURNACE, Ingredient.of(ModItems.AERO_CRYSTAL.get()), copper,
+                    ModItems.AERO_CRYSTAL.get());
+            case INFUSER -> new MachineParts(Items.BREWING_STAND, moonCrystal, copper, ModItems.MOON_CRYSTAL.get());
+            case ENCHANTER -> new MachineParts(Items.ENCHANTING_TABLE, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
+            // Vanilla takes enchantments off with a grindstone, so the disenchanter is built around one too.
+            case DISENCHANTER -> new MachineParts(Items.GRINDSTONE, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
+            // A composter is vanilla's bone meal machine; the glass is the growing chamber.
+            case PLANT_GROWER -> new MachineParts(Items.COMPOSTER, tag(Tags.Items.GLASS_BLOCKS_COLORLESS),
+                    tag(Tags.Items.GLASS_BLOCKS_COLORLESS), ModItems.FLUX_DUST.get());
+        };
+    }
+
+    /** Every machine: the copper one from its vanilla parts, then each tier from the one below. */
+    private void machines() {
+        Tier[] tiers = Tier.values();
+        for (MachineType machine : MachineType.values()) {
+            MachineParts parts = parts(machine);
+            shaped(RecipeCategory.MISC, ModBlocks.machine(machine, Tier.COPPER).get())
+                    .define('C', Tags.Items.INGOTS_COPPER)
+                    .define('A', parts.top())
+                    .define('S', parts.sides())
+                    .define('M', parts.core())
+                    .define('D', ModItems.FLUX_DUST.get())
+                    .pattern("CAC")
+                    .pattern("SMS")
+                    .pattern("CDC")
+                    .unlockedBy(getHasName(parts.unlock()), has(parts.unlock()))
+                    .save(output);
+            for (int i = 1; i < tiers.length; i++) {
+                upgrade(ModBlocks.machine(machine, tiers[i]).get(), ModBlocks.machine(machine, tiers[i - 1]).get(), tiers[i]);
+            }
+        }
+    }
+
+    // --- Crafting: chunk loaders -------------------------------------------------------------
+
+    /**
+     * The copper loader is an ender pearl (the vanilla thing that keeps chunks loaded as it flies)
+     * over a block of obsidian, with a copper frame, Flux Dust and both crystals so it runs on
+     * either Flux. Higher tiers are the tier below plus that tier's kit, like every other block.
+     */
+    private void chunkLoaders() {
+        shaped(RecipeCategory.MISC, ModBlocks.chunkLoader(Tier.COPPER).get())
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('E', Tags.Items.ENDER_PEARLS)
+                .define('A', ModItems.AERO_CRYSTAL.get())
+                .define('M', ModItems.MOON_CRYSTAL.get())
+                .define('O', Items.OBSIDIAN)
+                .define('D', ModItems.FLUX_DUST.get())
+                .pattern("CEC")
+                .pattern("AOM")
+                .pattern("CDC")
+                .unlockedBy(getHasName(ModItems.MOON_CRYSTAL.get()), has(ModItems.MOON_CRYSTAL.get()))
+                .save(output);
+        Tier[] tiers = Tier.values();
+        for (int i = 1; i < tiers.length; i++) {
+            upgrade(ModBlocks.chunkLoader(tiers[i]).get(), ModBlocks.chunkLoader(tiers[i - 1]).get(), tiers[i]);
+        }
+    }
+
+    /**
+     * The converters: a copper tank of Flux in a copper frame, with redstone for the FE converter and
+     * fluix for the AE one. The AE converter is only worth having with AE2, so its recipes need AE2.
+     * Higher tiers upgrade the tier below like every other block.
+     */
+    private void converters() {
+        for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
+            RecipeOutput target = type == ConverterType.AE ? output.withConditions(new ModLoadedCondition("ae2")) : output;
+            Ingredient core = type == ConverterType.AE
+                    ? tag(ItemTags.create(Identifier.fromNamespaceAndPath("c", "gems/fluix")))
+                    : tag(Tags.Items.STORAGE_BLOCKS_REDSTONE);
+            shaped(RecipeCategory.REDSTONE, ModBlocks.converter(type, Tier.COPPER).get())
+                    .define('C', Tags.Items.INGOTS_COPPER)
+                    .define('X', core)
+                    .define('D', ModItems.FLUX_DUST.get())
+                    .define('T', ModBlocks.tank(Tier.COPPER).get())
+                    .pattern("CXC")
+                    .pattern("DTD")
+                    .pattern("CXC")
+                    .unlockedBy(getHasName(ModBlocks.tank(Tier.COPPER).get()), has(ModBlocks.tank(Tier.COPPER).get()))
+                    .save(target);
+            Tier[] tiers = Tier.values();
+            for (int i = 1; i < tiers.length; i++) {
+                TierKit kit = kit(tiers[i]);
+                ItemLike previous = ModBlocks.converter(type, tiers[i - 1]).get();
+                shaped(RecipeCategory.REDSTONE, ModBlocks.converter(type, tiers[i]).get())
+                        .define('T', kit.top())
+                        .define('S', kit.side())
+                        .define('B', kit.bottom())
+                        .define('P', previous)
+                        .pattern(" T ")
+                        .pattern("SPS")
+                        .pattern(" B ")
+                        .unlockedBy(getHasName(previous), has(previous))
+                        .save(target);
+            }
+        }
+    }
+
+    // --- Crafting: pipes ---------------------------------------------------------------------
+
+    /** Pipes made by one copper craft. */
+    private static final int PIPES_PER_CRAFT = 8;
+    /** Pipes raised a tier by one upgrade craft. */
+    private static final int PIPES_PER_UPGRADE = 6;
+
+    /**
+     * Copper pipes are copper ingots around a vanilla item that already handles what the pipe
+     * carries, eight to a craft. A higher tier is six pipes of the tier below in the outer columns
+     * with that tier's kit down the middle, so a whole run can be upgraded six at a time. The ME
+     * pipes have no tiers; the dense one is four normal ones bundled together, the way AE2 makes its
+     * dense cable.
+     */
+    private void pipes() {
+        Tier[] tiers = Tier.values();
+        for (PipeType type : PipeType.values()) {
+            if (type == PipeType.DENSE_ME) {
+                continue;
+            }
+            ItemLike copperPipe = ModItems.pipe(type, Tier.COPPER).get();
+            RecipeCategory category = type == PipeType.REDSTONE ? RecipeCategory.REDSTONE : RecipeCategory.MISC;
+            shaped(category, copperPipe, PIPES_PER_CRAFT)
+                    .define('C', Tags.Items.INGOTS_COPPER)
+                    .define('D', ModItems.FLUX_DUST.get())
+                    .define('X', pipeCore(type))
+                    .pattern("CCC")
+                    .pattern("DXD")
+                    .pattern("CCC")
+                    .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
+                    .save(outputFor(type));
+            if (!PipeTiers.isTiered(type)) {
+                continue;
+            }
+            for (int i = 1; i < tiers.length; i++) {
+                ItemLike previous = ModItems.pipe(type, tiers[i - 1]).get();
+                TierKit kit = kit(tiers[i]);
+                shaped(category, ModItems.pipe(type, tiers[i]).get(), PIPES_PER_UPGRADE)
+                        .define('P', previous)
+                        .define('T', kit.top())
+                        .define('S', kit.side())
+                        .define('B', kit.bottom())
+                        .pattern("PTP")
+                        .pattern("PSP")
+                        .pattern("PBP")
+                        .unlockedBy(getHasName(previous), has(previous))
+                        .save(outputFor(type));
+            }
+        }
+
+        ItemLike mePipe = ModItems.pipe(PipeType.ME, Tier.COPPER).get();
+        shapeless(RecipeCategory.MISC, ModItems.pipe(PipeType.DENSE_ME, Tier.COPPER).get())
+                .requires(mePipe, 4)
+                .requires(Tags.Items.DUSTS_GLOWSTONE)
+                .requires(Tags.Items.DUSTS_REDSTONE)
+                .unlockedBy(getHasName(mePipe), has(mePipe))
+                .save(outputFor(PipeType.DENSE_ME));
+    }
+
+    /**
+     * Where a pipe's recipes go. Gas pipes only matter with Mekanism and ME pipes only with AE2, so
+     * their recipes carry a mod-loaded condition and stay out of the recipe book otherwise.
+     */
+    private RecipeOutput outputFor(PipeType type) {
+        return switch (type) {
+            case GAS -> output.withConditions(new ModLoadedCondition("mekanism"));
+            case ME, DENSE_ME -> output.withConditions(new ModLoadedCondition("ae2"));
+            default -> output;
+        };
+    }
+
+    /** The vanilla item in the middle of a copper pipe recipe: something that already handles what the pipe carries. */
+    private static ItemLike pipeCore(PipeType type) {
+        return switch (type) {
+            case FLUID -> Items.BUCKET;
+            case ITEM -> Items.HOPPER;
+            case REDSTONE -> Items.REDSTONE;
+            case ENERGY -> Items.LIGHTNING_ROD;
+            case GAS -> Items.GLASS_BOTTLE;
+            // AE2's cables are quartz and amethyst-colored; without AE2 items to hand, the Moon Crystal stands in.
+            case ME, DENSE_ME -> ModItems.MOON_CRYSTAL.get();
+        };
     }
 
     // --- Grinder -----------------------------------------------------------------------------

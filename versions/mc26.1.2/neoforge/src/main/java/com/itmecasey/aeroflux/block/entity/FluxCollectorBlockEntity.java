@@ -54,6 +54,16 @@ public class FluxCollectorBlockEntity extends BlockEntity {
         this.tier = ((FluxCollectorBlock) state.getBlock()).tier();
         // A single slot, so the buffer can only ever hold one kind of flux.
         this.buffer = new FluidStacksResourceHandler(1, AeroFluxConfig.collectorBuffer(tier)) {
+            /**
+             * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
+             * update, or a Capacity upgrade came out); it still takes nothing more, and probes such as
+             * Jade, which refuse a fill above 100%, see a full tank instead of crashing.
+             */
+            @Override
+            public long getCapacityAsLong(int index, FluidResource resource) {
+                return Math.max(super.getCapacityAsLong(index, resource), getAmountAsLong(index));
+            }
+
             @Override
             public boolean isValid(int index, FluidResource resource) {
                 return ModFluids.isFlux(resource);

@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.ArrayList;
@@ -33,12 +34,15 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
     private static List<Block> machineBlocks() {
         // The bundle has no table: it drops the pipes it holds (see ConduitBundleBlock#getDrops).
         List<Block> blocks = new ArrayList<>();
-        blocks.add(ModBlocks.PIPE_NODE.get());
         for (Tier tier : Tier.values()) {
             blocks.add(ModBlocks.collector(tier).get());
             blocks.add(ModBlocks.tank(tier).get());
             for (MachineType machine : MachineType.values()) {
                 blocks.add(ModBlocks.machine(machine, tier).get());
+            }
+            blocks.add(ModBlocks.chunkLoader(tier).get());
+            for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
+                blocks.add(ModBlocks.converter(type, tier).get());
             }
         }
         return blocks;

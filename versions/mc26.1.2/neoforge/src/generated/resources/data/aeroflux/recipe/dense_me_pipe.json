@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "aeroflux:me_pipe",
+    "aeroflux:me_pipe",
+    "aeroflux:me_pipe",
+    "aeroflux:me_pipe",
+    "#c:dusts/glowstone",
+    "#c:dusts/redstone"
+  ],
+  "result": {
+    "id": "aeroflux:dense_me_pipe"
+  }
+}
