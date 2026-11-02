@@ -3,6 +3,7 @@ package com.itmecasey.aeroflux.chunkloader;
 import com.itmecasey.aeroflux.AeroFluxConfig;
 import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.block.entity.FluxDimensions;
+import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.chunkloader.ChunkLoaderMath;
@@ -104,6 +105,11 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
     /** The tank itself; the menu and the self-test use it. The outside world gets {@link #fluidHandler}. */
     public FluidTank tank() {
         return tank;
+    }
+
+    /** The comparator signal: how full the Flux tank is, from 0 to 15. */
+    public int comparatorSignal() {
+        return FillLevel.comparatorSignal(tank.getFluidAmount(), tank.getCapacity());
     }
 
     /** What pipes and buckets see on every side: a tank that only fills. */

@@ -19,10 +19,10 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The Flux Enchanter: applies the enchantments stored in an enchanted book to an item, for
- * lapis and Moon Flux. The slots are the item, the book and the lapis. What the rules allow (no
- * curses, no enchantment the item cannot take, no clash with one it already has, never a lower
- * level than it has) and what it costs live in {@link EnchantRules}; this class applies them to
- * real stacks.
+ * lapis and Moon Flux. The slots are the item, the book and the lapis. What the rules allow (by
+ * default no curses, nothing the config blocks, no enchantment the item cannot take, no clash with
+ * one it already has, never a lower level than it has) and what it costs live in
+ * {@link EnchantRules}, set from the config; this class applies them to real stacks.
  */
 public class EnchanterBlockEntity extends FluxMachineBlockEntity {
     private static final int ITEM = 0;
@@ -49,6 +49,7 @@ public class EnchanterBlockEntity extends FluxMachineBlockEntity {
             for (Object2IntMap.Entry<Holder<Enchantment>> entry : stored.entrySet()) {
                 Holder<Enchantment> enchantment = entry.getKey();
                 if (!EnchantRules.enchanterAllows(enchantment.is(EnchantmentTags.CURSE), enchantment.is(EnchantmentTags.TREASURE))
+                        || !EnchantSettings.listsAllow(enchantment)
                         || !target.supportsEnchantment(enchantment)
                         || clashes(enchantments, enchantment)) {
                     continue;

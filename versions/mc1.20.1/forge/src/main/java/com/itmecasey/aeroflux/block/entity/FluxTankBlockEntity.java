@@ -26,6 +26,9 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
  *
  * <p>Clients draw the fluid level inside the glass, so they are sent the tank whenever its
  * picture changes (see {@link FillLevel}); a tank being filled does not resend every tick.
+ *
+ * <p>A broken tank keeps its flux: the loot table copies the saved fluid into the item's
+ * {@code BlockEntityTag}, and vanilla's {@code BlockItem} loads it back into the tank it places.
  */
 public class FluxTankBlockEntity extends BlockEntity {
     private final FluidTank tank;
@@ -61,6 +64,11 @@ public class FluxTankBlockEntity extends BlockEntity {
         return tank;
     }
 
+    /** The comparator signal: how full the tank is, from 0 to 15. */
+    public int comparatorSignal() {
+        return FillLevel.comparatorSignal(tank.getFluidAmount(), tank.getCapacity());
+    }
+
     /** Tells clients about the tank, but only when what they would draw has changed. */
     private void syncIfPictureChanged() {
         if (level == null || level.isClientSide) {
@@ -93,7 +101,11 @@ public class FluxTankBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tank.writeToNBT(tag);
+        // An empty tank saves no fluid at all, so its loot table copies nothing and it drops a
+        // plain tank that stacks with new ones. Loading a tag without fluid empties the tank.
+        if (!tank.isEmpty()) {
+            tank.writeToNBT(tag);
+        }
     }
 
     @Override
@@ -104,7 +116,11 @@ public class FluxTankBlockEntity extends BlockEntity {
 
     @Override
     public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+        // Clients always get the fluid, even an empty one: a packet with an empty tag is never
+        // loaded, so a tank that was just drained would keep drawing its old level.
+        CompoundTag tag = saveWithoutMetadata();
+        tank.writeToNBT(tag);
+        return tag;
     }
 
     @Override

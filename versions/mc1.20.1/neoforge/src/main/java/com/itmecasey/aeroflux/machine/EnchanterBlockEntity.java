@@ -15,10 +15,10 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * The Flux Enchanter: applies the enchantments stored in an enchanted book to an item, for
- * lapis and Moon Flux. The slots are the item, the book and the lapis. What the rules allow (no
- * curses, no enchantment the item cannot take, no clash with one it already has, never a lower
- * level than it has) and what it costs live in {@link EnchantRules}; this class applies them to
- * real stacks.
+ * lapis and Moon Flux. The slots are the item, the book and the lapis. What the rules allow (by
+ * default no curses, nothing the config blocks, no enchantment the item cannot take, no clash with
+ * one it already has, never a lower level than it has) and what it costs live in
+ * {@link EnchantRules}, set from the config; this class applies them to real stacks.
  *
  * <p>In 1.20.1 an enchantment is just an entry in the item's NBT, so the work is done on maps from
  * enchantment to level: the ones on the item ("Enchantments") and the ones stored in the book
@@ -50,6 +50,7 @@ public class EnchanterBlockEntity extends FluxMachineBlockEntity {
         for (Map.Entry<Enchantment, Integer> entry : EnchantmentHelper.getEnchantments(book).entrySet()) {
             Enchantment enchantment = entry.getKey();
             if (!EnchantRules.enchanterAllows(enchantment.isCurse(), enchantment.isTreasureOnly())
+                    || !EnchantSettings.listsAllow(enchantment)
                     || !enchantment.canEnchant(target)
                     || clashes(enchantments, enchantment)) {
                 continue;

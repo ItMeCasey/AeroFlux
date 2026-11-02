@@ -10,6 +10,7 @@ import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
+import com.itmecasey.aeroflux.registry.ModDataComponents;
 import java.text.NumberFormat;
 import java.util.Locale;
 import net.minecraft.ChatFormatting;
@@ -20,6 +21,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -44,6 +47,14 @@ public final class StorageTooltips {
         if (line != null) {
             // Right under the name, where vanilla puts a block's own short facts.
             event.getToolTip().add(Math.min(1, event.getToolTip().size()), line);
+        }
+        FluidStack carried = event.getItemStack()
+                .getOrDefault(ModDataComponents.TANK_FLUID.get(), SimpleFluidContent.EMPTY).copy();
+        if (!carried.isEmpty()) {
+            // A tank that was broken with flux inside says how much it still holds.
+            event.getToolTip().add(Math.min(2, event.getToolTip().size()), Component.translatable(
+                    "tooltip." + AeroFlux.MODID + ".tank_contents", mb(carried.getAmount()), carried.getHoverName())
+                    .withStyle(ChatFormatting.AQUA));
         }
         if (item.getBlock() instanceof FluxMachineBlock machine && machine.machine() == MachineType.SIFTER) {
             // The Sifter does nothing without a sieve mod's mesh, so it says so up front.

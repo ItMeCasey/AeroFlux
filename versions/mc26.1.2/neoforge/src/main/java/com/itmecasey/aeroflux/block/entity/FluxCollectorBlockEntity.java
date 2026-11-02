@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.core.CollectionMath;
 import com.itmecasey.aeroflux.core.DimensionRules;
+import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxAccumulator;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -81,6 +82,11 @@ public class FluxCollectorBlockEntity extends BlockEntity {
     /** The buffer as other blocks see it: they may drain it, never fill it. */
     public ResourceHandler<FluidResource> outputView() {
         return outputView;
+    }
+
+    /** The comparator signal: how full the buffer is, from 0 to 15. */
+    public int comparatorSignal() {
+        return FillLevel.comparatorSignal(buffer.getAmountAsLong(0), buffer.getCapacityAsLong(0, buffer.getResource(0)));
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, FluxCollectorBlockEntity collector) {

@@ -94,6 +94,17 @@ public class FluxMachineBlock extends BaseEntityBlock {
         return MachineFactory.create(pos, state);
     }
 
+    @Override
+    public boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    /** A comparator reads how full the item slots are. */
+    @Override
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof FluxMachineBlockEntity entity ? entity.comparatorSignal() : 0;
+    }
+
     /**
      * Right-click with a bucket (or any fluid container) moves Flux in or out, whatever the face
      * settings say; anything else opens the screen.

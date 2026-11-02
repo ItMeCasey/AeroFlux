@@ -71,6 +71,7 @@ public class ModLanguageProvider extends LanguageProvider {
         }
         add("tooltip." + AeroFlux.MODID + ".upgrade_card", "Upgrades a %s machine, collector, tank or converter to %s: sneak and use it on the block");
         add("tooltip." + AeroFlux.MODID + ".sifter", "Runs the sieve recipes of Ex Deorum and Ex Nihilo Sequentia: put a mesh from either in its mesh slot");
+        add("tooltip." + AeroFlux.MODID + ".tank_contents", "Contains %s of %s");
         String holds = "tooltip." + AeroFlux.MODID + ".holds.";
         add(holds + "tank", "Holds %s");
         add(holds + "collector", "Stores up to %s");

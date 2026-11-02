@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.converter;
 
 import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
+import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Face;
@@ -132,6 +133,11 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
 
     public FluidTank tank() {
         return tank;
+    }
+
+    /** The comparator signal: how full the Flux tank is, from 0 to 15. */
+    public int comparatorSignal() {
+        return FillLevel.comparatorSignal(tank.getFluidAmount(), tank.getCapacity());
     }
 
     /** What pipes and buckets see: a tank that only fills. */

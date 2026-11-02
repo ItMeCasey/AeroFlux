@@ -92,6 +92,8 @@ public final class SelfTest {
         MoreMachinesSelfTest.setUp(level);
         StorageSelfTest.run(level);
         MachineExtrasSelfTest.setUp(level);
+        BlockIoSelfTest.setUp(level);
+        EnchantConfigSelfTest.setUp(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;
@@ -124,12 +126,20 @@ public final class SelfTest {
             MoreMachinesSelfTest.tick();
             // The upgrades and imported recipes build in a layer of their own too.
             MachineExtrasSelfTest.tick();
+            // The tank, comparator, hopper and dropper checks build in a layer of their own too.
+            BlockIoSelfTest.tick();
+        }
+        // The enchanting config checks change global settings, so they wait until the machine checks,
+        // which test the defaults, are done.
+        if (MachineSelfTest.finished()) {
+            EnchantConfigSelfTest.tick();
         }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer, tool, screen and machine checks to finish too.
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
                     && MachineSelfTest.finished() && MachineUpgradeSelfTest.finished() && ChunkLoaderSelfTest.finished()
-                    && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()) {
+                    && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished() && BlockIoSelfTest.finished()
+                    && EnchantConfigSelfTest.finished()) {
                 finish();
             }
             return;

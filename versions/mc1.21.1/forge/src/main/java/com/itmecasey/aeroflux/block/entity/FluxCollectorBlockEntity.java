@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.core.CollectionMath;
 import com.itmecasey.aeroflux.core.DimensionRules;
+import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxAccumulator;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -67,6 +68,11 @@ public class FluxCollectorBlockEntity extends BlockEntity {
     /** The internal buffer; neighbors may only drain it, never fill it. */
     public FluidTank buffer() {
         return buffer;
+    }
+
+    /** The comparator signal: how full the buffer is, from 0 to 15. */
+    public int comparatorSignal() {
+        return FillLevel.comparatorSignal(buffer.getFluidAmount(), buffer.getCapacity());
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, FluxCollectorBlockEntity collector) {

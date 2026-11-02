@@ -51,6 +51,17 @@ public class FluxChunkLoaderBlock extends BaseEntityBlock {
         return new FluxChunkLoaderBlockEntity(pos, state);
     }
 
+    @Override
+    public boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    /** A comparator reads how full the Flux tank is. */
+    @Override
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof FluxChunkLoaderBlockEntity entity ? entity.comparatorSignal() : 0;
+    }
+
     /** Records the owner, and tells a player straight away when this dimension does not allow loaders. */
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {

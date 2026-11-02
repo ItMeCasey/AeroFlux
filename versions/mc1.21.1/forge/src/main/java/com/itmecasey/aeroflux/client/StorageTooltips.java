@@ -8,8 +8,10 @@ import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlock;
 import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.fluid.TankContents;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
+import com.itmecasey.aeroflux.registry.ModDataComponents;
 import java.text.NumberFormat;
 import java.util.Locale;
 import net.minecraft.ChatFormatting;
@@ -24,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Adds how much a block holds to its item's tooltip: a Flux Tank's size, a collector's buffer, and
- * the Flux tank of machines, converters, chunk loaders and lamps. The Sifter also says it needs a
- * mesh from Ex Deorum or Ex Nihilo Sequentia.
+ * the Flux tank of machines, converters, chunk loaders and lamps. A tank broken with flux inside
+ * says what it carries, and the Sifter says it needs a mesh from Ex Deorum or Ex Nihilo Sequentia.
  *
  * <p>The numbers come from {@link StorageSizes}, so on a server they are the server's sizes,
  * even when they differ from this game's own config.
@@ -44,6 +46,13 @@ public final class StorageTooltips {
         if (line != null) {
             // Right under the name, where vanilla puts a block's own short facts.
             event.getToolTip().add(Math.min(1, event.getToolTip().size()), line);
+        }
+        TankContents carried = event.getItemStack().get(ModDataComponents.TANK_FLUID.get());
+        if (carried != null) {
+            // A tank that was broken with flux inside says how much it still holds.
+            event.getToolTip().add(Math.min(2, event.getToolTip().size()), Component.translatable(
+                    "tooltip." + AeroFlux.MODID + ".tank_contents", mb(carried.amount()), carried.toStack().getDisplayName())
+                    .withStyle(ChatFormatting.AQUA));
         }
         if (item.getBlock() instanceof FluxMachineBlock machine && machine.machine() == MachineType.SIFTER) {
             // The Sifter does nothing without a sieve mod's mesh, so it says so up front.

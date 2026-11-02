@@ -87,6 +87,17 @@ public class FluxConverterBlock extends BaseEntityBlock {
         return new FluxConverterBlockEntity(pos, state);
     }
 
+    @Override
+    public boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    /** A comparator reads how full the Flux tank is. */
+    @Override
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof FluxConverterBlockEntity entity ? entity.comparatorSignal() : 0;
+    }
+
     /** A bucket of Flux fills the converter. */
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,

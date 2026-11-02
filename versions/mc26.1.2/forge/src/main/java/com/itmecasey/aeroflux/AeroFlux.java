@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.datagen.DataGenerators;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModCreativeTabs;
+import com.itmecasey.aeroflux.registry.ModDataComponents;
 import com.itmecasey.aeroflux.registry.ModFluidTypes;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
@@ -44,6 +45,7 @@ public final class AeroFlux {
         ModFluids.register(modBusGroup);
         ModBlocks.register(modBusGroup);
         ModBlockEntities.register(modBusGroup);
+        ModDataComponents.register(modBusGroup);
         ModItems.register(modBusGroup);
         ModMenus.register(modBusGroup);
         ModRecipes.register(modBusGroup);

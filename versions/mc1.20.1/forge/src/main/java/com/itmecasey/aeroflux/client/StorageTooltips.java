@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +45,15 @@ public final class StorageTooltips {
         if (line != null) {
             // Right under the name, where vanilla puts a block's own short facts.
             event.getToolTip().add(Math.min(1, event.getToolTip().size()), line);
+        }
+        if (item.getBlock() instanceof FluxTankBlock) {
+            // A tank that was broken with flux inside carries it in its BlockEntityTag and says how much.
+            FluidStack carried = FluidStack.loadFluidStackFromNBT(BlockItem.getBlockEntityData(event.getItemStack()));
+            if (!carried.isEmpty()) {
+                event.getToolTip().add(Math.min(2, event.getToolTip().size()), Component.translatable(
+                        "tooltip." + AeroFlux.MODID + ".tank_contents", mb(carried.getAmount()), carried.getDisplayName())
+                        .withStyle(ChatFormatting.AQUA));
+            }
         }
         if (item.getBlock() instanceof FluxMachineBlock machine && machine.machine() == MachineType.SIFTER) {
             // The Sifter does nothing without a sieve mod's mesh, so it says so up front.

@@ -36,6 +36,17 @@ public final class FillLevel {
     }
 
     /**
+     * The signal a comparator reads from a tank, worked out the way vanilla does it for a chest:
+     * 0 when empty, 1 for any fluid at all, rising to 15 only when the tank is full.
+     */
+    public static int comparatorSignal(long amount, long capacity) {
+        if (amount <= 0 || capacity <= 0) {
+            return 0;
+        }
+        return 1 + (int) Math.floor(fraction(amount, capacity) * 14);
+    }
+
+    /**
      * A value that changes exactly when the tank's picture should be resent: the step, plus which
      * flux it is, since a swap from Aero to Moon Flux at the same level still changes the color.
      */

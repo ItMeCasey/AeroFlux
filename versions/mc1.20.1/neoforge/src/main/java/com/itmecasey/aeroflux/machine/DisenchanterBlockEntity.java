@@ -8,16 +8,20 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * The Flux Disenchanter: moves the enchantments of an item onto a plain book, for Moon Flux. The
- * item survives (damage and all) and keeps its curses, the way a grindstone leaves them. Both the
- * stripped item and the new enchanted book come out. Giving back XP is not built yet.
+ * item survives (damage and all) and keeps its curses, the way a grindstone leaves them, and keeps
+ * anything the config blocks. Both the stripped item and the new enchanted book come out. When the
+ * config switches it on, the machine also gives back experience for what it strips, as orbs on top.
  *
  * <p>In 1.20.1 the enchantments are NBT entries, handled as maps from enchantment to level (see
  * {@link EnchanterBlockEntity}); the book is a fresh enchanted book written through the same helper.
@@ -40,27 +44,32 @@ public class DisenchanterBlockEntity extends FluxMachineBlockEntity {
         }
 
         Map<Enchantment, Integer> moved = new LinkedHashMap<>();
-        Map<Enchantment, Integer> curses = new LinkedHashMap<>();
+        Map<Enchantment, Integer> kept = new LinkedHashMap<>();
         int total = 0;
         for (Map.Entry<Enchantment, Integer> entry : EnchantmentHelper.getEnchantments(target).entrySet()) {
-            if (entry.getKey().isCurse()) {
-                curses.put(entry.getKey(), entry.getValue());
-            } else {
+            if (moves(entry.getKey())) {
                 moved.put(entry.getKey(), entry.getValue());
                 total += entry.getValue();
+            } else {
+                kept.put(entry.getKey(), entry.getValue());
             }
         }
         if (total == 0) {
             return null;
         }
 
-        // The item keeps its damage and its curses; only the rest moves to the book.
+        // The item keeps its damage, its curses and what the config blocks; only the rest moves to the book.
         ItemStack stripped = target.copy();
         stripped.setCount(1);
-        EnchantmentHelper.setEnchantments(curses, stripped);
+        EnchantmentHelper.setEnchantments(kept, stripped);
         ItemStack newBook = new ItemStack(Items.ENCHANTED_BOOK);
         EnchantmentHelper.setEnchantments(moved, newBook);
         return new DisenchantJob(stripped, newBook, total, Objects.hash(target.getItem(), target.getTag()));
+    }
+
+    /** Whether an enchantment comes off onto the book: not a curse, and not one the config blocks. */
+    private static boolean moves(Enchantment enchantment) {
+        return !enchantment.isCurse() && EnchantSettings.listsAllow(enchantment);
     }
     @Override
     protected boolean isInputValid(int slot, ItemStack stack) {
@@ -111,6 +120,10 @@ public class DisenchanterBlockEntity extends FluxMachineBlockEntity {
             consumeInput(ITEM, 1);
             consumeInput(BOOK, 1);
             putOutputs(List.of(stripped, newBook));
+            int xp = EnchantRules.disenchantXp(totalLevels);
+            if (xp > 0 && level instanceof ServerLevel server) {
+                ExperienceOrb.award(server, Vec3.atCenterOf(worldPosition.above()), xp);
+            }
         }
     }
 }

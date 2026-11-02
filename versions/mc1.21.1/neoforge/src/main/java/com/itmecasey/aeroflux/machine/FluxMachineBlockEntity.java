@@ -54,6 +54,7 @@ import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -317,6 +318,14 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     /** All slots, inputs first. Menus use it directly; the outside world gets {@link #itemHandler}. */
     public ItemStackHandler inventory() {
         return inventory;
+    }
+
+    /**
+     * The comparator signal, read from the item slots the way a furnace's is: 0 when they are all
+     * empty, 15 when every slot is full. Upgrades are not counted.
+     */
+    public int comparatorSignal() {
+        return ItemHandlerHelper.calcRedstoneFromInventory(inventory);
     }
 
     public boolean autoInsert() {

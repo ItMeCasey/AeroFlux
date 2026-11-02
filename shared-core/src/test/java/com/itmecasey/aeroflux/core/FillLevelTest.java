@@ -55,4 +55,14 @@ class FillLevelTest {
         assertNotEquals(aero, FillLevel.syncKey(9_000, CAPACITY, FluxType.AERO), "next step");
         assertNotEquals(aero, FillLevel.syncKey(7_000, CAPACITY, FluxType.MOON), "other flux");
     }
+
+    @Test
+    void comparatorsReadLikeAChest() {
+        assertEquals(0, FillLevel.comparatorSignal(0, CAPACITY));
+        assertEquals(1, FillLevel.comparatorSignal(1, CAPACITY), "a drop is enough for a signal");
+        assertEquals(8, FillLevel.comparatorSignal(CAPACITY / 2, CAPACITY));
+        assertEquals(14, FillLevel.comparatorSignal(CAPACITY - 1, CAPACITY), "15 only when full");
+        assertEquals(15, FillLevel.comparatorSignal(CAPACITY, CAPACITY));
+        assertEquals(15, FillLevel.comparatorSignal(CAPACITY * 2, CAPACITY), "an overfull tank still reads 15");
+    }
 }

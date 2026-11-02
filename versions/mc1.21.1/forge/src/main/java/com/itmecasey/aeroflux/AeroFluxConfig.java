@@ -4,10 +4,13 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.chunkloader.ChunkLoaderMath;
 import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.machine.EnchantRules;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.lamp.FluxLampBlockEntity;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
@@ -136,10 +139,76 @@ public final class AeroFluxConfig {
         BUILDER.pop();
     }
 
+    // The Flux Enchanter and Disenchanter. Enchantments are named by id or by #tag, so modded ones work too.
+    static {
+        BUILDER.comment("Flux Enchanter and Disenchanter. Name enchantments by id (minecraft:mending) or by tag (#minecraft:treasure).")
+                .push("enchanting");
+    }
+
+    private static final ForgeConfigSpec.BooleanValue ENCHANTER_CURSES = BUILDER
+            .comment("Whether the Enchanter applies curses from a book.")
+            .define("enchanterAllowsCurses", EnchantRules.ALLOW_CURSES);
+
+    private static final ForgeConfigSpec.BooleanValue ENCHANTER_TREASURE = BUILDER
+            .comment("Whether the Enchanter applies treasure enchantments, such as Mending, from a book.")
+            .define("enchanterAllowsTreasure", EnchantRules.ALLOW_TREASURE);
+
+    private static final ForgeConfigSpec.IntValue ENCHANTER_MAX_LEVEL = BUILDER
+            .comment("The highest level the Enchanter applies. 0 means each enchantment's own maximum; a higher number never goes past it.")
+            .defineInRange("enchanterMaxLevel", 0, 0, 255);
+
+    private static final ForgeConfigSpec.IntValue ENCHANTER_FLUX = BUILDER
+            .comment("Moon Flux the Enchanter uses per level it applies, on top of its running cost (mB).")
+            .defineInRange("enchanterFluxPerLevel", EnchantRules.FLUX_PER_LEVEL, 0, 1_000_000);
+
+    private static final ForgeConfigSpec.IntValue ENCHANTER_LAPIS = BUILDER
+            .comment("Lapis the Enchanter uses per level it applies. A job always takes at least one.")
+            .defineInRange("enchanterLapisPerLevel", 1, 0, 64);
+
+    private static final ForgeConfigSpec.IntValue DISENCHANTER_FLUX = BUILDER
+            .comment("Moon Flux the Disenchanter uses per level it strips, on top of its running cost (mB).")
+            .defineInRange("disenchanterFluxPerLevel", EnchantRules.DISENCHANT_FLUX_PER_LEVEL, 0, 1_000_000);
+
+    private static final ForgeConfigSpec.BooleanValue DISENCHANTER_XP = BUILDER
+            .comment("Whether the Disenchanter gives back experience for what it strips, as orbs beside the machine.")
+            .define("disenchanterReturnsXp", false);
+
+    private static final ForgeConfigSpec.IntValue DISENCHANTER_XP_PER_LEVEL = BUILDER
+            .comment("Experience per stripped level, when disenchanterReturnsXp is on.")
+            .defineInRange("disenchanterXpPerLevel", EnchantRules.XP_PER_LEVEL, 0, 1_000);
+
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ENCHANT_BLOCKED = BUILDER
+            .comment("Enchantments neither machine moves: the Enchanter leaves them off, the Disenchanter leaves them on the item.")
+            .defineListAllowEmpty("blockedEnchantments", List.of(), AeroFluxConfig::isEnchantmentEntry);
+
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ENCHANT_ALLOWED = BUILDER
+            .comment("If not empty, the only enchantments the two machines move. Blocked entries win over these.")
+            .defineListAllowEmpty("allowedEnchantments", List.of(), AeroFluxConfig::isEnchantmentEntry);
+
+    static {
+        BUILDER.pop();
+    }
+
     /** The finished spec, registered with the mod container in the mod constructor. */
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private AeroFluxConfig() {
+    }
+
+    /** The Enchanter and Disenchanter settings as {@link EnchantRules} takes them. */
+    public static EnchantRules.Settings enchantSettings() {
+        return new EnchantRules.Settings(ENCHANTER_CURSES.get(), ENCHANTER_TREASURE.get(), ENCHANTER_MAX_LEVEL.get(),
+                ENCHANTER_FLUX.get(), ENCHANTER_LAPIS.get(), DISENCHANTER_FLUX.get(), DISENCHANTER_XP.get(),
+                DISENCHANTER_XP_PER_LEVEL.get(), List.copyOf(ENCHANT_BLOCKED.get()), List.copyOf(ENCHANT_ALLOWED.get()));
+    }
+
+    /** An id such as {@code minecraft:mending} or a tag such as {@code #minecraft:treasure}. */
+    private static boolean isEnchantmentEntry(Object entry) {
+        if (!(entry instanceof String text)) {
+            return false;
+        }
+        String id = text.trim().startsWith("#") ? text.trim().substring(1) : text.trim();
+        return ResourceLocation.tryParse(id) != null;
     }
 
     /** The chance that chopping a log by hand also drops a piece of Sawdust. */

@@ -5,11 +5,14 @@ import com.itmecasey.aeroflux.block.FluxTankBlock;
 import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
+import com.itmecasey.aeroflux.fluid.TankContents;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import com.itmecasey.aeroflux.registry.ModDataComponents;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -76,6 +79,40 @@ public class FluxTankBlockEntity extends BlockEntity {
             syncedKey = key;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    /** The comparator signal: how full the tank is, from 0 to 15. */
+    public int comparatorSignal() {
+        return FillLevel.comparatorSignal(tank.getFluidAmount(), tank.getCapacity());
+    }
+
+    /** A broken tank keeps its flux on the item (the loot table copies this component). */
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
+        if (!tank.isEmpty()) {
+            components.set(ModDataComponents.TANK_FLUID.get(), TankContents.of(tank.getFluid()));
+        }
+    }
+
+    /** Placing a tank item that carries flux fills the new tank with it. */
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput components) {
+        super.applyImplicitComponents(components);
+        TankContents carried = components.get(ModDataComponents.TANK_FLUID.get());
+        if (carried != null && ModFluids.isAnyFlux(carried.fluid())) {
+            tank.setFluid(carried.toStack());
+        }
+    }
+
+    /** The flux lives in the component on items, so it is not saved a second time in the block data. */
+    @Override
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        // Forge's tank writes its fluid straight into the block's own tag, under these keys.
+        tag.remove("FluidName");
+        tag.remove("Amount");
+        tag.remove("Tag");
     }
 
     /** Tanks accept and give fluid on every side. */

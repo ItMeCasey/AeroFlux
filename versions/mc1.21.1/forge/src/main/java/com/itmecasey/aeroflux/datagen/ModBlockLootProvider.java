@@ -1,10 +1,12 @@
 package com.itmecasey.aeroflux.datagen;
 
+import com.itmecasey.aeroflux.block.FluxTankBlock;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.registry.ModBlocks;
+import com.itmecasey.aeroflux.registry.ModDataComponents;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -12,8 +14,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 
-/** Generates the loot tables for AeroFlux blocks: every one drops itself when mined correctly. */
+/**
+ * Generates the loot tables for AeroFlux blocks: every one drops itself when mined correctly, and
+ * a Flux Tank keeps its flux on the item.
+ */
 public class ModBlockLootProvider extends BlockLootSubProvider {
     public ModBlockLootProvider(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
@@ -22,7 +28,14 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
     @Override
     protected void generate() {
         for (Block block : machineBlocks()) {
-            dropSelf(block);
+            if (block instanceof FluxTankBlock) {
+                // A tank keeps its flux when broken, carried on the item it drops.
+                add(block, createSingleItemTable(block).apply(
+                        CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                                .include(ModDataComponents.TANK_FLUID.get())));
+            } else {
+                dropSelf(block);
+            }
         }
     }
 

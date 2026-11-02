@@ -381,6 +381,14 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return inventory;
     }
 
+    /**
+     * The comparator signal, read from the item slots the way a furnace's is: 0 when they are all
+     * empty, 15 when every slot is full. Upgrades are not counted.
+     */
+    public int comparatorSignal() {
+        return ResourceHandlerUtil.getRedstoneSignalFromResourceHandler(inventory);
+    }
+
     /** Whether a plant grower puts seeds from its outputs back into its input; see {@link #refillFromOutputs}. */
     private boolean autoInsert;
 

@@ -6,15 +6,19 @@ import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import com.itmecasey.aeroflux.registry.ModDataComponents;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 /**
@@ -67,6 +71,42 @@ public class FluxTankBlockEntity extends BlockEntity {
             syncedKey = key;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    /** The comparator signal: how full the tank is, from 0 to 15. */
+    public int comparatorSignal() {
+        return FillLevel.comparatorSignal(tank.getFluidAmount(), tank.getCapacity());
+    }
+
+    /** A broken tank keeps its flux on the item (the loot table copies this component). */
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
+        if (!tank.isEmpty()) {
+            components.set(ModDataComponents.TANK_FLUID.get(), SimpleFluidContent.copyOf(tank.getFluid()));
+        }
+    }
+
+    /** Placing a tank item that carries flux fills the new tank with it. */
+    @Override
+    protected void applyImplicitComponents(BlockEntity.DataComponentInput components) {
+        super.applyImplicitComponents(components);
+        FluidStack carried = components.getOrDefault(ModDataComponents.TANK_FLUID.get(), SimpleFluidContent.EMPTY).copy();
+        if (!carried.isEmpty() && ModFluids.isAnyFlux(carried.getFluid())) {
+            // Setting the fluid directly skips onContentsChanged, so the clients are told here.
+            tank.setFluid(carried);
+            syncIfPictureChanged();
+        }
+    }
+
+    /**
+     * The flux lives in the component on items, so it is not saved a second time in the block data.
+     * The tank saves under the "Fluid" key (see {@link FluidTank#writeToNBT}).
+     */
+    @Override
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        tag.remove("Fluid");
     }
 
     @Override
