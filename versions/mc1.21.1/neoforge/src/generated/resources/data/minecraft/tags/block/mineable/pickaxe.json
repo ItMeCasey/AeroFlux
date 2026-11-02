@@ -1,6 +1,7 @@
 {
   "values": [
     "aeroflux:conduit_bundle",
+    "aeroflux:creative_flux_tank",
     "aeroflux:copper_collector",
     "aeroflux:copper_tank",
     "aeroflux:flux_furnace",

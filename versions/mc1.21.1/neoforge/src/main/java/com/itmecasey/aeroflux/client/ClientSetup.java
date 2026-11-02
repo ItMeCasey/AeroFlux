@@ -11,10 +11,12 @@ import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.client.screen.TankScreen;
+import com.itmecasey.aeroflux.client.sound.MachineSounds;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
+import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluidTypes;
@@ -51,10 +53,11 @@ public final class ClientSetup {
     private ClientSetup() {
     }
 
-    /** Gives the tanks their fluid-level renderer. */
+    /** Gives the tanks their fluid-level renderer, and the creative tank its endless fluid. */
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_TANK.get(), FluxTankRenderer::new);
     }
 
     /** Pairs the pipe menu with its screen. */
@@ -97,6 +100,8 @@ public final class ClientSetup {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_TWILIGHT_FLUX.get(), translucent);
             // The guidebook item opens its screen through here, so the item itself never names a screen.
             GuidebookItem.setOpener(GuideScreen::open);
+            // The machines' client tick only starts their running sounds, which exist only here.
+            FluxMachineBlock.setClientTicker(MachineSounds::tick);
         });
     }
 

@@ -9,6 +9,7 @@ import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import com.itmecasey.aeroflux.registry.ModMenus;
 import com.itmecasey.aeroflux.registry.ModRecipes;
+import com.itmecasey.aeroflux.registry.ModSounds;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -47,7 +48,10 @@ public class AeroFlux {
         ModMenus.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
+        ModSounds.register(modEventBus);
         modContainer.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
+        // Sound and particle settings only matter where the game is drawn.
+        modContainer.registerConfig(ModConfig.Type.CLIENT, AeroFluxClientConfig.SPEC);
 
         LOGGER.info("AeroFlux loaded (NeoForge 1.21.1)");
     }

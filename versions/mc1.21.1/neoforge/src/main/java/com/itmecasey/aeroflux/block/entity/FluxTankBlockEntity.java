@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
  * picture changes (see {@link FillLevel}); a tank being filled does not resend every tick. Its
  * screen gets the exact numbers, and the in and out rates, through {@link TankMenu} instead.
  */
-public class FluxTankBlockEntity extends BlockEntity implements MenuProvider {
+public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, TankView {
     private final Tier tier;
     private final FluidTank tank;
     /** Counts what goes in and out, for the in and out rates on the tank's screen. */
@@ -88,6 +88,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     /** The tank itself, exposed to pipes and containers through the fluid capability. */
+    @Override
     public FluidTank tank() {
         return tank;
     }

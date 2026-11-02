@@ -19,6 +19,7 @@ import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.SideCommand;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.creative.CreativeFluxTankBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.registry.ModBlocks;
@@ -275,6 +276,33 @@ public final class ShotTour {
         placePipe(PipeType.ENERGY, at(37, 0), false);
         placePipe(PipeType.FLUID, at(37, 1), true);
         settleAndShoot("mixed", eye(36.5, 2.4, -2.6), new Vec3(36.5, ground + 0.8, 0.5));
+
+        polishShots();
+    }
+
+    /**
+     * The Creative Flux Tank feeding a working furnace (lit, with its motes) beside a collector in
+     * the noon sun (with its sparkles), then the same tank switched to Moon Flux.
+     */
+    private static void polishShots() {
+        BlockPos creative = at(41, 0);
+        BlockPos furnace = at(42, 0);
+        BlockPos collector = at(40, 0);
+        placeBlock(ModBlocks.CREATIVE_TANK.get().asItem(), creative);
+        placeBlock(ModBlocks.machine(MachineType.FURNACE, Tier.GOLD).get().asItem(), furnace);
+        placeBlock(ModBlocks.collector(Tier.GOLD).get().asItem(), collector);
+        then(2, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(furnace) instanceof FluxMachineBlockEntity machine) {
+                machine.setStackIn(0, new ItemStack(Items.RAW_IRON, 64));
+            }
+        }));
+        settleAndShoot("creative_tank", eye(41.0, 1.7, -2.2), new Vec3(41.0, ground + 0.5, 0.5));
+        then(2, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(creative) instanceof CreativeFluxTankBlockEntity tank) {
+                tank.cycleFlux();
+            }
+        }));
+        settleAndShoot("creative_tank_moon", eye(41.5, 1.2, -1.4), new Vec3(41.5, ground + 0.5, 0.5));
     }
 
     /** Every AeroFlux block item and pipe in the inventory screen, a screenful at a time. */

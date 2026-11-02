@@ -9,6 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -59,6 +60,14 @@ public class FluxCollectorBlock extends BaseEntityBlock {
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         return level.getBlockEntity(pos) instanceof FluxCollectorBlockEntity entity ? entity.comparatorSignal() : 0;
+    }
+
+    /** While the sky feeds it, motes drift up off the dish: gold for Aero Flux, pale blue for Moon Flux. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof FluxCollectorBlockEntity collector && collector.collecting() != null) {
+            FluxParticles.collector(level, pos, random, collector.collecting());
+        }
     }
 
     /**
