@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "c:gems/diamond"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "tag": "c:gems/diamond"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SDS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:upgrade_card_diamond"
+  }
+}

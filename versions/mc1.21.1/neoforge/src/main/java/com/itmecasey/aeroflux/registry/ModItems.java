@@ -1,15 +1,21 @@
 package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.conduit.EndpointUpgradeItem;
 import com.itmecasey.aeroflux.conduit.FluxWrenchItem;
 import com.itmecasey.aeroflux.conduit.PipeItem;
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.conduit.tool.ConduitToolItem;
 import com.itmecasey.aeroflux.core.Tier;
-import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
+import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.item.GuidebookItem;
+import com.itmecasey.aeroflux.item.UpgradeCardItem;
+import com.itmecasey.aeroflux.lamp.LampKind;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
@@ -42,33 +48,45 @@ public final class ModItems {
     /** The Sawmill's byproduct: a log or plank sometimes leaves a pile of it behind. */
     public static final DeferredItem<Item> SAWDUST = ITEMS.registerSimpleItem("sawdust");
 
-    public static final DeferredItem<BucketItem> AERO_FLUX_BUCKET = ITEMS.register("aero_flux_bucket",
-            () -> new BucketItem(ModFluids.AERO_FLUX.get(), bucketProperties()));
+    /** The AeroFlux Guide; using it opens the guide screen. */
+    public static final DeferredItem<GuidebookItem> GUIDEBOOK = ITEMS.registerItem("guidebook", GuidebookItem::new, new Item.Properties().stacksTo(1));
 
-    public static final DeferredItem<BucketItem> MOON_FLUX_BUCKET = ITEMS.register("moon_flux_bucket",
-            () -> new BucketItem(ModFluids.MOON_FLUX.get(), bucketProperties()));
+    public static final DeferredItem<BucketItem> AERO_FLUX_BUCKET = ITEMS.registerItem("aero_flux_bucket",
+            properties -> new BucketItem(ModFluids.AERO_FLUX.get(), properties), bucketProperties());
+
+    public static final DeferredItem<BucketItem> MOON_FLUX_BUCKET = ITEMS.registerItem("moon_flux_bucket",
+            properties -> new BucketItem(ModFluids.MOON_FLUX.get(), properties), bucketProperties());
+
+    public static final DeferredItem<BucketItem> TWILIGHT_FLUX_BUCKET = ITEMS.registerItem("twilight_flux_bucket",
+            properties -> new BucketItem(ModFluids.TWILIGHT_FLUX.get(), properties), bucketProperties());
 
     /** One item per pipe type and tier. The untiered ME pipes have a single entry, under copper. */
     private static final Map<PipeType, Map<Tier, DeferredItem<PipeItem>>> PIPES = new EnumMap<>(PipeType.class);
 
+    /** The cards that raise a placed machine, collector or tank to their tier; see {@link UpgradeCardItem}. */
+    private static final Map<Tier, DeferredItem<UpgradeCardItem>> UPGRADE_CARDS = new EnumMap<>(Tier.class);
+
     /** Installs into the pipe nearest the crosshair; makes it move faster. */
-    public static final DeferredItem<UpgradeItem> SPEED_UPGRADE = ITEMS.register("speed_upgrade",
-            () -> new UpgradeItem(PipeUpgrades.Kind.SPEED, new Item.Properties()));
+    public static final DeferredItem<UpgradeItem> SPEED_UPGRADE = ITEMS.registerItem("speed_upgrade",
+            properties -> new UpgradeItem(PipeUpgrades.Kind.SPEED, properties));
 
     /** Installs into the pipe nearest the crosshair; makes it move more at a time. */
-    public static final DeferredItem<UpgradeItem> CAPACITY_UPGRADE = ITEMS.register("capacity_upgrade",
-            () -> new UpgradeItem(PipeUpgrades.Kind.CAPACITY, new Item.Properties()));
+    public static final DeferredItem<UpgradeItem> CAPACITY_UPGRADE = ITEMS.registerItem("capacity_upgrade",
+            properties -> new UpgradeItem(PipeUpgrades.Kind.CAPACITY, properties));
+
+    /** Installs into one pipe at one face; only lets chosen items or fluids through that face. */
+    public static final DeferredItem<EndpointUpgradeItem> FILTER_UPGRADE = ITEMS.registerItem("filter_upgrade",
+            properties -> new EndpointUpgradeItem(EndpointSettings.Upgrade.FILTER, properties));
+
+    /** Installs into one pipe at one face; faces with a higher priority are filled first. */
+    public static final DeferredItem<EndpointUpgradeItem> PRIORITY_UPGRADE = ITEMS.registerItem("priority_upgrade",
+            properties -> new EndpointUpgradeItem(EndpointSettings.Upgrade.PRIORITY, properties));
 
     /** Cycles the mode of the pipe nearest the crosshair at the clicked face of a bundle. */
-    public static final DeferredItem<FluxWrenchItem> FLUX_WRENCH = ITEMS.register("flux_wrench",
-            () -> new FluxWrenchItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<FluxWrenchItem> FLUX_WRENCH = ITEMS.registerItem("flux_wrench", FluxWrenchItem::new, new Item.Properties().stacksTo(1));
 
     /** Edits, removes, copies and inspects pipes; its mode is kept on the stack. */
-    public static final DeferredItem<ConduitToolItem> CONDUIT_TOOL = ITEMS.register("conduit_tool",
-            () -> new ConduitToolItem(new Item.Properties().stacksTo(1)));
-
-    /** The block item of the pipe node. */
-    public static final DeferredItem<BlockItem> PIPE_NODE = ITEMS.registerSimpleBlockItem(ModBlocks.PIPE_NODE);
+    public static final DeferredItem<ConduitToolItem> CONDUIT_TOOL = ITEMS.registerItem("conduit_tool", ConduitToolItem::new, new Item.Properties().stacksTo(1));
 
     static {
         for (PipeType type : PipeType.values()) {
@@ -83,10 +101,22 @@ public final class ModItems {
             PIPES.put(type, byTier);
         }
         for (Tier tier : Tier.values()) {
+            // Copper is the base tier, so nothing upgrades into it and it has no card.
+            if (tier != Tier.COPPER) {
+                UPGRADE_CARDS.put(tier, ITEMS.registerItem("upgrade_card_" + tier.id(),
+                        properties -> new UpgradeCardItem(tier, properties)));
+            }
             ITEMS.registerSimpleBlockItem(ModBlocks.collector(tier));
             ITEMS.registerSimpleBlockItem(ModBlocks.tank(tier));
             for (MachineType machine : MachineType.values()) {
                 ITEMS.registerSimpleBlockItem(ModBlocks.machine(machine, tier));
+            }
+            ITEMS.registerSimpleBlockItem(ModBlocks.chunkLoader(tier));
+            for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
+                ITEMS.registerSimpleBlockItem(ModBlocks.converter(type, tier));
+            }
+            for (LampKind kind : LampKind.values()) {
+                ITEMS.registerSimpleBlockItem(ModBlocks.lamp(kind, tier));
             }
         }
     }
@@ -95,7 +125,7 @@ public final class ModItems {
     }
 
     private static DeferredItem<PipeItem> registerPipe(String id, PipeType type, Tier tier) {
-        return ITEMS.register(id, () -> new PipeItem(type, tier, new Item.Properties()));
+        return ITEMS.registerItem(id, properties -> new PipeItem(type, tier, properties));
     }
 
     /**
@@ -105,6 +135,11 @@ public final class ModItems {
     public static DeferredItem<PipeItem> pipe(PipeType type, Tier tier) {
         Map<Tier, DeferredItem<PipeItem>> byTier = PIPES.get(type);
         return PipeTiers.isTiered(type) ? byTier.get(tier) : byTier.get(Tier.COPPER);
+    }
+
+    /** The upgrade card that raises a block to {@code tier}; there is none for copper. */
+    public static DeferredItem<UpgradeCardItem> upgradeCard(Tier tier) {
+        return UPGRADE_CARDS.get(tier);
     }
 
     /** Buckets stack to one and leave an empty bucket behind when used in crafting. */

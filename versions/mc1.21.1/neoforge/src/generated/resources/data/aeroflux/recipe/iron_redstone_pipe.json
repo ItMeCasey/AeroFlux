@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "aeroflux:copper_redstone_pipe"
+    },
+    "S": {
+      "tag": "c:ingots/iron"
+    },
+    "T": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "id": "aeroflux:iron_redstone_pipe"
+  }
+}

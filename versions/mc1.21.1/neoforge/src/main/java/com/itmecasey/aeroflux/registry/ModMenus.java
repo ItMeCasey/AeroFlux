@@ -1,7 +1,9 @@
 package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.chunkloader.ChunkLoaderMenu;
 import com.itmecasey.aeroflux.conduit.config.PipeConfigMenu;
+import com.itmecasey.aeroflux.converter.ConverterMenu;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.machine.MachineMenu;
 import java.util.EnumMap;
@@ -20,6 +22,14 @@ public final class ModMenus {
     /** The pipe screen. Its client copy is built from the data {@link PipeConfigMenu#open} sends. */
     public static final DeferredHolder<MenuType<?>, MenuType<PipeConfigMenu>> PIPE_CONFIG =
             MENUS.register("pipe_config", () -> IMenuTypeExtension.create(PipeConfigMenu::fromNetwork));
+
+    /** The chunk loader screen, shared by all six tiers. */
+    public static final DeferredHolder<MenuType<?>, MenuType<ChunkLoaderMenu>> CHUNK_LOADER =
+            MENUS.register("chunk_loader", () -> IMenuTypeExtension.create(ChunkLoaderMenu::fromNetwork));
+
+    /** The converter screen, shared by every kind and tier. */
+    public static final DeferredHolder<MenuType<?>, MenuType<ConverterMenu>> CONVERTER =
+            MENUS.register("converter", () -> IMenuTypeExtension.create(ConverterMenu::fromNetwork));
 
     /** One menu type per machine, all built by {@link MachineMenu}; each has its own screen registration. */
     private static final Map<MachineType, DeferredHolder<MenuType<?>, MenuType<MachineMenu>>> MACHINES =

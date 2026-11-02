@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "M": {
+      "item": "aeroflux:moon_crystal"
+    },
+    "Q": {
+      "tag": "c:gems/quartz"
+    }
+  },
+  "pattern": [
+    "QIQ",
+    "QMQ",
+    "QIQ"
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:capacity_upgrade"
+  }
+}

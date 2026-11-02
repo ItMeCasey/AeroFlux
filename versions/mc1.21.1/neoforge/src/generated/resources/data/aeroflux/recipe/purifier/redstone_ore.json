@@ -1,0 +1,19 @@
+{
+  "type": "aeroflux:purifier",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "c:ores/redstone"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 12,
+        "id": "minecraft:redstone"
+      }
+    }
+  ],
+  "water": 50
+}

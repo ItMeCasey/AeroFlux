@@ -1,74 +1,11 @@
 {
+  "parent": "aeroflux:block/flux_infuser_base",
   "textures": {
-    "side": "aeroflux:block/infuser_side",
-    "top": "aeroflux:block/infuser_top",
-    "crystal": "aeroflux:block/moon_glow",
-    "particle": "aeroflux:block/infuser_side"
-  },
-  "elements": [
-    {
-      "from": [
-        1,
-        0,
-        1
-      ],
-      "to": [
-        15,
-        8,
-        15
-      ],
-      "faces": {
-        "north": {
-          "texture": "#side"
-        },
-        "south": {
-          "texture": "#side"
-        },
-        "east": {
-          "texture": "#side"
-        },
-        "west": {
-          "texture": "#side"
-        },
-        "up": {
-          "texture": "#top"
-        },
-        "down": {
-          "texture": "#side"
-        }
-      }
-    },
-    {
-      "from": [
-        6,
-        8,
-        6
-      ],
-      "to": [
-        10,
-        13,
-        10
-      ],
-      "faces": {
-        "north": {
-          "texture": "#crystal"
-        },
-        "south": {
-          "texture": "#crystal"
-        },
-        "east": {
-          "texture": "#crystal"
-        },
-        "west": {
-          "texture": "#crystal"
-        },
-        "up": {
-          "texture": "#crystal"
-        },
-        "down": {
-          "texture": "#crystal"
-        }
-      }
-    }
-  ]
+    "side": "aeroflux:block/flux_infuser_side",
+    "back": "aeroflux:block/flux_infuser_back",
+    "top": "aeroflux:block/flux_infuser_top",
+    "bottom": "aeroflux:block/flux_infuser_bottom",
+    "front": "aeroflux:block/flux_infuser_front",
+    "particle": "aeroflux:block/flux_infuser_side"
+  }
 }

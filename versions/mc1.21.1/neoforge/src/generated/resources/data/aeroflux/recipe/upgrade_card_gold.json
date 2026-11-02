@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "c:ingots/gold"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "S": {
+      "tag": "c:gems/amethyst"
+    },
+    "T": {
+      "tag": "c:ingots/gold"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SDS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:upgrade_card_gold"
+  }
+}

@@ -26,6 +26,10 @@ public final class ModFluidTypes {
     public static final DeferredHolder<FluidType, FluidType> MOON_FLUX =
             FLUID_TYPES.register(FluxType.MOON.id() + "_flux", () -> new FluidType(properties(FluxType.MOON, 250, 1100)));
 
+    /** Blended from the other two; violet, faintly warm, a touch thicker than Aero Flux. */
+    public static final DeferredHolder<FluidType, FluidType> TWILIGHT_FLUX =
+            FLUID_TYPES.register(FluxType.TWILIGHT.id() + "_flux", () -> new FluidType(properties(FluxType.TWILIGHT, 290, 1000)));
+
     private ModFluidTypes() {
     }
 

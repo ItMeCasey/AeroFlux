@@ -1,0 +1,28 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:gravel"
+      }
+    }
+  ],
+  "mesh": "string",
+  "outputs": [
+    {
+      "chance": 0.25,
+      "item": {
+        "count": 1,
+        "id": "minecraft:flint"
+      }
+    },
+    {
+      "chance": 0.05,
+      "item": {
+        "count": 1,
+        "id": "minecraft:wheat_seeds"
+      }
+    }
+  ],
+  "time": 100
+}

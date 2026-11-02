@@ -25,17 +25,8 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.SAWDUST.get());
         fluidBucket("aero_flux_bucket", ModFluids.AERO_FLUX.get());
         fluidBucket("moon_flux_bucket", ModFluids.MOON_FLUX.get());
+        fluidBucket("twilight_flux_bucket", ModFluids.TWILIGHT_FLUX.get());
 
-        // Each higher-tier machine shows its own tier's block model (see ModBlockStateProvider);
-        // the first tier's item model ships with the art.
-        for (MachineType machine : MachineType.values()) {
-            for (Tier tier : Tier.values()) {
-                if (tier != Tier.COPPER) {
-                    String name = ModBlocks.machineBlockName(machine, tier);
-                    withExistingParent(name, modLoc("block/" + name));
-                }
-            }
-        }
     }
 
     /** A bucket that draws the fluid it holds, tinted, through NeoForge's dynamic container model. */

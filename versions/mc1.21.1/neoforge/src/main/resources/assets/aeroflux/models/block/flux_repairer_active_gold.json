@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_repairer_base",
+  "textures": {
+    "side": "aeroflux:block/flux_repairer_side_gold",
+    "back": "aeroflux:block/flux_repairer_back_gold",
+    "top": "aeroflux:block/flux_repairer_top_gold",
+    "bottom": "aeroflux:block/flux_repairer_bottom_gold",
+    "front": "aeroflux:block/flux_repairer_front_active_gold",
+    "particle": "aeroflux:block/flux_repairer_side_gold"
+  }
+}

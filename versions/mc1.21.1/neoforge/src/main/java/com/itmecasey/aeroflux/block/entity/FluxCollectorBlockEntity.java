@@ -7,6 +7,7 @@ import com.itmecasey.aeroflux.core.DimensionRules;
 import com.itmecasey.aeroflux.core.FluxAccumulator;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.fluid.OutputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import net.minecraft.core.BlockPos;
@@ -48,6 +49,16 @@ public class FluxCollectorBlockEntity extends BlockEntity {
         super(ModBlockEntities.COLLECTOR.get(), pos, state);
         this.tier = ((FluxCollectorBlock) state.getBlock()).tier();
         this.buffer = new FluidTank(AeroFluxConfig.collectorBuffer(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
+            /**
+             * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
+             * update); it still takes nothing more, and probes such as Jade, which refuse a fill above
+             * 100%, see a full tank instead of crashing.
+             */
+            @Override
+            public int getCapacity() {
+                return Math.max(super.getCapacity(), getFluidAmount());
+            }
+
             @Override
             protected void onContentsChanged() {
                 setChanged();
@@ -56,6 +67,11 @@ public class FluxCollectorBlockEntity extends BlockEntity {
     }
 
     /** The internal buffer; neighbors may only drain it, never fill it. */
+    /** What pipes and buckets see: the buffer, drain only. */
+    public IFluidHandler outputView() {
+        return new OutputOnlyFluidHandler(buffer);
+    }
+
     public FluidTank buffer() {
         return buffer;
     }
@@ -91,7 +107,10 @@ public class FluxCollectorBlockEntity extends BlockEntity {
         int moonPhase = level.getMoonPhase();
 
         for (FluxType type : FluxType.values()) {
-            Fluid fluid = type == FluxType.AERO ? ModFluids.AERO_FLUX.get() : ModFluids.MOON_FLUX.get();
+            if (!type.collected()) {
+                continue;
+            }
+            Fluid fluid = ModFluids.fluidOf(type);
             if (!buffer.isEmpty() && !buffer.getFluid().getFluid().isSame(fluid)) {
                 continue;
             }

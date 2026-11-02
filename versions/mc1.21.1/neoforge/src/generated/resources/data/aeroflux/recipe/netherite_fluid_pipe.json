@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "P": {
+      "item": "aeroflux:diamond_fluid_pipe"
+    },
+    "S": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "T": {
+      "tag": "c:ingots/netherite"
+    }
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "id": "aeroflux:netherite_fluid_pipe"
+  }
+}

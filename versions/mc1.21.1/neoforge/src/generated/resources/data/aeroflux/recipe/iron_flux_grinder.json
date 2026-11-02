@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "aeroflux:flux_grinder"
+    },
+    "S": {
+      "tag": "c:ingots/iron"
+    },
+    "T": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:iron_flux_grinder"
+  }
+}

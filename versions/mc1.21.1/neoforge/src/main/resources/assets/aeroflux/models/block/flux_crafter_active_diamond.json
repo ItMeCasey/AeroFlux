@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_crafter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_crafter_side_diamond",
+    "back": "aeroflux:block/flux_crafter_back_diamond",
+    "top": "aeroflux:block/flux_crafter_top_diamond",
+    "bottom": "aeroflux:block/flux_crafter_bottom_diamond",
+    "front": "aeroflux:block/flux_crafter_front_active_diamond",
+    "particle": "aeroflux:block/flux_crafter_side_diamond"
+  }
+}

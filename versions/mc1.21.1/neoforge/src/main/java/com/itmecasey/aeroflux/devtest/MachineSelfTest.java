@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.devtest;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -12,9 +13,9 @@ import com.itmecasey.aeroflux.core.machine.MachineLayout;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.SideCommand;
 import com.itmecasey.aeroflux.core.machine.SideResource;
-import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
@@ -271,7 +272,7 @@ final class MachineSelfTest {
                 names &= BuiltInRegistries.BLOCK.getKey(block).getPath().equals(expected);
                 items &= block.asItem() != Items.AIR && BuiltInRegistries.ITEM.getKey(block.asItem()).getPath().equals(expected);
             }
-            BlockPos pos = new BlockPos(15, Y + 10, 1 + type.ordinal());
+            BlockPos pos = new BlockPos(15 - type.ordinal() / 14, Y + 10, 1 + type.ordinal() % 14);
             BlockState state = ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState();
             level.setBlock(pos, state, Block.UPDATE_ALL);
             drops &= Block.getDrops(state, level, pos, level.getBlockEntity(pos)).stream()
@@ -387,7 +388,8 @@ final class MachineSelfTest {
 
         // Flux: only Aero goes in, never Moon or water, and the mode decides which way.
         IFluidHandler fluid = fluid(pos, Direction.UP);
-        SelfTest.check("faces: the furnace takes Aero Flux", fluid.fill(new FluidStack(ModFluids.AERO_FLUX.get(), 1_000), IFluidHandler.FluidAction.EXECUTE) == 1_000);
+        // Half the copper tank, so there is room left for the "both" face to fill below.
+        SelfTest.check("faces: the furnace takes Aero Flux", fluid.fill(new FluidStack(ModFluids.AERO_FLUX.get(), 500), IFluidHandler.FluidAction.EXECUTE) == 500);
         SelfTest.check("faces: it refuses Moon Flux", fluid.fill(new FluidStack(ModFluids.MOON_FLUX.get(), 1_000), IFluidHandler.FluidAction.SIMULATE) == 0);
         SelfTest.check("faces: it refuses water", fluid.fill(new FluidStack(net.minecraft.world.level.material.Fluids.WATER, 1_000), IFluidHandler.FluidAction.SIMULATE) == 0);
         SelfTest.check("faces: the fluid tank reports it is a Flux tank only",
@@ -430,7 +432,7 @@ final class MachineSelfTest {
         // Which machines take which fluid.
         boolean flux = true;
         for (MachineType type : MachineType.values()) {
-            BlockPos at = new BlockPos(14, Y + 12, 1 + type.ordinal());
+            BlockPos at = new BlockPos(14 - type.ordinal() / 14, Y + 12, 1 + type.ordinal() % 14);
             level.setBlock(at, ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
             FluxMachineBlockEntity machine = machine(at);
             flux &= machine.acceptsFlux(new FluidStack(ModFluids.AERO_FLUX.get(), 1)) == type.acceptedFlux().contains(FluxType.AERO);
@@ -623,7 +625,7 @@ final class MachineSelfTest {
 
         MachineLayout layout = MachineLayout.of(1, 1);
         SelfTest.check("menu: the slots sit where the layout says",
-                server.slots.size() == 2 + 36
+                server.slots.size() == 2 + MachineUpgrades.slots(Tier.FLUXIUM) + 36
                         && server.getSlot(0).x == layout.inputSlot(0).x() && server.getSlot(0).y == layout.inputSlot(0).y()
                         && server.getSlot(1).x == layout.outputSlot(0).x() && server.getSlot(1).y == layout.outputSlot(0).y());
 
@@ -688,14 +690,15 @@ final class MachineSelfTest {
         // One menu per machine type has the right slots and a sensible layout.
         boolean slots = true;
         for (MachineType type : MachineType.values()) {
-            BlockPos at = new BlockPos(1 + type.ordinal() * 2, Y, 7);
+            // Seven to a row, in a layer of their own, so every machine fits in the loaded chunk.
+            BlockPos at = new BlockPos(1 + (type.ordinal() % 7) * 2, Y + 8, 7 + (type.ordinal() / 7) * 2);
             level.setBlock(at, ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
             player.setPos(at.getX() + 0.5, at.getY(), at.getZ() - 1.5);
             MachineMenu menu = new MachineMenu(2, player.getInventory(), machine(at));
-            slots &= menu.slots.size() == type.inputSlots() + type.outputSlots() + 36 && menu.stillValid(player)
+            slots &= menu.slots.size() == type.inputSlots() + type.outputSlots() + MachineUpgrades.slots(Tier.COPPER) + 36 && menu.stillValid(player)
                     && menu.machine() == type;
         }
-        SelfTest.check("menu: all eight machines open a menu with their own slot counts", slots);
+        SelfTest.check("menu: every machine opens a menu with its own slot counts", slots);
         player.closeContainer();
     }
 

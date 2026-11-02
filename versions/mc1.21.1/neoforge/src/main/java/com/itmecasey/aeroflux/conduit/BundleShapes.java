@@ -1,9 +1,11 @@
 package com.itmecasey.aeroflux.conduit;
 
-import com.itmecasey.aeroflux.core.conduit.BundleState;
 import com.itmecasey.aeroflux.core.conduit.Box;
+import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -13,7 +15,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public final class BundleShapes {
     /** What an empty or not-yet-loaded bundle looks like to the player's crosshair. */
-    private static final VoxelShape EMPTY_BUNDLE = net.minecraft.world.level.block.Block.box(6, 6, 6, 10, 10, 10);
+    private static final VoxelShape EMPTY_BUNDLE = Block.box(6.5, 6.5, 6.5, 9.5, 9.5, 9.5);
 
     private static final Map<BundleState.ModelKey, VoxelShape> CACHE = new ConcurrentHashMap<>();
 
@@ -30,10 +32,20 @@ public final class BundleShapes {
 
     private static VoxelShape build(BundleState bundle) {
         VoxelShape shape = Shapes.empty();
-        for (Box box : bundle.allBoxes()) {
-            shape = Shapes.or(shape, net.minecraft.world.level.block.Block.box(
-                    box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()));
+        for (Box box : ConduitLayout.of(bundle).hitBoxes()) {
+            if (hasVolume(box)) {
+                shape = Shapes.or(shape, Block.box(
+                        box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()));
+            }
         }
         return shape.optimize();
+    }
+
+    /**
+     * Whether a box encloses any space. The game refuses to build a shape from a flat or inside-out
+     * box, so such a box is skipped rather than allowed to crash the chunk.
+     */
+    public static boolean hasVolume(Box box) {
+        return box.minX() < box.maxX() && box.minY() < box.maxY() && box.minZ() < box.maxZ();
     }
 }

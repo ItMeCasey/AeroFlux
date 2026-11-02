@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "c:gems/diamond"
+    },
+    "P": {
+      "item": "aeroflux:gold_sun_lamp"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "tag": "c:gems/diamond"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:diamond_sun_lamp"
+  }
+}

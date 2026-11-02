@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "aeroflux:aero_crystal"
+    },
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "E": {
+      "tag": "c:ender_pearls"
+    },
+    "M": {
+      "item": "aeroflux:moon_crystal"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "pattern": [
+    "CEC",
+    "AOM",
+    "CDC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:chunk_loader"
+  }
+}

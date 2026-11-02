@@ -4,23 +4,36 @@ import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
+import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
+import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.FaceRules;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
+import com.itmecasey.aeroflux.core.machine.PortRole;
 import com.itmecasey.aeroflux.core.machine.ProcessTimer;
+import com.itmecasey.aeroflux.core.machine.RedstoneControl;
+import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfigs;
 import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.Connection;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,7 +44,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -42,16 +58,19 @@ import org.jetbrains.annotations.Nullable;
  * The shared body of every Flux-powered machine (Furnace, Grinder, Sawmill and the rest).
  *
  * <p>A machine has a Flux input tank that takes only the flux types its {@link MachineType} is
- * built for, a row of input slots followed by a row of output slots, a progress counter, and a
- * face setting for each kind of resource it uses. Each tick on the server it asks its subclass
- * what job the inputs make ({@link #findJob()}), and while the job can run it burns
- * {@link MachineMath#fluxPerTick Flux} from the tank and advances the progress; when the progress
- * is full the job hands over its product. A subclass only has to say which job it has and what
- * finishing it does.
+ * built for, any extra tanks its type lists (water, Moon Flux, Twilight Flux), a row of input
+ * slots followed by a row of output slots, a progress counter, and a face setting for each kind
+ * of resource it uses. Each tick on the server it asks its subclass what job the inputs make
+ * ({@link #findJob()}), and while the job can run it burns {@link MachineMath#fluxPerTick Flux}
+ * from the tank and advances the progress; when the progress is full the job hands over its
+ * product. A subclass only has to say which job it has and what finishing it does.
  *
  * <p>The outside world sees the machine through item and fluid capabilities that follow the face
  * settings (see {@link SidedItemHandler} and {@link SidedFluidHandler}); the player sees it through
- * its menu. Tier decides the speed, the Flux cost and the tank size, all through {@link MachineMath}.
+ * its menu. Tier decides the speed, the Flux cost and the tank size, all through {@link MachineMath};
+ * Speed and Capacity upgrades in the upgrade slots change those numbers through
+ * {@link MachineUpgrades}. A {@link RedstoneControl} can hold the machine back: while it does, the
+ * machine keeps its progress, burns nothing and stays unlit.
  */
 public abstract class FluxMachineBlockEntity extends BlockEntity implements MenuProvider {
     /** Version of the saved layout, so a later change can still read today's worlds. */
@@ -60,8 +79,18 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     private static final String TAG_FLUX = "flux";
     private static final String TAG_ITEMS = "items";
     private static final String TAG_PROGRESS = "progress";
+    private static final String TAG_SHOWN_CROP = "shown_crop";
     private static final String TAG_TOTAL = "total";
     private static final String TAG_SIDES = "sides";
+    private static final String TAG_UPGRADES = "upgrades";
+    private static final String TAG_REDSTONE = "redstone";
+    private static final String TAG_AUTO_INSERT = "auto_insert";
+    private static final String TAG_EXTRA_TANKS = "extra_tanks";
+    private static final String TAG_AUTO_IMPORT = "auto_import";
+    private static final String TAG_AUTO_EXPORT = "auto_export";
+    private static final String TAG_REDSTONE_MODE = "mode";
+    private static final String TAG_REDSTONE_POWERED = "powered";
+    private static final String TAG_REDSTONE_PULSE = "pulse";
 
     /** An idle machine looks for new work this often instead of every tick. */
     private static final int IDLE_CHECK_INTERVAL = 10;
@@ -98,16 +127,34 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     private final Tier tier;
     private final MachineType machine;
     private final FluidTank fluxTank;
+    /** The tanks besides the Flux tank, one per {@link MachineType#extraTanks()}, in that order. */
+    private final List<FluidTank> extraTanks = new ArrayList<>();
     private final ItemStackHandler inventory;
     private final SideConfigs sides;
     private final ProcessTimer timer = new ProcessTimer();
     private final SidedItemHandler[] itemViews = new SidedItemHandler[7];
     private final SidedFluidHandler[] fluidViews = new SidedFluidHandler[7];
+    private final MachineUpgradeSlots upgrades;
+    private final RedstoneControl redstone = new RedstoneControl();
 
     private MachineStatus status = MachineStatus.IDLE;
+    /** True while the redstone mode holds the machine back; the screen then says "Disabled". */
+    private boolean redstoneDisabled;
+    /** False until the machine has looked at its redstone signal since it was placed or loaded. */
+    private boolean signalRead;
+    @Nullable
     private Object activeKey;
     /** True while there was nothing to do, so the machine only checks now and then. */
     private boolean sleeping;
+    /** What a plant grower shows in its chamber; see {@link CropDisplay}. Always null for other machines. */
+    @Nullable
+    private BlockState shownCrop;
+    /** Whether a plant grower puts seeds from its outputs back into its input; see {@link #refillFromOutputs}. */
+    private boolean autoInsert;
+    /** Whether the machine pulls from its neighbors through its import faces; see {@link #autoTransfer}. */
+    private boolean autoImport;
+    /** Whether the machine pushes its products out through its export faces; see {@link #autoTransfer}. */
+    private boolean autoExport;
 
     protected FluxMachineBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.MACHINE.get(), pos, state);
@@ -115,12 +162,38 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         this.tier = block.tier();
         this.machine = block.machine();
         this.sides = new SideConfigs(machine.resources());
+        // A single tank, so it can only ever hold one kind of flux.
         this.fluxTank = new FluidTank(MachineMath.inputCapacity(tier), this::acceptsFlux) {
+            /**
+             * Capacity upgrades can change this at any time, so it is never cached. It is never
+             * less than what the tank holds: a tank can end up overfull (a Capacity upgrade came
+             * out, or its tier's size shrank in an update), and it then takes nothing more while
+             * probes such as Jade see a full tank instead of more than 100%.
+             */
+            @Override
+            public int getCapacity() {
+                return Math.max(fluxCapacity(), getFluidAmount());
+            }
+
             @Override
             protected void onContentsChanged() {
                 setChanged();
             }
         };
+        for (ExtraTank spec : machine.extraTanks()) {
+            extraTanks.add(new FluidTank(MachineMath.inputCapacity(tier), stack -> ExtraTanks.matches(spec, stack)) {
+                @Override
+                public int getCapacity() {
+                    return Math.max(fluxCapacity(), getFluidAmount());
+                }
+
+                @Override
+                protected void onContentsChanged() {
+                    setChanged();
+                    sleeping = false;
+                }
+            });
+        }
         this.inventory = new ItemStackHandler(machine.inputSlots() + machine.outputSlots()) {
             @Override
             protected void onContentsChanged(int slot) {
@@ -133,6 +206,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
                 return isInputSlot(slot) && isInputValid(slot, stack);
             }
         };
+        this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), this::upgradesChanged);
     }
 
     // --- What a subclass provides ------------------------------------------------------------
@@ -143,6 +217,32 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     /** Whether a stack may be put into an input slot, such as "has a smelting recipe". Called for players and for pipes alike. */
     protected abstract boolean isInputValid(int slot, ItemStack stack);
+
+    /**
+     * Whether a pipe or a neighbor may put this stack into an input slot. The menu does not ask, so
+     * a player can always place items by hand. The Crafter only lets pipes top up its grid, and the
+     * Magnet's filter slot is set by hand only.
+     */
+    public boolean acceptsFromOutside(int slot, ItemStack stack) {
+        return true;
+    }
+
+    /**
+     * Runs every tick before the machine looks for work, for machines that do something besides
+     * their jobs (the Blender fills buckets, the Sky Controller counts down). Does nothing by default.
+     */
+    protected void tickAlways(Level level) {
+    }
+
+    /** A button only this kind of machine has (see {@link MachineConfigActions}); false if it means nothing here. */
+    public boolean machineButton(int buttonId) {
+        return false;
+    }
+
+    /** A setting only this kind of machine has, synced to its screen, such as the Magnet's whitelist. */
+    public int machineMode() {
+        return 0;
+    }
 
     // --- Parts -------------------------------------------------------------------------------
 
@@ -159,9 +259,203 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return fluxTank;
     }
 
+    /** The extra tank at an index of {@link MachineType#extraTanks()}. */
+    public FluidTank extraTank(int index) {
+        return extraTanks.get(index);
+    }
+
+    public int extraTankCount() {
+        return extraTanks.size();
+    }
+
+    /** The index of the extra tank of this kind, or -1 when the machine has none. */
+    public int extraTankIndex(ExtraTank spec) {
+        return machine.extraTanks().indexOf(spec);
+    }
+
+    /** mB in an extra tank. */
+    public int extraAmount(int index) {
+        return extraTanks.get(index).getFluidAmount();
+    }
+
+    /**
+     * Takes fluid out of an extra tank.
+     *
+     * @param simulate true to only find out how much would come out
+     * @return how much was (or would be) taken
+     */
+    protected int drainExtra(int index, int amount, boolean simulate) {
+        if (amount <= 0) {
+            return 0;
+        }
+        return extraTanks.get(index).drain(amount, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE)
+                .getAmount();
+    }
+
+    /**
+     * Puts fluid into an extra tank, whatever the face settings say.
+     *
+     * @return how much went (or would go) in
+     */
+    protected int fillExtra(int index, FluidStack stack, boolean simulate) {
+        return extraTanks.get(index).fill(stack, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+    }
+
     /** All slots, inputs first. Menus use it directly; the outside world gets {@link #itemHandler}. */
     public ItemStackHandler inventory() {
         return inventory;
+    }
+
+    public boolean autoInsert() {
+        return autoInsert;
+    }
+
+    /** Switches the plant grower's seed refill on or off. Other machines have no such setting. */
+    public void toggleAutoInsert() {
+        if (machine == MachineType.PLANT_GROWER) {
+            autoInsert = !autoInsert;
+            setChanged();
+        }
+    }
+
+    public boolean autoImport() {
+        return autoImport;
+    }
+
+    public boolean autoExport() {
+        return autoExport;
+    }
+
+    public void toggleAutoImport() {
+        autoImport = !autoImport;
+        setChanged();
+    }
+
+    public void toggleAutoExport() {
+        autoExport = !autoExport;
+        setChanged();
+    }
+
+    /**
+     * Auto Import and Auto Export: the machine does a pipe's job for the blocks right next to it.
+     * Every face set to Import (or Both) pulls items and Flux from the neighbor on that side, and
+     * every face set to Export (or Both) pushes products, and the fluid of any output tank, into
+     * it. The machine moves things through its own sided views, so the face rules hold exactly as
+     * they do for a pipe: nothing goes into an output slot, and nothing comes out of an input.
+     * Flux only ever comes in; a machine has no use for pushing its own fuel away.
+     */
+    private void autoTransfer(Level level) {
+        for (Direction side : Direction.values()) {
+            BlockPos next = worldPosition.relative(side);
+            Direction back = side.getOpposite();
+            if (autoImport && FaceRules.canInsert(PortRole.INPUT, mode(SideResource.ITEMS, side))) {
+                IItemHandler from = level.getCapability(Capabilities.ItemHandler.BLOCK, next, back);
+                IItemHandler into = itemHandler(side);
+                if (from != null && into != null) {
+                    moveItems(from, into, MachineMath.autoItems(tier));
+                }
+            }
+            if (autoImport && FaceRules.canInsert(PortRole.BUFFER, mode(SideResource.FLUID, side))) {
+                IFluidHandler from = level.getCapability(Capabilities.FluidHandler.BLOCK, next, back);
+                IFluidHandler into = fluidHandler(side);
+                if (from != null && into != null) {
+                    FluidUtil.tryFluidTransfer(into, from, MachineMath.autoFlux(tier), true);
+                }
+            }
+            if (autoExport && FaceRules.canExtract(PortRole.OUTPUT, mode(SideResource.FLUID, side))) {
+                IFluidHandler to = level.getCapability(Capabilities.FluidHandler.BLOCK, next, back);
+                for (int i = 0; i < extraTanks.size(); i++) {
+                    if (machine.extraTanks().get(i).output() && to != null && !extraTanks.get(i).isEmpty()) {
+                        FluidUtil.tryFluidTransfer(to, extraTanks.get(i), MachineMath.autoFlux(tier), true);
+                    }
+                }
+            }
+            if (autoExport && FaceRules.canExtract(PortRole.OUTPUT, mode(SideResource.ITEMS, side))) {
+                IItemHandler to = level.getCapability(Capabilities.ItemHandler.BLOCK, next, back);
+                IItemHandler out = itemHandler(side);
+                if (to != null && out != null) {
+                    moveItems(out, to, MachineMath.autoItems(tier));
+                }
+            }
+        }
+    }
+
+    /** Moves up to {@code limit} items from one handler to another, slot by slot. */
+    private static void moveItems(IItemHandler from, IItemHandler to, int limit) {
+        int left = limit;
+        for (int slot = 0; slot < from.getSlots() && left > 0; slot++) {
+            ItemStack offered = from.extractItem(slot, left, true);
+            if (offered.isEmpty()) {
+                continue;
+            }
+            ItemStack rest = insertAnywhere(to, offered, true);
+            int moved = offered.getCount() - rest.getCount();
+            if (moved <= 0) {
+                continue;
+            }
+            ItemStack taken = from.extractItem(slot, moved, false);
+            ItemStack leftover = insertAnywhere(to, taken, false);
+            if (!leftover.isEmpty()) {
+                // Should not happen after the simulation; put it back rather than lose it.
+                from.insertItem(slot, leftover, false);
+            }
+            left -= moved - leftover.getCount();
+        }
+    }
+
+    private static ItemStack insertAnywhere(IItemHandler to, ItemStack stack, boolean simulate) {
+        ItemStack rest = stack;
+        for (int slot = 0; slot < to.getSlots() && !rest.isEmpty(); slot++) {
+            rest = to.insertItem(slot, rest, simulate);
+        }
+        return rest;
+    }
+
+    /**
+     * Moves anything the input slot takes from the output slots back into the input, topping up
+     * what is there or filling an empty slot. This is how a plant grower replants its own seeds,
+     * so it keeps growing without a hopper loop.
+     */
+    private void refillFromOutputs() {
+        for (int out = machine.inputSlots(); out < machine.inputSlots() + machine.outputSlots(); out++) {
+            ItemStack produce = stackIn(out);
+            if (produce.isEmpty() || !isInputValid(0, produce)) {
+                continue;
+            }
+            ItemStack input = stackIn(0);
+            if (!input.isEmpty() && !ItemStack.isSameItemSameComponents(input, produce)) {
+                continue;
+            }
+            int room = produce.getMaxStackSize() - input.getCount();
+            int moved = Math.min(room, produce.getCount());
+            if (moved <= 0) {
+                return;
+            }
+            setStackIn(0, produce.copyWithCount(input.getCount() + moved));
+            setStackIn(out, produce.copyWithCount(produce.getCount() - moved));
+            sleeping = false;
+            setChanged();
+        }
+    }
+
+    /** What a slot holds, as a stack of its own that can be changed freely. */
+    public ItemStack stackIn(int slot) {
+        return inventory.getStackInSlot(slot).copy();
+    }
+
+    /** Puts a stack in a slot, whatever the slot would normally accept. */
+    public void setStackIn(int slot, ItemStack stack) {
+        inventory.setStackInSlot(slot, stack);
+    }
+
+    /** The Flux in the tank, in mB. */
+    public int fluxAmount() {
+        return fluxTank.getFluidAmount();
+    }
+
+    /** Replaces the contents of the tank, bypassing the usual checks. */
+    public void setFlux(FluidStack stack) {
+        fluxTank.setFluid(stack);
     }
 
     public SideConfigs sides() {
@@ -177,14 +471,79 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return timer.progress();
     }
 
-    /** Ticks the current job needs with tier speed applied; 0 when there is no job. */
+    /** Ticks the current job needs with tier and upgrade speed applied; 0 when there is no job. */
     public int totalTime() {
         return timer.total();
     }
 
-    /** Flux burned per tick while working, in mB. */
+    /** Flux burned per tick while working, in mB, with Speed upgrades counted. */
     public int fluxPerTick() {
-        return MachineMath.fluxPerTick(tier);
+        return MachineUpgrades.fluxPerTick(tier, speedUpgrades());
+    }
+
+    /** The size of the Flux tank in mB, with Capacity upgrades counted. */
+    public int fluxCapacity() {
+        return MachineUpgrades.inputCapacity(tier, capacityUpgrades());
+    }
+
+    // --- Upgrades and redstone ---------------------------------------------------------------
+
+    /** The upgrade slots. Only menus use them; the outside world never sees them. */
+    public MachineUpgradeSlots upgrades() {
+        return upgrades;
+    }
+
+    public int speedUpgrades() {
+        return upgrades.count(PipeUpgrades.Kind.SPEED);
+    }
+
+    public int capacityUpgrades() {
+        return upgrades.count(PipeUpgrades.Kind.CAPACITY);
+    }
+
+    /**
+     * Called after an upgrade went in or came out. A job under way keeps its progress; the next
+     * tick works out its new length. A tank left holding more than a smaller capacity keeps the
+     * extra Flux, it just takes no more until it drops below the new size.
+     */
+    private void upgradesChanged() {
+        setChanged();
+        sleeping = false;
+    }
+
+    public RedstoneMode redstoneMode() {
+        return redstone.mode();
+    }
+
+    /** Whether the redstone mode held the machine back on its last tick. */
+    public boolean redstoneDisabled() {
+        return redstoneDisabled;
+    }
+
+    /**
+     * Picks a redstone mode and saves it.
+     *
+     * @return true if the mode changed
+     */
+    public boolean setRedstoneMode(RedstoneMode mode) {
+        if (!redstone.setMode(mode)) {
+            return false;
+        }
+        setChanged();
+        sleeping = false;
+        return true;
+    }
+
+    /**
+     * Takes the redstone signal at the machine's position, called by the block when a neighbor
+     * changes. A change wakes the machine so a pulse is never slept through.
+     */
+    void readSignal(Level level) {
+        signalRead = true;
+        if (redstone.signal(level.hasNeighborSignal(worldPosition))) {
+            setChanged();
+            sleeping = false;
+        }
     }
 
     /** Whether a slot is one of the input slots. */
@@ -280,18 +639,20 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     // --- Helpers for jobs --------------------------------------------------------------------
 
-    /** The stacks in the input slots, in order. These are the real stacks, so jobs must not change them directly. */
+    /** The stacks in the input slots, in order. These are copies, so a job may change them freely. */
     protected List<ItemStack> inputStacks() {
         List<ItemStack> stacks = new ArrayList<>();
         for (int slot = 0; slot < machine.inputSlots(); slot++) {
-            stacks.add(inventory.getStackInSlot(slot));
+            stacks.add(stackIn(slot));
         }
         return stacks;
     }
 
     /** Takes items out of an input slot as part of a finished job. */
     protected void consumeInput(int inputSlot, int count) {
-        inventory.extractItem(inputSlot, count, false);
+        ItemStack held = stackIn(inputSlot);
+        held.shrink(count);
+        setStackIn(inputSlot, held.isEmpty() ? ItemStack.EMPTY : held);
     }
 
     /** Whether every product has room in the output slots at once, merging with what is already there. */
@@ -305,23 +666,27 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return true;
     }
 
-    /** Puts every product in the output slots. Check {@link #canFitOutputs} first; what does not fit is dropped. */
+    /**
+     * Puts the products in the output slots, in order. Check {@link #canFitOutputs} for the
+     * products that must fit first; a byproduct with no room left is lost rather than spilled
+     * on the floor next to the machine.
+     */
     protected void putOutputs(List<ItemStack> products) {
         List<ItemStack> slots = outputCopies();
         for (ItemStack product : products) {
-            if (!product.isEmpty() && !mergeInto(slots, product.copy()) && level != null) {
-                Block.popResource(level, worldPosition, product.copy());
+            if (!product.isEmpty()) {
+                mergeInto(slots, product.copy());
             }
         }
         for (int i = 0; i < slots.size(); i++) {
-            inventory.setStackInSlot(machine.inputSlots() + i, slots.get(i));
+            setStackIn(machine.inputSlots() + i, slots.get(i));
         }
     }
 
     private List<ItemStack> outputCopies() {
         List<ItemStack> copies = new ArrayList<>();
         for (int i = 0; i < machine.outputSlots(); i++) {
-            copies.add(inventory.getStackInSlot(machine.inputSlots() + i).copy());
+            copies.add(stackIn(machine.inputSlots() + i));
         }
         return copies;
     }
@@ -355,7 +720,29 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     }
 
     private void tick(Level level) {
+        if (autoInsert && machine == MachineType.PLANT_GROWER) {
+            refillFromOutputs();
+        }
+        if ((autoImport || autoExport) && level.getGameTime() % MachineMath.AUTO_INTERVAL == 0) {
+            autoTransfer(level);
+        }
+        tickAlways(level);
+        if (!signalRead) {
+            // First tick since placing or loading: the block only reports changes, so look once.
+            readSignal(level);
+        }
         if (sleeping && level.getGameTime() % IDLE_CHECK_INTERVAL != 0) {
+            return;
+        }
+
+        redstoneDisabled = !redstone.mayRun();
+        if (redstoneDisabled) {
+            // Held back by redstone: keep the progress, burn nothing, and sleep until the signal
+            // or the mode changes (both wake the machine).
+            sleeping = true;
+            status = MachineStatus.IDLE;
+            showWorking(level, false);
+            showCrop(level);
             return;
         }
 
@@ -366,6 +753,8 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             activeKey = null;
             sleeping = true;
             status = MachineStatus.IDLE;
+            showWorking(level, false);
+            showCrop(level);
             return;
         }
         sleeping = false;
@@ -374,32 +763,126 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             activeKey = job.key();
             timer.reset();
         }
-        timer.setTotal(MachineMath.ticksFor(job.baseTicks(), tier));
+        timer.setTotal(MachineUpgrades.ticksFor(job.baseTicks(), tier, speedUpgrades()));
 
         // The last tick of a job also pays the job's extra Flux.
         boolean lastTick = timer.progress() + 1 >= timer.total();
-        int cost = MachineMath.fluxPerTick(tier) + (lastTick ? job.extraFlux() : 0);
+        int cost = fluxPerTick() + (lastTick ? job.extraFlux() : 0);
         boolean outputFits = job.outputFits();
         FluxType required = job.requiredFlux();
         boolean rightFlux = required == null || required == storedFlux();
-        boolean paid = outputFits && rightFlux && fluxTank.drain(cost, IFluidHandler.FluidAction.SIMULATE).getAmount() >= cost;
+        boolean paid = outputFits && rightFlux && drainFlux(cost, true) >= cost;
         status = MachineStatus.decide(true, outputFits, paid);
+        showWorking(level, status == MachineStatus.RUNNING);
 
         if (status == MachineStatus.RUNNING) {
-            fluxTank.drain(cost, IFluidHandler.FluidAction.EXECUTE);
+            drainFlux(cost, false);
             if (timer.advance()) {
                 job.complete();
                 timer.reset();
                 activeKey = null;
+                redstone.jobFinished();
             }
             setChanged();
         }
+        showCrop(level);
     }
 
-    /** Throws the contents on the ground when the machine is broken. The Flux in the tank is lost. */
+    /**
+     * A plant grower tells clients what its chamber should show. The crop only changes when it
+     * grows a stage or the seed changes, so most ticks send nothing.
+     */
+    private void showCrop(Level level) {
+        if (machine != MachineType.PLANT_GROWER) {
+            return;
+        }
+        BlockState crop = CropDisplay.stateFor(stackIn(0), timer.progress(), timer.total());
+        if (!Objects.equals(crop, shownCrop)) {
+            shownCrop = crop;
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    // --- Client sync --------------------------------------------------------------------------
+    // Clients only need the crop a plant grower shows; everything else reaches the screen through the menu.
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        if (shownCrop != null) {
+            tag.put(TAG_SHOWN_CROP, NbtUtils.writeBlockState(shownCrop));
+        }
+        return tag;
+    }
+
+    @Nullable
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return machine == MachineType.PLANT_GROWER ? ClientboundBlockEntityDataPacket.create(this) : null;
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        readShownCrop(tag, registries);
+    }
+
+    @Override
+    public void onDataPacket(Connection connection, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
+        readShownCrop(packet.getTag(), registries);
+    }
+
+    /** Takes the crop from a sync and asks for a redraw when it changed. */
+    private void readShownCrop(CompoundTag tag, HolderLookup.Provider registries) {
+        BlockState crop = tag.contains(TAG_SHOWN_CROP)
+                ? NbtUtils.readBlockState(registries.lookupOrThrow(Registries.BLOCK), tag.getCompound(TAG_SHOWN_CROP))
+                : null;
+        if (Objects.equals(crop, shownCrop)) {
+            return;
+        }
+        shownCrop = crop;
+        requestModelDataUpdate();
+        if (level != null) {
+            // The chunk mesh only reads model data when it is rebuilt, so ask for that too.
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+        }
+    }
+
+    @Override
+    public ModelData getModelData() {
+        return shownCrop == null ? ModelData.EMPTY : ModelData.of(CropDisplay.SHOWN_CROP, shownCrop);
+    }
+
+    /**
+     * Switches the block's {@link FluxMachineBlock#LIT} state to match whether the machine is
+     * working. Only a real change touches the world, so a steady machine costs no block updates.
+     */
+    private void showWorking(Level level, boolean working) {
+        BlockState state = getBlockState();
+        if (state.hasProperty(FluxMachineBlock.LIT) && state.getValue(FluxMachineBlock.LIT) != working) {
+            level.setBlock(worldPosition, state.setValue(FluxMachineBlock.LIT, working), Block.UPDATE_ALL);
+        }
+    }
+
+    /**
+     * Takes Flux out of the tank.
+     *
+     * @param simulate true to only find out how much would come out
+     * @return how much was (or would be) taken
+     */
+    protected int drainFlux(int amount, boolean simulate) {
+        if (fluxTank.isEmpty()) {
+            return 0;
+        }
+        return fluxTank.drain(amount, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE).getAmount();
+    }
+
+    /** Throws the contents and the upgrades on the ground when the machine is broken. The Flux in the tank is lost. */
     void dropContents(Level level, BlockPos pos) {
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
-            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(slot));
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stackIn(slot));
+        }
+        for (int slot = 0; slot < upgrades.getSlots(); slot++) {
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), upgrades.getStackInSlot(slot).copy());
         }
     }
 
@@ -410,6 +893,13 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_SCHEMA, SCHEMA_VERSION);
         tag.put(TAG_FLUX, fluxTank.writeToNBT(registries, new CompoundTag()));
+        if (!extraTanks.isEmpty()) {
+            CompoundTag tanksTag = new CompoundTag();
+            for (int i = 0; i < extraTanks.size(); i++) {
+                tanksTag.put("tank" + i, extraTanks.get(i).writeToNBT(registries, new CompoundTag()));
+            }
+            tag.put(TAG_EXTRA_TANKS, tanksTag);
+        }
         tag.put(TAG_ITEMS, inventory.serializeNBT(registries));
         tag.putInt(TAG_PROGRESS, timer.progress());
         tag.putInt(TAG_TOTAL, timer.total());
@@ -418,13 +908,41 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             sideTag.putInt(resource.id(), sides.packed(resource));
         }
         tag.put(TAG_SIDES, sideTag);
+        tag.put(TAG_UPGRADES, upgrades.serializeNBT(registries));
+        CompoundTag redstoneTag = new CompoundTag();
+        redstoneTag.putString(TAG_REDSTONE_MODE, redstone.mode().id());
+        redstoneTag.putBoolean(TAG_REDSTONE_POWERED, redstone.powered());
+        redstoneTag.putBoolean(TAG_REDSTONE_PULSE, redstone.pulseArmed());
+        tag.put(TAG_REDSTONE, redstoneTag);
+        tag.putBoolean(TAG_AUTO_INSERT, autoInsert);
+        tag.putBoolean(TAG_AUTO_IMPORT, autoImport);
+        tag.putBoolean(TAG_AUTO_EXPORT, autoExport);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         // Version 1 is the only layout so far; later versions will branch on TAG_SCHEMA here.
+        // The upgrades and the redstone settings came later in version 1 and are simply missing
+        // from older saves, which leaves an unupgraded machine that ignores redstone.
         fluxTank.readFromNBT(registries, tag.getCompound(TAG_FLUX));
+        CompoundTag tanksTag = tag.getCompound(TAG_EXTRA_TANKS);
+        for (int i = 0; i < extraTanks.size(); i++) {
+            extraTanks.get(i).readFromNBT(registries, tanksTag.getCompound("tank" + i));
+        }
+        if (tag.contains(TAG_UPGRADES)) {
+            upgrades.deserializeNBT(registries, tag.getCompound(TAG_UPGRADES));
+        }
+        if (tag.contains(TAG_REDSTONE)) {
+            CompoundTag redstoneTag = tag.getCompound(TAG_REDSTONE);
+            String mode = redstoneTag.getString(TAG_REDSTONE_MODE);
+            redstone.restore(RedstoneMode.byId(mode.isEmpty() ? RedstoneMode.ALWAYS.id() : mode),
+                    redstoneTag.getBoolean(TAG_REDSTONE_POWERED), redstoneTag.getBoolean(TAG_REDSTONE_PULSE));
+        }
+        signalRead = false;
+        autoInsert = tag.getBoolean(TAG_AUTO_INSERT);
+        autoImport = tag.getBoolean(TAG_AUTO_IMPORT);
+        autoExport = tag.getBoolean(TAG_AUTO_EXPORT);
         inventory.deserializeNBT(registries, tag.getCompound(TAG_ITEMS));
         int wanted = machine.inputSlots() + machine.outputSlots();
         if (inventory.getSlots() != wanted) {

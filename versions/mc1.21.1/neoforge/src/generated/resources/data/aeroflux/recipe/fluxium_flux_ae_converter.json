@@ -1,0 +1,33 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "item": "aeroflux:moon_crystal"
+    },
+    "P": {
+      "item": "aeroflux:netherite_flux_ae_converter"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "item": "aeroflux:aero_crystal"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:fluxium_flux_ae_converter"
+  }
+}

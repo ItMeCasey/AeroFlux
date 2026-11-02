@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,lit=false": {
+      "model": "aeroflux:block/flux_blender_gold"
+    },
+    "facing=north,lit=true": {
+      "model": "aeroflux:block/flux_blender_active_gold"
+    },
+    "facing=east,lit=false": {
+      "model": "aeroflux:block/flux_blender_gold",
+      "y": 90
+    },
+    "facing=east,lit=true": {
+      "model": "aeroflux:block/flux_blender_active_gold",
+      "y": 90
+    },
+    "facing=south,lit=false": {
+      "model": "aeroflux:block/flux_blender_gold",
+      "y": 180
+    },
+    "facing=south,lit=true": {
+      "model": "aeroflux:block/flux_blender_active_gold",
+      "y": 180
+    },
+    "facing=west,lit=false": {
+      "model": "aeroflux:block/flux_blender_gold",
+      "y": 270
+    },
+    "facing=west,lit=true": {
+      "model": "aeroflux:block/flux_blender_active_gold",
+      "y": 270
+    }
+  }
+}

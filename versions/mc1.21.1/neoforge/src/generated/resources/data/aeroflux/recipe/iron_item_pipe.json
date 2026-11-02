@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "aeroflux:copper_item_pipe"
+    },
+    "S": {
+      "tag": "c:ingots/iron"
+    },
+    "T": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "id": "aeroflux:iron_item_pipe"
+  }
+}

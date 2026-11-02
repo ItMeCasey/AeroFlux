@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "aeroflux:flux_energy_converter"
+    },
+    "S": {
+      "tag": "c:ingots/iron"
+    },
+    "T": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:iron_flux_energy_converter"
+  }
+}

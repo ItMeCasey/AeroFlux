@@ -1,8 +1,5 @@
 package com.itmecasey.aeroflux.client.model;
 
-import com.itmecasey.aeroflux.core.conduit.PipeType;
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.function.Function;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -14,20 +11,19 @@ import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
 import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
 
 /**
- * The unbaked form of the conduit bundle model. Baking looks up one texture per pipe type (named
- * after the type in the model file), plus {@code node} for connectors and {@code particle}.
+ * The unbaked form of the conduit bundle model. Baking looks up the pipe's {@code side} and
+ * {@code end} textures, which every pipe shares and tints with its own color, plus {@code node}
+ * for the junction boxes and plates and {@code particle}.
  */
 public class BundleGeometry implements IUnbakedGeometry<BundleGeometry> {
     @Override
     public BakedModel bake(IGeometryBakingContext context, ModelBaker baker,
                            Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState,
                            ItemOverrides overrides) {
-        Map<PipeType, TextureAtlasSprite> pipeSprites = new EnumMap<>(PipeType.class);
-        for (PipeType type : PipeType.values()) {
-            pipeSprites.put(type, spriteGetter.apply(context.getMaterial(type.id())));
-        }
-        TextureAtlasSprite node = spriteGetter.apply(context.getMaterial("node"));
-        TextureAtlasSprite particle = spriteGetter.apply(context.getMaterial("particle"));
-        return new BundleBakedModel(pipeSprites, node, particle);
+        return new BundleBakedModel(
+                spriteGetter.apply(context.getMaterial("side")),
+                spriteGetter.apply(context.getMaterial("end")),
+                spriteGetter.apply(context.getMaterial("node")),
+                spriteGetter.apply(context.getMaterial("particle")));
     }
 }

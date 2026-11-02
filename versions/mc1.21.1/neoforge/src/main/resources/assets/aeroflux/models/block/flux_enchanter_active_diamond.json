@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_enchanter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_enchanter_side_diamond",
+    "back": "aeroflux:block/flux_enchanter_back_diamond",
+    "top": "aeroflux:block/flux_enchanter_top_diamond",
+    "bottom": "aeroflux:block/flux_enchanter_bottom_diamond",
+    "front": "aeroflux:block/flux_enchanter_front_active_diamond",
+    "particle": "aeroflux:block/flux_enchanter_side_diamond"
+  }
+}

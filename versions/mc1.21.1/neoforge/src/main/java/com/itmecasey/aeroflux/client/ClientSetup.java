@@ -2,18 +2,30 @@ package com.itmecasey.aeroflux.client;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.client.model.BundleGeometryLoader;
+import com.itmecasey.aeroflux.client.model.PlantGrowerModel;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
+import com.itmecasey.aeroflux.client.screen.ConverterScreen;
+import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
-import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluidTypes;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModMenus;
+import java.util.Map;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -25,8 +37,9 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
 /**
- * Client-only setup: how the two fluids look in the world. Both use the same soft, animated
- * textures and are tinted with their flux color, so a texture pack only has to replace one pair.
+ * Client-only setup: the screens, the pipe and plant grower models, and how the fluids look in the
+ * world. The fluids all use the same soft, animated textures tinted with their flux color, so a
+ * texture pack only has to replace one pair.
  */
 @EventBusSubscriber(modid = AeroFlux.MODID, value = Dist.CLIENT)
 public final class ClientSetup {
@@ -46,6 +59,8 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
+        event.register(ModMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
+        event.register(ModMenus.CONVERTER.get(), ConverterScreen::new);
         for (MachineType machine : MachineType.values()) {
             event.register(ModMenus.machine(machine).get(), MachineScreen::new);
         }
@@ -62,6 +77,7 @@ public final class ClientSetup {
     public static void registerFluidExtensions(RegisterClientExtensionsEvent event) {
         event.registerFluidType(new FluxFluidExtensions(FluxType.AERO), ModFluidTypes.AERO_FLUX.get());
         event.registerFluidType(new FluxFluidExtensions(FluxType.MOON), ModFluidTypes.MOON_FLUX.get());
+        event.registerFluidType(new FluxFluidExtensions(FluxType.TWILIGHT), ModFluidTypes.TWILIGHT_FLUX.get());
     }
 
     /** The fluid textures are slightly see-through, so the fluids need the translucent layer. */
@@ -73,7 +89,29 @@ public final class ClientSetup {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_AERO_FLUX.get(), translucent);
             ItemBlockRenderTypes.setRenderLayer(ModFluids.MOON_FLUX.get(), translucent);
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_MOON_FLUX.get(), translucent);
+            ItemBlockRenderTypes.setRenderLayer(ModFluids.TWILIGHT_FLUX.get(), translucent);
+            ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_TWILIGHT_FLUX.get(), translucent);
+            // The guidebook item opens its screen through here, so the item itself never names a screen.
+            GuidebookItem.setOpener(GuideScreen::open);
         });
+    }
+
+    /**
+     * Wraps the plant grower's models so its glass chamber shows the crop it is growing (see
+     * {@link PlantGrowerModel}). Every tier, facing and lit state gets the wrapper.
+     */
+    @SubscribeEvent
+    public static void wrapPlantGrowers(ModelEvent.ModifyBakingResult event) {
+        Map<ModelResourceLocation, BakedModel> models = event.getModels();
+        for (Tier tier : Tier.values()) {
+            for (BlockState state : ModBlocks.machine(MachineType.PLANT_GROWER, tier).get().getStateDefinition().getPossibleStates()) {
+                ModelResourceLocation location = BlockModelShaper.stateToModelLocation(state);
+                BakedModel casing = models.get(location);
+                if (casing != null) {
+                    models.put(location, new PlantGrowerModel(casing));
+                }
+            }
+        }
     }
 
     /** Supplies the shared textures and the per-flux tint. */

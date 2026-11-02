@@ -5,8 +5,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * The screen of all eight machines. The shared base already lays out everything from the menu, so
- * a machine only differs in its slots and recipes, not in its screen.
+ * The screen of every machine. The shared base lays out everything from the menu (slots, extra
+ * tank gauges, and the few buttons one kind of machine has), so there is no screen per machine.
  */
 public class MachineScreen extends FluxMachineScreen<MachineMenu> {
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {

@@ -127,9 +127,10 @@ final class MoreMachinesSelfTest {
     // --- Building ----------------------------------------------------------------------------
 
     private static void build() {
-        // A stone floor under the whole layer, so dropped items and animals stay put.
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
+        // A stone floor under the Magnet's cobblestone and the Breeder's cows, so they stay put. It
+        // leaves the column over the collector checks open: they need to see the sky.
+        for (int x = 0; x <= 10; x++) {
+            for (int z = 4; z <= 10; z++) {
                 level.setBlock(new BlockPos(x, Y - 1, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
             }
         }

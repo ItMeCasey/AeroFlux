@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "aeroflux:aero_crystal"
+    },
+    "F": {
+      "item": "aeroflux:fluxsteel_ingot"
+    }
+  },
+  "pattern": [
+    "F F",
+    " A ",
+    " F "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:conduit_tool"
+  }
+}

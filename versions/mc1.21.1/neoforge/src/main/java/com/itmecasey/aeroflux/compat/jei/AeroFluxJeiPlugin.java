@@ -1,0 +1,85 @@
+package com.itmecasey.aeroflux.compat.jei;
+
+import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.machine.MachineRecipes;
+import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
+import com.itmecasey.aeroflux.registry.ModBlocks;
+import java.util.Arrays;
+import java.util.List;
+import mezz.jei.api.IModPlugin;
+import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
+import mezz.jei.api.registration.IRecipeCategoryRegistration;
+import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.ItemLike;
+
+/**
+ * JEI support: a page type for each recipe machine with every tier of that machine as its
+ * station, the Flux Furnace on JEI's own smelting pages, and an info page for the Enchanter and
+ * Disenchanter, which follow rules rather than recipes. JEI finds this class by its annotation and
+ * only when JEI is installed.
+ */
+@JeiPlugin
+public class AeroFluxJeiPlugin implements IModPlugin {
+    private static final ResourceLocation UID = Ids.mod("jei");
+
+    @Override
+    public ResourceLocation getPluginUid() {
+        return UID;
+    }
+
+    @Override
+    public void registerCategories(IRecipeCategoryRegistration registration) {
+        for (MachineType machine : MachineType.values()) {
+            if (machine.hasOwnRecipes()) {
+                registration.addRecipeCategories(new MachineRecipeCategory(machine, registration.getJeiHelpers().getGuiHelper()));
+            }
+        }
+    }
+
+    @Override
+    public void registerRecipes(IRecipeRegistration registration) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) {
+            return;
+        }
+        for (MachineType machine : MachineType.values()) {
+            if (machine.hasOwnRecipes()) {
+                List<FluxRecipe> recipes = MachineRecipes.of(minecraft.level, machine).stream().map(RecipeHolder::value).toList();
+                registration.addRecipes(MachineRecipeCategory.typeFor(machine), recipes);
+            }
+        }
+        for (MachineType machine : List.of(MachineType.ENCHANTER, MachineType.DISENCHANTER)) {
+            registration.addItemStackInfo(Arrays.stream(tiers(machine)).map(ItemStack::new).toList(),
+                    Component.translatable("jei.aeroflux.info." + machine.id()));
+        }
+    }
+
+    @Override
+    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        for (MachineType machine : MachineType.values()) {
+            if (machine.hasOwnRecipes()) {
+                registration.addRecipeCatalysts(MachineRecipeCategory.typeFor(machine), tiers(machine));
+            }
+        }
+        registration.addRecipeCatalysts(RecipeTypes.SMELTING, tiers(MachineType.FURNACE));
+    }
+
+    /** Every tier of one machine, copper first. */
+    private static ItemLike[] tiers(MachineType machine) {
+        Tier[] tiers = Tier.values();
+        ItemLike[] blocks = new ItemLike[tiers.length];
+        for (int i = 0; i < tiers.length; i++) {
+            blocks[i] = ModBlocks.machine(machine, tiers[i]).get();
+        }
+        return blocks;
+    }
+}

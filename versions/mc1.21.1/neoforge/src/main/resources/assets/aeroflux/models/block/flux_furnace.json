@@ -1,9 +1,11 @@
 {
-  "parent": "minecraft:block/orientable",
+  "parent": "aeroflux:block/flux_furnace_base",
   "textures": {
-    "front": "aeroflux:block/furnace_front",
-    "side": "aeroflux:block/machine_stone_side",
-    "top": "aeroflux:block/machine_stone_side",
-    "particle": "aeroflux:block/machine_stone_side"
+    "side": "aeroflux:block/flux_furnace_side",
+    "back": "aeroflux:block/flux_furnace_back",
+    "top": "aeroflux:block/flux_furnace_top",
+    "bottom": "aeroflux:block/flux_furnace_bottom",
+    "front": "aeroflux:block/flux_furnace_front",
+    "particle": "aeroflux:block/flux_furnace_side"
   }
 }
