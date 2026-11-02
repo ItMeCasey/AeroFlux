@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_netherite_moon_spawner": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:netherite_moon_spawner"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:fluxium_moon_spawner"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_netherite_moon_spawner",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:fluxium_moon_spawner"
+    ]
+  },
+  "sends_telemetry_event": false
+}

@@ -1,24 +1,33 @@
 package com.itmecasey.aeroflux.conduit.config;
 
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.conduit.EndpointUpgradeItem;
 import com.itmecasey.aeroflux.conduit.FluxWrenchItem;
 import com.itmecasey.aeroflux.conduit.PipeItem;
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.conduit.tool.ConduitToolItem;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.conduit.Box;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
+import com.itmecasey.aeroflux.core.conduit.EndpointFilter;
+import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
-import com.itmecasey.aeroflux.core.conduit.PipeGeometry;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
+import com.itmecasey.aeroflux.core.conduit.PriorityPlanner;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.List;
 import java.util.Locale;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
 
 /**
  * Everything the pipe screen decides, with no screen, menu or player in sight. The menu and the
@@ -39,9 +48,6 @@ public final class PipeConfigActions {
     /** Channels of the two ME pipes. AE2 hands them out itself; this is only what the screen reports. */
     private static final int ME_CHANNELS = 8;
     private static final int DENSE_ME_CHANNELS = 32;
-
-    // Extension point: filter and priority settings will live here too (and in the menu) once
-    // those upgrades exist. Nothing is stubbed for them yet on purpose.
 
     private PipeConfigActions() {
     }
@@ -69,24 +75,24 @@ public final class PipeConfigActions {
      * @return the lane and face, or {@code null} if the click was not on a connector
      */
     public static Target resolveTarget(BundleState bundle, double x, double y, double z) {
-        PipeType pipe = bundle.nearestPipe(x, y, z);
+        ConduitLayout layout = ConduitLayout.of(bundle);
+        PipeType pipe = layout.nearestPipe(x, y, z);
         if (pipe == null) {
             return null;
         }
         int lane = pipe.lane();
-        int size = bundle.set().size();
-        PipeGeometry.Slot slot = PipeGeometry.layout(size).get(bundle.set().slotOf(pipe));
 
         Face best = null;
         double bestDistance = Double.MAX_VALUE;
         for (Face face : Face.values()) {
-            if (!bundle.isConnected(lane, face)) {
+            Box arm = layout.armOf(pipe, face);
+            if (arm == null) {
                 continue;
             }
-            boolean external = bundle.isExternal(lane, face);
-            double distance = PipeGeometry.arm(slot, face, external).distanceTo(x, y, z);
-            if (external) {
-                distance = Math.min(distance, PipeGeometry.connector(size, face).distanceTo(x, y, z));
+            double distance = arm.distanceTo(x, y, z);
+            Box plate = bundle.isExternal(lane, face) ? layout.plateOf(face) : null;
+            if (plate != null) {
+                distance = Math.min(distance, plate.distanceTo(x, y, z));
             }
             if (distance <= CLICK_REACH && distance < bestDistance) {
                 best = face;
@@ -104,7 +110,8 @@ public final class PipeConfigActions {
         return stack.getItem() instanceof FluxWrenchItem
                 || stack.getItem() instanceof ConduitToolItem
                 || stack.getItem() instanceof PipeItem
-                || stack.getItem() instanceof UpgradeItem;
+                || stack.getItem() instanceof UpgradeItem
+                || stack.getItem() instanceof EndpointUpgradeItem;
     }
 
     // --- Validity ----------------------------------------------------------------------------
@@ -280,6 +287,126 @@ public final class PipeConfigActions {
         for (int i = 1; i < count; i++) {
             bundle.addUpgrade(lane, kind);
         }
+    }
+
+    // --- Filter and Priority upgrades ----------------------------------------------------------
+
+    /** The item that stands for a Filter or Priority upgrade. */
+    public static ItemStack endpointUpgradeStack(EndpointSettings.Upgrade upgrade) {
+        return new ItemStack(upgrade == EndpointSettings.Upgrade.FILTER
+                ? ModItems.FILTER_UPGRADE.get() : ModItems.PRIORITY_UPGRADE.get());
+    }
+
+    /**
+     * Puts a Filter or Priority upgrade into a pipe at one face.
+     *
+     * @return false if the pipe is not in the bundle, cannot take that upgrade or has one there already
+     */
+    public static boolean installEndpointUpgrade(ConduitBundleBlockEntity entity, PipeType type, Face face,
+                                                 EndpointSettings.Upgrade upgrade) {
+        if (!entity.bundle().set().contains(type) || !EndpointSettings.supports(type, upgrade)
+                || !entity.endpoints().install(type.lane(), face, upgrade)) {
+            return false;
+        }
+        entity.changed();
+        return true;
+    }
+
+    /**
+     * Takes a Filter or Priority upgrade out of a pipe at one face. Its settings are forgotten.
+     *
+     * @return false if there was none
+     */
+    public static boolean removeEndpointUpgrade(ConduitBundleBlockEntity entity, PipeType type, Face face,
+                                                EndpointSettings.Upgrade upgrade) {
+        if (!entity.endpoints().remove(type.lane(), face, upgrade)) {
+            return false;
+        }
+        entity.changed();
+        return true;
+    }
+
+    /**
+     * Switches a face's filter between whitelist and blacklist.
+     *
+     * @return false if no Filter upgrade is installed there
+     */
+    public static boolean toggleFilterMode(ConduitBundleBlockEntity entity, PipeType type, Face face) {
+        EndpointFilter filter = entity.endpoints().filter(type.lane(), face);
+        if (filter == null) {
+            return false;
+        }
+        filter.setWhitelist(!filter.isWhitelist());
+        entity.changed();
+        return true;
+    }
+
+    /**
+     * Sets one filter slot from a stack the player holds: the item itself for an item pipe, the
+     * fluid inside it for a fluid pipe. An empty stack clears the slot.
+     *
+     * @return false if there is no filter, the slot is out of range, the stack has nothing this
+     *         pipe could carry, or the slot already held that
+     */
+    public static boolean setFilterEntry(ConduitBundleBlockEntity entity, PipeType type, Face face, int slot,
+                                         ItemStack held) {
+        EndpointFilter filter = entity.endpoints().filter(type.lane(), face);
+        if (filter == null || slot < 0 || slot >= EndpointFilter.SLOTS) {
+            return false;
+        }
+        String id = null;
+        if (!held.isEmpty()) {
+            id = filterId(type, held);
+            if (id == null) {
+                return false;
+            }
+        }
+        if (!filter.setEntry(slot, id)) {
+            return false;
+        }
+        entity.changed();
+        return true;
+    }
+
+    /**
+     * What a held stack would put into a filter of this pipe: the item's id for item pipes and
+     * the id of the fluid it contains for fluid pipes.
+     *
+     * @return the id, or {@code null} if the stack is empty or holds no fluid
+     */
+    public static String filterId(PipeType type, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+        if (type == PipeType.FLUID) {
+            FluidStack fluid = FluidUtil.getFluidContained(stack).orElse(FluidStack.EMPTY);
+            return fluid.isEmpty() ? null : fluidId(fluid.getFluid());
+        }
+        return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+    }
+
+    /** The registry id of a fluid, the form fluid filters store. */
+    public static String fluidId(Fluid fluid) {
+        return BuiltInRegistries.FLUID.getKey(fluid).toString();
+    }
+
+    /**
+     * Raises or lowers a face's priority by {@code delta}, within its range.
+     *
+     * @return false if no Priority upgrade is installed there or it is already at the end of the range
+     */
+    public static boolean adjustPriority(ConduitBundleBlockEntity entity, PipeType type, Face face, int delta) {
+        int lane = type.lane();
+        if (!entity.endpoints().setPriority(lane, face, entity.endpoints().priority(lane, face) + delta)) {
+            return false;
+        }
+        entity.changed();
+        return true;
+    }
+
+    /** How a priority reads on the screen and in tooltips: with a plus sign above zero. */
+    public static String priorityText(int priority) {
+        return priority > PriorityPlanner.DEFAULT ? "+" + priority : Integer.toString(priority);
     }
 
     // --- Throughput --------------------------------------------------------------------------

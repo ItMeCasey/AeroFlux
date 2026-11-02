@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gold_plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:gold_plant_grower"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:diamond_plant_grower"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_gold_plant_grower",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:diamond_plant_grower"
+    ]
+  },
+  "sends_telemetry_event": false
+}

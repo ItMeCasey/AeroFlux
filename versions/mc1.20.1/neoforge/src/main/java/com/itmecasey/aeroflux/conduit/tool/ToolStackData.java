@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Everything the Conduit Tool remembers, kept on the item stack: its mode, a copied bundle and
  * the start of a pending run removal. All reads and writes go through here, so the storage
- * (plain item NBT in this version) can be swapped without touching the tool's logic.
+ * (the stack's NBT in this version) can be swapped without touching the tool's logic.
  */
 public final class ToolStackData {
     private static final String KEY_MODE = "mode";
@@ -95,7 +95,7 @@ public final class ToolStackData {
         update(stack, tag -> tag.remove(KEY_RUN));
     }
 
-    /** The stack's tag for reading; an empty one if it has none. Callers must not modify it. */
+    /** The stack's tag, or an empty one that is not attached to the stack. Reading never adds a tag. */
     private static CompoundTag read(ItemStack stack) {
         CompoundTag tag = stack.getTag();
         return tag == null ? new CompoundTag() : tag;

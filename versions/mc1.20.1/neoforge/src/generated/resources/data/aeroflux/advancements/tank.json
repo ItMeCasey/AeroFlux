@@ -1,0 +1,38 @@
+{
+  "parent": "aeroflux:collector",
+  "criteria": {
+    "copper_tank": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:copper_tank"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.aeroflux.tank.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "aeroflux:copper_tank"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.aeroflux.tank.title"
+    }
+  },
+  "requirements": [
+    [
+      "copper_tank"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

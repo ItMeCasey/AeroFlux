@@ -1,16 +1,20 @@
 package com.itmecasey.aeroflux.conduit;
 
 import com.itmecasey.aeroflux.client.model.BundleModelData;
+import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
 import com.itmecasey.aeroflux.conduit.transfer.TransferEngine;
 import com.itmecasey.aeroflux.conduit.transfer.TransferNetworks;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -30,10 +34,16 @@ import net.minecraftforge.client.model.data.ModelData;
 public class ConduitBundleBlockEntity extends BlockEntity {
     private static final String TAG_BUNDLE = "bundle";
     private static final String TAG_REDSTONE = "redstone";
+    /** The Filter and Priority upgrades at single faces. Missing in saves from before they existed. */
+    private static final String TAG_ENDPOINTS = "endpoints";
 
     private BundleState bundle = new BundleState();
+    private EndpointSettings endpoints = new EndpointSettings();
     /** The redstone level this bundle outputs at each face (indexed like {@link Face}); 0 where it exports nothing. */
     private final int[] redstoneOutput = new int[6];
+    /** The AE2 grid node of the ME pipe, when AE2 is installed and there is one; see {@link Ae2Compat}. */
+    @Nullable
+    private Object meLink;
 
     public ConduitBundleBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CONDUIT_BUNDLE.get(), pos, state);
@@ -42,6 +52,15 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     /** The bundle's data. Callers that change it must call {@link #changed()} afterwards. */
     public BundleState bundle() {
         return bundle;
+    }
+
+    /**
+     * The Filter and Priority upgrades installed at single faces, and their settings. Callers
+     * that change them must call {@link #changed()} afterwards, which also makes the transfer
+     * engine pick the new settings up.
+     */
+    public EndpointSettings endpoints() {
+        return endpoints;
     }
 
     /** Server tick: lets the transfer engine move things for the pipes in this bundle. */
@@ -70,6 +89,7 @@ public class ConduitBundleBlockEntity extends BlockEntity {
             return false;
         }
         bundle.addPipe(type, tier);
+        endpoints.clearLane(type.lane());
         refreshConnections();
         // Adding a pipe changes the bundle even when no connection changed, so always save and sync.
         changed();
@@ -86,11 +106,33 @@ public class ConduitBundleBlockEntity extends BlockEntity {
         }
     }
 
+    /** The AE2 link of the ME pipe, or {@code null}; only {@link Ae2Compat} looks inside it. */
+    @Nullable
+    public Object meLink() {
+        return meLink;
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        syncMeLink();
+    }
+
+    /** Keeps the ME pipe's AE2 node in step with the bundle, and tells AE2 when it comes or goes. */
+    private void syncMeLink() {
+        Object before = meLink;
+        meLink = Ae2Compat.sync(this, meLink);
+        if (meLink != before && level != null) {
+            level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+        }
+    }
+
     /** Saves, redraws on clients, and lets neighboring bundles recheck their connections. */
     public void changed() {
         setChanged();
         if (level != null) {
             TransferNetworks.topologyChanged(level);
+            syncMeLink();
             clearStaleRedstone();
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, 3);
@@ -102,6 +144,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     @Override
     public void setRemoved() {
         super.setRemoved();
+        Ae2Compat.stop(meLink);
+        meLink = null;
         if (level != null) {
             TransferNetworks.forget(level, worldPosition);
         }
@@ -159,6 +203,9 @@ public class ConduitBundleBlockEntity extends BlockEntity {
         super.saveAdditional(tag);
         tag.putIntArray(TAG_BUNDLE, bundle.serialize());
         tag.putIntArray(TAG_REDSTONE, redstoneOutput);
+        if (!endpoints.isEmpty()) {
+            tag.putString(TAG_ENDPOINTS, endpoints.encode());
+        }
     }
 
     @Override
@@ -169,6 +216,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
         for (int i = 0; i < redstoneOutput.length; i++) {
             redstoneOutput[i] = i < saved.length ? saved[i] : 0;
         }
+        endpoints = EndpointSettings.decode(tag.getString(TAG_ENDPOINTS));
+        endpoints.retainValid(bundle.set());
         if (level != null && level.isClientSide) {
             requestModelDataUpdate();
         }
@@ -182,6 +231,21 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    /**
+     * Client side: new contents arrived from the server. Adding a pipe, joining a neighbor or
+     * attaching to a machine leaves the block state as it was, so nothing else tells the chunk
+     * renderer to rebuild; without this the new pipe or arm stays invisible until something else
+     * nearby changes. {@link #loadAdditional} has already asked for fresh model data.
+     */
+    @Override
+    public void onDataPacket(Connection connection, ClientboundBlockEntityDataPacket packet) {
+        super.onDataPacket(connection, packet);
+        if (level != null && level.isClientSide) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_IMMEDIATE);
+        }
     }
 
     @Override

@@ -1,0 +1,38 @@
+{
+  "parent": "aeroflux:furnace",
+  "criteria": {
+    "speed_upgrade": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:speed_upgrade"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.aeroflux.speed_upgrade.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "aeroflux:speed_upgrade"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.aeroflux.speed_upgrade.title"
+    }
+  },
+  "requirements": [
+    [
+      "speed_upgrade"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -2,13 +2,15 @@ package com.itmecasey.aeroflux.conduit.transfer;
 
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
 import com.itmecasey.aeroflux.core.conduit.FlowPlanner;
+import com.itmecasey.aeroflux.core.conduit.PriorityPlanner;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 
 /**
- * The part fluid and energy have in common: plan a step with {@link FlowPlanner}, take the
- * planned amounts out of the sources and put them into the sinks. A resource only has to describe
- * its machines as {@link Port}s.
+ * The part fluid and energy have in common: plan a step with {@link FlowPlanner} (through
+ * {@link PriorityPlanner}, so higher-priority sinks fill first), take the planned amounts out of
+ * the sources and put them into the sinks. A resource only has to describe its machines as
+ * {@link Port}s.
  */
 final class AmountMover {
     private AmountMover() {
@@ -30,6 +32,11 @@ final class AmountMover {
 
         /** Puts up to {@code amount} in and returns how much was really taken. */
         long insert(long amount);
+
+        /** How soon this port fills as a sink compared with the others; higher fills first. */
+        default int priority() {
+            return PriorityPlanner.DEFAULT;
+        }
     }
 
     /**
@@ -54,7 +61,13 @@ final class AmountMover {
             accepting[j] = guardedRead(sinks.get(j), false, limit);
         }
 
-        long[][] plan = FlowPlanner.planBySource(available, accepting, limit, modes, state.nextRotation(), state.random());
+        int[] priorities = new int[sinks.size()];
+        for (int j = 0; j < priorities.length; j++) {
+            priorities[j] = sinks.get(j).priority();
+        }
+
+        long[][] plan = PriorityPlanner.planBySource(available, accepting, priorities, limit, modes,
+                state.nextRotation(), state.random());
         long moved = 0;
         for (int i = 0; i < sources.size(); i++) {
             moved += carryOut(sources.get(i), sinks, plan[i]);

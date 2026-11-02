@@ -1,7 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "aeroflux:block/pipe_item"
-  }
+  "parent": "aeroflux:item/pipe_item"
 }
-

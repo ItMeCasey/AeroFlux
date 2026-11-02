@@ -34,7 +34,7 @@ public class FurnaceBlockEntity extends FluxMachineBlockEntity {
         if (input.isEmpty() || level == null) {
             return null;
         }
-        Container recipeInput = new SimpleContainer(input);
+        SimpleContainer recipeInput = new SimpleContainer(input);
         Optional<SmeltingRecipe> found = recipeCheck.getRecipeFor(recipeInput, level);
         if (found.isEmpty()) {
             return null;

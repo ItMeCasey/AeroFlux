@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "P": {
+      "item": "aeroflux:diamond_flux_crafter"
+    },
+    "S": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "T": {
+      "tag": "forge:ingots/netherite"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:netherite_flux_crafter"
+  },
+  "show_notification": true
+}

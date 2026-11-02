@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "aeroflux:moon_crystal"
+    },
+    "P": {
+      "item": "aeroflux:netherite_flux_sawmill"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "item": "aeroflux:aero_crystal"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:fluxium_flux_sawmill"
+  },
+  "show_notification": true
+}

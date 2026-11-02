@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.conduit;
 
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import java.util.Locale;
@@ -42,7 +43,7 @@ public class UpgradeItem extends Item {
 
         // Where the crosshair hit, in pixels inside the block, the same targeting the wrench uses.
         Vec3 local = context.getClickLocation().subtract(pos.getX(), pos.getY(), pos.getZ()).scale(16.0);
-        PipeType pipe = entity.bundle().nearestPipe(local.x, local.y, local.z);
+        PipeType pipe = ConduitLayout.of(entity.bundle()).nearestPipe(local.x, local.y, local.z);
         if (pipe == null) {
             return InteractionResult.PASS;
         }

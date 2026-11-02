@@ -1,9 +1,0 @@
-{
-  "parent": "aeroflux:block/flux_enchanter",
-  "textures": {
-    "book": "aeroflux:block/book_open",
-    "front": "aeroflux:block/enchanter_front_fluxium",
-    "particle": "aeroflux:block/lectern_side_fluxium",
-    "side": "aeroflux:block/lectern_side_fluxium"
-  }
-}

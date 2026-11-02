@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "aeroflux:moon_crystal"
+    },
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "M": {
+      "item": "minecraft:brewing_stand"
+    },
+    "S": {
+      "tag": "forge:ingots/copper"
+    }
+  },
+  "pattern": [
+    "CAC",
+    "SMS",
+    "CDC"
+  ],
+  "result": {
+    "item": "aeroflux:flux_infuser"
+  },
+  "show_notification": true
+}

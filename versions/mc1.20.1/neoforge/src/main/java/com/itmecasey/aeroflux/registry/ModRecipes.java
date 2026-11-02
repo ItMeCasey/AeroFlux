@@ -7,11 +7,12 @@ import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipeSerializer;
 import java.util.EnumMap;
 import java.util.Map;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 /**
@@ -21,9 +22,9 @@ import net.minecraftforge.registries.RegistryObject;
  */
 public final class ModRecipes {
     private static final DeferredRegister<RecipeType<?>> TYPES =
-            DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, AeroFlux.MODID);
+            DeferredRegister.create(Registries.RECIPE_TYPE, AeroFlux.MODID);
     private static final DeferredRegister<RecipeSerializer<?>> SERIALIZERS =
-            DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, AeroFlux.MODID);
+            DeferredRegister.create(Registries.RECIPE_SERIALIZER, AeroFlux.MODID);
 
     private static final Map<MachineType, RegistryObject<RecipeType<FluxRecipe>>> BY_TYPE =
             new EnumMap<>(MachineType.class);
@@ -33,14 +34,23 @@ public final class ModRecipes {
     static {
         for (MachineType machine : MachineType.values()) {
             if (machine.hasOwnRecipes()) {
-                BY_TYPE.put(machine, TYPES.register(machine.id(),
-                        () -> RecipeType.<FluxRecipe>simple(Ids.mod(machine.id()))));
+                BY_TYPE.put(machine, TYPES.register(machine.id(), () -> typeOf(Ids.mod(machine.id()))));
                 BY_SERIALIZER.put(machine, SERIALIZERS.register(machine.id(), () -> new FluxRecipeSerializer(machine)));
             }
         }
     }
 
     private ModRecipes() {
+    }
+
+    /** 1.20.1 has no factory for a plain recipe type, so each one is a small object that knows its name. */
+    private static RecipeType<FluxRecipe> typeOf(ResourceLocation name) {
+        return new RecipeType<>() {
+            @Override
+            public String toString() {
+                return name.toString();
+            }
+        };
     }
 
     /** The recipe type of a machine that has recipes of its own. */

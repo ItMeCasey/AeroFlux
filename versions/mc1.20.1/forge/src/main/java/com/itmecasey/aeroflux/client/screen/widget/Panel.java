@@ -31,8 +31,13 @@ public final class Panel {
 
     /** A sunken square frame of {@code size} pixels, such as the 18 pixel frame around a slot. */
     public static void sunken(GuiGraphics graphics, int x, int y, int size) {
-        graphics.fill(x, y, x + size, y + size, SLOT_SHADOW);
-        graphics.fill(x + 1, y + 1, x + size, y + size, LIGHT);
-        graphics.fill(x + 1, y + 1, x + size - 1, y + size - 1, SLOT_FILL);
+        sunken(graphics, x, y, size, size, SLOT_FILL);
+    }
+
+    /** A sunken frame of any size, filled with {@code face}. */
+    public static void sunken(GuiGraphics graphics, int x, int y, int width, int height, int face) {
+        graphics.fill(x, y, x + width, y + height, SLOT_SHADOW);
+        graphics.fill(x + 1, y + 1, x + width, y + height, LIGHT);
+        graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, face);
     }
 }

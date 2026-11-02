@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_infuser_base",
+  "textures": {
+    "side": "aeroflux:block/flux_infuser_side_diamond",
+    "back": "aeroflux:block/flux_infuser_back_diamond",
+    "top": "aeroflux:block/flux_infuser_top_diamond",
+    "bottom": "aeroflux:block/flux_infuser_bottom_diamond",
+    "front": "aeroflux:block/flux_infuser_front_active_diamond",
+    "particle": "aeroflux:block/flux_infuser_side_diamond"
+  }
+}

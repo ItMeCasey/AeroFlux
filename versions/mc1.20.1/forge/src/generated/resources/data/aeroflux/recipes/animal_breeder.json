@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:wheat"
+    },
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "M": {
+      "item": "minecraft:hay_block"
+    },
+    "S": {
+      "tag": "forge:ingots/copper"
+    }
+  },
+  "pattern": [
+    "CAC",
+    "SMS",
+    "CDC"
+  ],
+  "result": {
+    "item": "aeroflux:animal_breeder"
+  },
+  "show_notification": true
+}

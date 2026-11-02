@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:purifier",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "forge:ores/diamond"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:diamond"
+    }
+  ],
+  "water": 50
+}

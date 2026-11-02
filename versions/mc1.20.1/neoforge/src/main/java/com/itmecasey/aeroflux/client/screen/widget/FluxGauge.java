@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.client.render.FluidRenderUtil;
 import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nullable;
@@ -12,7 +13,6 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
 /**
  * A vertical Flux gauge: a framed glass bar with tick marks every 10 percent and the real fluid
@@ -27,8 +27,9 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
 
     private int amount;
     private int capacity = 1;
-    @Nullable
-    private FluxType type;
+    private @Nullable FluxType type;
+    /** The fluid of an extra tank (water, Moon or Twilight Flux); when set it wins over {@link #type}. */
+    private @Nullable Fluid fixedFluid;
     private int usePerTick;
     private boolean working;
 
@@ -38,17 +39,36 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
 
     /**
      * @param amount     Flux in the tank, in mB
-     * @param capacity   the tank's size, in mB
+     * @param capacity   the tank size, in mB
      * @param type       the flux in the tank, or {@code null} if empty
      * @param usePerTick Flux the machine burns per tick while working, in mB
      * @param working    whether the machine is burning it right now
      */
     public void update(int amount, int capacity, @Nullable FluxType type, int usePerTick, boolean working) {
+        this.fixedFluid = null;
         this.amount = amount;
         this.capacity = Math.max(1, capacity);
         this.type = type;
         this.usePerTick = usePerTick;
         this.working = working;
+    }
+
+    /** Shows an extra tank: always the same fluid, and no burn rate, since the machine uses it per job. */
+    public void updateFluid(int amount, int capacity, Fluid fluid) {
+        this.fixedFluid = fluid;
+        this.amount = amount;
+        this.capacity = Math.max(1, capacity);
+        this.type = null;
+        this.usePerTick = 0;
+        this.working = false;
+    }
+
+    /** The fluid drawn, or {@code null} for an empty Flux tank. */
+    private @Nullable Fluid shownFluid() {
+        if (fixedFluid != null) {
+            return fixedFluid;
+        }
+        return type == null ? null : ModFluids.fluidOf(type);
     }
 
     @Override
@@ -62,8 +82,8 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
         int innerHeight = height - 2;
         graphics.fill(innerX, innerY, innerX + innerWidth, innerY + innerHeight, GLASS);
 
-        if (type != null && amount > 0) {
-            Fluid fluid = ModFluids.fluidOf(type);
+        Fluid fluid = shownFluid();
+        if (fluid != null && amount > 0) {
             int filled = Math.max(1, (int) Math.round(FillLevel.fraction(amount, capacity) * innerHeight));
             FluidRenderUtil.drawTiled(graphics, FluidRenderUtil.stillSprite(fluid), FluidRenderUtil.tint(fluid),
                     innerX, innerY + innerHeight - filled, innerWidth, filled);
@@ -82,11 +102,12 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
         if (!isMouseOver(mouseX, mouseY)) {
             return List.of();
         }
-        Component name = type == null || amount <= 0
+        Fluid fluid = shownFluid();
+        Component name = fluid == null || amount <= 0
                 ? Component.translatable("gui.aeroflux.gauge.empty")
-                : new FluidStack(ModFluids.fluidOf(type), 1).getDisplayName();
+                : fluid.getFluidType().getDescription();
         int percent = (int) Math.round(FillLevel.fraction(amount, capacity) * 100.0);
-        List<Component> lines = new java.util.ArrayList<>();
+        List<Component> lines = new ArrayList<>();
         lines.add(name);
         lines.add(Component.translatable("gui.aeroflux.gauge.amount", format(amount), format(capacity)));
         lines.add(Component.translatable("gui.aeroflux.gauge.percent", percent));

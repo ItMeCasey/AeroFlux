@@ -1,0 +1,26 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:soul_sand"
+      }
+    }
+  ],
+  "mesh": "iron",
+  "outputs": [
+    {
+      "chance": 0.2,
+      "item": "minecraft:quartz"
+    },
+    {
+      "chance": 0.1,
+      "item": "minecraft:glowstone_dust"
+    },
+    {
+      "chance": 0.05,
+      "item": "minecraft:nether_wart"
+    }
+  ],
+  "time": 100
+}

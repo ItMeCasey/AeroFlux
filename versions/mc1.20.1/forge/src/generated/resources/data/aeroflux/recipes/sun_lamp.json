@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "G": {
+      "tag": "forge:glass/colorless"
+    },
+    "X": {
+      "item": "aeroflux:aero_crystal"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "GXG",
+    "CDC"
+  ],
+  "result": {
+    "item": "aeroflux:sun_lamp"
+  },
+  "show_notification": true
+}

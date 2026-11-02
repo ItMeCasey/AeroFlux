@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:flint"
+    },
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "M": {
+      "item": "minecraft:grindstone"
+    },
+    "S": {
+      "tag": "forge:ingots/copper"
+    }
+  },
+  "pattern": [
+    "CAC",
+    "SMS",
+    "CDC"
+  ],
+  "result": {
+    "item": "aeroflux:flux_grinder"
+  },
+  "show_notification": true
+}

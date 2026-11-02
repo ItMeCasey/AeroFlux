@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/animal_breeder_base",
+  "textures": {
+    "side": "aeroflux:block/animal_breeder_side_diamond",
+    "back": "aeroflux:block/animal_breeder_back_diamond",
+    "top": "aeroflux:block/animal_breeder_top_diamond",
+    "bottom": "aeroflux:block/animal_breeder_bottom_diamond",
+    "front": "aeroflux:block/animal_breeder_front_diamond",
+    "particle": "aeroflux:block/animal_breeder_side_diamond"
+  }
+}

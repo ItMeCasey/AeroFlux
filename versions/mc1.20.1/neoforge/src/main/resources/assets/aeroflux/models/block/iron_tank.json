@@ -1,5 +1,4 @@
 {
-  "render_type": "minecraft:translucent",
   "textures": {
     "frame": "aeroflux:block/frame_iron",
     "glass": "aeroflux:block/tank_glass",

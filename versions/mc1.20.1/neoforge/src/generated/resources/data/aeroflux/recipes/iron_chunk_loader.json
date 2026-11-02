@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "forge:ingots/iron"
+    },
+    "P": {
+      "item": "aeroflux:chunk_loader"
+    },
+    "S": {
+      "tag": "forge:ingots/iron"
+    },
+    "T": {
+      "tag": "forge:ingots/iron"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:iron_chunk_loader"
+  },
+  "show_notification": true
+}

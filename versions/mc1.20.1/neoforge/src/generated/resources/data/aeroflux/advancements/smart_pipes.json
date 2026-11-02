@@ -1,0 +1,51 @@
+{
+  "parent": "aeroflux:pipe",
+  "criteria": {
+    "filter_upgrade": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:filter_upgrade"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "priority_upgrade": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:priority_upgrade"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.aeroflux.smart_pipes.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "aeroflux:filter_upgrade"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.aeroflux.smart_pipes.title"
+    }
+  },
+  "requirements": [
+    [
+      "filter_upgrade",
+      "priority_upgrade"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_blender_base",
+  "textures": {
+    "side": "aeroflux:block/flux_blender_side_netherite",
+    "back": "aeroflux:block/flux_blender_back_netherite",
+    "top": "aeroflux:block/flux_blender_top_netherite",
+    "bottom": "aeroflux:block/flux_blender_bottom_netherite",
+    "front": "aeroflux:block/flux_blender_front_active_netherite",
+    "particle": "aeroflux:block/flux_blender_side_netherite"
+  }
+}

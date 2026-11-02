@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "forge:ingots/gold"
+    },
+    "P": {
+      "item": "aeroflux:iron_flux_grinder"
+    },
+    "S": {
+      "tag": "forge:gems/amethyst"
+    },
+    "T": {
+      "tag": "forge:ingots/gold"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:gold_flux_grinder"
+  },
+  "show_notification": true
+}

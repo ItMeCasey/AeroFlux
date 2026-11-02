@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_diamond_sky_controller": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:diamond_sky_controller"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:netherite_sky_controller"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_diamond_sky_controller",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:netherite_sky_controller"
+    ]
+  },
+  "sends_telemetry_event": false
+}

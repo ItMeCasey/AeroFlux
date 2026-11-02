@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "tag": "forge:ingots/gold"
+    },
+    "P": {
+      "item": "aeroflux:iron_redstone_pipe"
+    },
+    "S": {
+      "tag": "forge:gems/amethyst"
+    },
+    "T": {
+      "tag": "forge:ingots/gold"
+    }
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "item": "aeroflux:gold_redstone_pipe"
+  },
+  "show_notification": true
+}

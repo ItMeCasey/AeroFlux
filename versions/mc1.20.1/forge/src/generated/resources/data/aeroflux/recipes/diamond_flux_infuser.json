@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "forge:gems/diamond"
+    },
+    "P": {
+      "item": "aeroflux:gold_flux_infuser"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "tag": "forge:gems/diamond"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:diamond_flux_infuser"
+  },
+  "show_notification": true
+}

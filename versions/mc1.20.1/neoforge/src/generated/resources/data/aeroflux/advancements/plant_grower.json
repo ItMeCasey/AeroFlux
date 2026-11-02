@@ -1,0 +1,103 @@
+{
+  "parent": "aeroflux:furnace",
+  "criteria": {
+    "diamond_plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:diamond_plant_grower"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "fluxium_plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:fluxium_plant_grower"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "gold_plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:gold_plant_grower"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "iron_plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:iron_plant_grower"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "netherite_plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:netherite_plant_grower"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "plant_grower": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:plant_grower"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.aeroflux.plant_grower.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "aeroflux:plant_grower"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.aeroflux.plant_grower.title"
+    }
+  },
+  "requirements": [
+    [
+      "plant_grower",
+      "iron_plant_grower",
+      "gold_plant_grower",
+      "diamond_plant_grower",
+      "netherite_plant_grower",
+      "fluxium_plant_grower"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,38 @@
+{
+  "parent": "aeroflux:collector",
+  "criteria": {
+    "moon_flux_bucket": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:moon_flux_bucket"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.aeroflux.moon_flux.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "aeroflux:moon_flux_bucket"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.aeroflux.moon_flux.title"
+    }
+  },
+  "requirements": [
+    [
+      "moon_flux_bucket"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

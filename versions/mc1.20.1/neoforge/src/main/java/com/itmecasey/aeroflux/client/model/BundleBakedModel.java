@@ -1,12 +1,15 @@
 package com.itmecasey.aeroflux.client.model;
 
+import com.itmecasey.aeroflux.conduit.BundleShapes;
 import com.itmecasey.aeroflux.core.conduit.Box;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nullable;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockElementFace;
@@ -21,6 +24,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.IDynamicBakedModel;
+import net.minecraftforge.client.model.IQuadTransformer;
+import net.minecraftforge.client.model.QuadTransformers;
 import net.minecraftforge.client.model.data.ModelData;
 import org.joml.Vector3f;
 
@@ -28,31 +33,41 @@ import org.joml.Vector3f;
  * The model of a conduit bundle. It builds its quads on demand from the bundle's contents, which
  * the block entity supplies as model data, and caches them by the bundle's look so that the many
  * bundles sharing the same set and connections cost one build.
+ *
+ * <p>The layout comes from {@link ConduitLayout}: thin pipe cores and arms, and a junction box,
+ * plates and plugs where pipes meet machines. Pipes are plain: every pipe uses the same two white
+ * textures, tinted with its own color. The side texture has a dark line down both long edges and
+ * the end texture a dark frame, so the edges stay readable while the color says what the pipe
+ * carries. Side faces are turned so the lines always run along the pipe.
  */
 // Vanilla deprecates these hooks to stop other code calling them; overriding them is the intended way.
 @SuppressWarnings("deprecation")
 public class BundleBakedModel implements IDynamicBakedModel {
     private static final FaceBakery FACE_BAKERY = new FaceBakery();
+    private static final float[] WHOLE = {0.0F, 0.0F, 16.0F, 16.0F};
 
-    private final Map<PipeType, TextureAtlasSprite> pipeSprites;
-    private final TextureAtlasSprite nodeSprite;
-    private final TextureAtlasSprite particleSprite;
+    private final TextureAtlasSprite side;
+    private final TextureAtlasSprite end;
+    private final TextureAtlasSprite node;
+    private final TextureAtlasSprite particle;
+    /** The model file the quads came from; 1.20.1's face baker wants it for its error messages. */
     private final ResourceLocation modelLocation;
     private final Map<BundleState.ModelKey, List<BakedQuad>> cache = new ConcurrentHashMap<>();
 
-    public BundleBakedModel(Map<PipeType, TextureAtlasSprite> pipeSprites, TextureAtlasSprite nodeSprite,
-                            TextureAtlasSprite particleSprite, ResourceLocation modelLocation) {
-        this.pipeSprites = pipeSprites;
-        this.nodeSprite = nodeSprite;
-        this.particleSprite = particleSprite;
+    public BundleBakedModel(TextureAtlasSprite side, TextureAtlasSprite end, TextureAtlasSprite node, TextureAtlasSprite particle,
+                            ResourceLocation modelLocation) {
+        this.side = side;
+        this.end = end;
+        this.node = node;
+        this.particle = particle;
         this.modelLocation = modelLocation;
     }
 
     @Override
-    public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource random, ModelData data,
-                                    RenderType renderType) {
+    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction direction, RandomSource random,
+                                    ModelData data, @Nullable RenderType renderType) {
         // The pipes do not fill their block's faces, so nothing is ever culled against a neighbor.
-        if (side != null) {
+        if (direction != null) {
             return List.of();
         }
         BundleState bundle = data.get(BundleModelData.BUNDLE);
@@ -62,48 +77,69 @@ public class BundleBakedModel implements IDynamicBakedModel {
         return cache.computeIfAbsent(bundle.modelKey(), key -> build(bundle));
     }
 
+    /**
+     * Builds the quads from the bundle's layout: pipe cores and arms in their pipe's color, and the
+     * junction box, plates and plugs in the shared connector texture.
+     */
     private List<BakedQuad> build(BundleState bundle) {
         List<BakedQuad> quads = new ArrayList<>();
-        for (PipeType type : bundle.set().types()) {
-            TextureAtlasSprite sprite = pipeSprites.get(type);
-            for (Box box : bundle.boxesOf(type)) {
-                addBox(quads, box, sprite);
+        for (ConduitLayout.Piece piece : ConduitLayout.of(bundle).pieces()) {
+            switch (piece.kind()) {
+                case CORE, ARM -> addPipeBox(quads, piece.box(), axis(piece.axis()), piece.type());
+                case JUNCTION, PLATE, PLUG -> addConnectorBox(quads, piece.box());
             }
-        }
-        for (Box box : bundle.connectorBoxes()) {
-            addBox(quads, box, nodeSprite);
         }
         return List.copyOf(quads);
     }
 
-    /** Adds the six faces of a box. Faces shared with another box are left in; they are hidden. */
-    private void addBox(List<BakedQuad> quads, Box box, TextureAtlasSprite sprite) {
-        Vector3f from = new Vector3f((float) box.minX(), (float) box.minY(), (float) box.minZ());
-        Vector3f to = new Vector3f((float) box.maxX(), (float) box.maxY(), (float) box.maxZ());
+    /** The game's axis for a layout axis (0 x, 1 y, 2 z), or {@code null} for none. */
+    @Nullable
+    private static Direction.Axis axis(int axis) {
+        return switch (axis) {
+            case 0 -> Direction.Axis.X;
+            case 1 -> Direction.Axis.Y;
+            case 2 -> Direction.Axis.Z;
+            default -> null;
+        };
+    }
+
+    /**
+     * Adds a piece of pipe running along {@code axis}: its sides show the edge lines along the
+     * pipe and its two ends the framed end. A core with no single direction (a corner, or a pipe
+     * with no connections) is framed on every face.
+     */
+    private void addPipeBox(List<BakedQuad> quads, Box box, @Nullable Direction.Axis axis, PipeType type) {
+        if (!BundleShapes.hasVolume(box)) {
+            return;
+        }
+        IQuadTransformer tint = QuadTransformers.applyingColor(0xFF000000 | type.color());
         for (Direction direction : Direction.values()) {
-            BlockFaceUV uv = new BlockFaceUV(uvFor(direction, box), 0);
-            BlockElementFace face = new BlockElementFace(null, -1, "#pipe", uv);
-            quads.add(FACE_BAKERY.bakeQuad(from, to, face, sprite, direction, BlockModelRotation.X0_Y0, null, true,
-                    modelLocation));
+            if (axis == null || direction.getAxis() == axis) {
+                quads.add(tint.process(bake(box, direction, end, 0)));
+            } else {
+                // The side texture's lines run down it, so a face whose rows already follow the pipe
+                // takes it as it is and the others take it turned a quarter.
+                boolean rowsFollowPipe = axis == (direction.getAxis() != Direction.Axis.Y ? Direction.Axis.Y : Direction.Axis.Z);
+                quads.add(tint.process(bake(box, direction, side, rowsFollowPipe ? 0 : 90)));
+            }
         }
     }
 
-    /** The default texture region for a face, the same mapping vanilla uses for unspecified UVs. */
-    private static float[] uvFor(Direction direction, Box box) {
-        float x1 = (float) box.minX();
-        float y1 = (float) box.minY();
-        float z1 = (float) box.minZ();
-        float x2 = (float) box.maxX();
-        float y2 = (float) box.maxY();
-        float z2 = (float) box.maxZ();
-        return switch (direction) {
-            case DOWN -> new float[] {x1, 16.0F - z2, x2, 16.0F - z1};
-            case UP -> new float[] {x1, z1, x2, z2};
-            case NORTH -> new float[] {16.0F - x2, 16.0F - y2, 16.0F - x1, 16.0F - y1};
-            case SOUTH -> new float[] {x1, 16.0F - y2, x2, 16.0F - y1};
-            case WEST -> new float[] {z1, 16.0F - y2, z2, 16.0F - y1};
-            case EAST -> new float[] {16.0F - z2, 16.0F - y2, 16.0F - z1, 16.0F - y1};
-        };
+    /** Adds the six faces of a junction box, plate or plug, untinted. */
+    private void addConnectorBox(List<BakedQuad> quads, Box box) {
+        if (!BundleShapes.hasVolume(box)) {
+            return;
+        }
+        for (Direction direction : Direction.values()) {
+            quads.add(bake(box, direction, node, 0));
+        }
+    }
+
+    private BakedQuad bake(Box box, Direction direction, TextureAtlasSprite sprite, int rotation) {
+        Vector3f from = new Vector3f((float) box.minX(), (float) box.minY(), (float) box.minZ());
+        Vector3f to = new Vector3f((float) box.maxX(), (float) box.maxY(), (float) box.maxZ());
+        BlockElementFace face = new BlockElementFace(null, -1, "#pipe", new BlockFaceUV(WHOLE.clone(), rotation));
+        return FACE_BAKERY.bakeQuad(from, to, face, sprite, direction, BlockModelRotation.X0_Y0, null, true, modelLocation);
     }
 
     @Override
@@ -126,9 +162,15 @@ public class BundleBakedModel implements IDynamicBakedModel {
         return false;
     }
 
+    /** Forge asks for the particle sprite with model data; this model has just the one. */
+    @Override
+    public TextureAtlasSprite getParticleIcon(ModelData data) {
+        return particle;
+    }
+
     @Override
     public TextureAtlasSprite getParticleIcon() {
-        return particleSprite;
+        return particle;
     }
 
     @Override

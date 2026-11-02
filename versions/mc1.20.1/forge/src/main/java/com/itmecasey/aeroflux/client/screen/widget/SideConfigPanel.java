@@ -3,32 +3,37 @@ package com.itmecasey.aeroflux.client.screen.widget;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
+import com.itmecasey.aeroflux.core.machine.GlyphSidePanelLayout;
 import com.itmecasey.aeroflux.core.machine.MachineLayout;
 import com.itmecasey.aeroflux.core.machine.SideCommand;
 import com.itmecasey.aeroflux.core.machine.SideConfig;
-import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.core.machine.SidePanelLayout;
+import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
+import java.util.Locale;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * The small window docked beside a machine screen where a player sets what each face does. A
- * toggle button on the screen's edge opens and closes it. Inside are a tab for each kind of
+ * toggle button on the screen's edge opens and closes it. Inside are a square tab for each kind of
  * resource the machine uses, an unfolded cube of the six faces (front, back, left, right, top and
- * bottom as seen from the machine's front), and the "All Off", "Copy" and "Reset" buttons.
+ * bottom as seen from the machine's front), and the All Off, Copy and Reset buttons. The window
+ * has no words in it: tabs and buttons are glyphs, a face is a box in its mode's color, and the
+ * names are in the tooltips.
  *
  * <p>A click on a face goes to the next mode in the order Import, Export, Both, Off, Blocked (a
  * right-click goes back). The widget decides nothing: it sends a {@link SideCommand} through the
  * {@link Model} and shows whatever mode the server last reported. Where things are is worked out
- * by {@link SidePanelLayout}, which is unit tested.
+ * by {@link GlyphSidePanelLayout}, which is unit tested.
  */
 public class SideConfigPanel extends AbstractWidget implements HoverInfo {
     /** What the panel needs from the screen. */
@@ -39,18 +44,28 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
         /** What is on the other side of a face of the machine, as a name. */
         Component neighbor(Face face);
 
-        /** Sends an encoded {@link SideCommand} to the server. */
+        /**
+         * What is on the other side of a face, as an item: the block's own, or for a pipe bundle the
+         * pipe that carries {@code resource} (any of its pipes if none does). Empty for air.
+         */
+        ItemStack neighborItem(Face face, SideResource resource);
+
+        /** Whether Auto Import is on, as last synced. */
+        boolean autoImport();
+
+        /** Whether Auto Export is on, as last synced. */
+        boolean autoExport();
+
+        /** Sends an encoded {@link SideCommand}, or one of the auto switches' button numbers, to the server. */
         void send(int command);
     }
 
-    private static final int IMPORT_COLOR = 0xFF4A7FD8;
-    private static final int EXPORT_COLOR = 0xFFE8913A;
-    private static final int BOTH_COLOR = 0xFF55B85A;
-    private static final int OFF_COLOR = 0xFF8A8A8A;
-    private static final int BLOCKED_COLOR = 0xFFC04040;
+    /** Laid over a button under the pointer, the way the redstone button lights up. */
+    private static final int HOVER = 0x40FFFFFF;
     private static final int SELECTED = 0xFFFFFFFF;
+    private static final SidePanelLayout.Hit NOTHING = new SidePanelLayout.Hit(SidePanelLayout.Part.NOTHING, 0);
 
-    private final SidePanelLayout layout;
+    private final GlyphSidePanelLayout layout;
     private final List<SideResource> resources;
     private final Face facing;
     private final Model model;
@@ -71,9 +86,9 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
      */
     public SideConfigPanel(List<SideResource> resources, Face facing, Model model,
                            int toggleX, int toggleY, int windowX, int windowY) {
-        super(toggleX, toggleY, SidePanelLayout.TOGGLE, SidePanelLayout.TOGGLE,
+        super(toggleX, toggleY, GlyphSidePanelLayout.TOGGLE, GlyphSidePanelLayout.TOGGLE,
                 Component.translatable("screen.aeroflux.side_config.title"));
-        this.layout = new SidePanelLayout(resources.size());
+        this.layout = new GlyphSidePanelLayout(resources.size());
         this.resources = List.copyOf(resources);
         this.facing = facing;
         this.model = model;
@@ -88,18 +103,23 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
         return open;
     }
 
+    /** Opens or closes the window, as a click on the toggle does. */
+    public void setOpen(boolean open) {
+        this.open = open;
+    }
+
     private SideResource resource() {
         return resources.get(Math.min(tab, resources.size() - 1));
     }
 
     private boolean overToggle(double mouseX, double mouseY) {
-        return mouseX >= toggleX && mouseX < toggleX + SidePanelLayout.TOGGLE
-                && mouseY >= toggleY && mouseY < toggleY + SidePanelLayout.TOGGLE;
+        return mouseX >= toggleX && mouseX < toggleX + GlyphSidePanelLayout.TOGGLE
+                && mouseY >= toggleY && mouseY < toggleY + GlyphSidePanelLayout.TOGGLE;
     }
 
     private boolean overWindow(double mouseX, double mouseY) {
-        return open && mouseX >= windowX && mouseX < windowX + SidePanelLayout.WIDTH
-                && mouseY >= windowY && mouseY < windowY + SidePanelLayout.HEIGHT;
+        return open && mouseX >= windowX && mouseX < windowX + GlyphSidePanelLayout.WIDTH
+                && mouseY >= windowY && mouseY < windowY + GlyphSidePanelLayout.HEIGHT;
     }
 
     /** The widget counts as under the pointer over the toggle and, when open, the window, so clicks never fall through to slots. */
@@ -108,98 +128,129 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
         return overToggle(mouseX, mouseY) || overWindow(mouseX, mouseY);
     }
 
-    private static int color(ConnectionMode mode) {
-        return switch (mode) {
-            case IMPORT -> IMPORT_COLOR;
-            case EXPORT -> EXPORT_COLOR;
-            case OPEN -> BOTH_COLOR;
-            case OFF -> OFF_COLOR;
-            case BLOCKED -> BLOCKED_COLOR;
-        };
+    /** What part of the open window a pointer in screen pixels is over. */
+    private SidePanelLayout.Hit hitAt(double mouseX, double mouseY) {
+        return overWindow(mouseX, mouseY) ? layout.hit(mouseX - windowX, mouseY - windowY) : NOTHING;
     }
 
     private static MutableComponent modeName(ConnectionMode mode) {
-        return Component.translatable("machine_mode.aeroflux." + mode.name().toLowerCase(java.util.Locale.ROOT));
+        return Component.translatable(modeKey(mode));
+    }
+
+    private static String modeKey(ConnectionMode mode) {
+        return "machine_mode.aeroflux." + mode.name().toLowerCase(Locale.ROOT);
     }
 
     // --- Drawing -----------------------------------------------------------------------------
 
+    /** Numbers follow the approved mockup, {@code assets-src/tools/ui_mockups.py}. */
     @Override
     protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        Font font = Minecraft.getInstance().font;
         drawToggle(graphics);
         if (!open) {
             return;
         }
-        Panel.raised(graphics, windowX, windowY, SidePanelLayout.WIDTH, SidePanelLayout.HEIGHT);
-
+        Panel.raised(graphics, windowX, windowY, GlyphSidePanelLayout.WIDTH, GlyphSidePanelLayout.HEIGHT);
         for (int i = 0; i < resources.size(); i++) {
-            MachineLayout.Rect rect = layout.tab(i);
-            int x = windowX + rect.x();
-            int y = windowY + rect.y();
-            graphics.fill(x, y, x + rect.width(), y + rect.height(), i == tab ? Panel.LIGHT : Panel.SHADOW);
-            graphics.fill(x + 1, y + 1, x + rect.width() - 1, y + rect.height() - 1, i == tab ? Panel.PANEL : Panel.SLOT_FILL);
-            Component label = Component.translatable("side_resource.aeroflux." + resources.get(i).id());
-            graphics.drawString(font, label, x + (rect.width() - font.width(label)) / 2, y + 2, Panel.TEXT, false);
+            drawTab(graphics, i);
         }
-
         for (FaceLabel label : FaceLabel.values()) {
-            drawFace(graphics, font, label);
+            drawFace(graphics, label);
         }
 
-        drawButton(graphics, font, layout.allOffButton(), "screen.aeroflux.side_config.all_off");
-        drawButton(graphics, font, layout.copyButton(), "screen.aeroflux.side_config.copy_all");
-        drawButton(graphics, font, layout.resetButton(), "screen.aeroflux.side_config.reset");
+        SidePanelLayout.Hit hit = hitAt(mouseX, mouseY);
+        // Copy takes the mode of the face clicked last, so pointing at Copy shows which face that is.
+        if (hit.part() == SidePanelLayout.Part.COPY_TO_ALL) {
+            MachineLayout.Rect rect = layout.face(selectedFace);
+            graphics.renderOutline(windowX + rect.x() - 1, windowY + rect.y() - 1, rect.width() + 2, rect.height() + 2, SELECTED);
+        }
+        drawButton(graphics, layout.allOffButton(), "action_all_off", hit.part() == SidePanelLayout.Part.ALL_OFF);
+        drawButton(graphics, layout.copyButton(), "action_copy", hit.part() == SidePanelLayout.Part.COPY_TO_ALL);
+        drawButton(graphics, layout.resetButton(), "action_reset", hit.part() == SidePanelLayout.Part.RESET);
+        drawSwitch(graphics, layout.autoImportButton(), "mode_import", model.autoImport(), hit.part() == SidePanelLayout.Part.AUTO_IMPORT);
+        drawSwitch(graphics, layout.autoExportButton(), "mode_export", model.autoExport(), hit.part() == SidePanelLayout.Part.AUTO_EXPORT);
+    }
 
-        // What the pointer is over, named under the buttons.
-        SidePanelLayout.Hit hit = layout.hit(mouseX - windowX, mouseY - windowY);
-        if (hit.part() == SidePanelLayout.Part.FACE) {
-            FaceLabel label = FaceLabel.values()[hit.index()];
-            Component text = Component.translatable("screen.aeroflux.side_config.face_mode",
-                    Component.translatable("face_label.aeroflux." + label.id()),
-                    modeName(model.mode(resource(), label.faceFor(facing))));
-            graphics.drawString(font, text, windowX + 4, windowY + layout.infoY(), Panel.TEXT_MUTED, false);
+    /** An on/off switch: pressed in with a green bar while on, standing up while off, like the tabs. */
+    private void drawSwitch(GuiGraphics graphics, MachineLayout.Rect rect, String glyph, boolean on, boolean hovered) {
+        int x = windowX + rect.x();
+        int y = windowY + rect.y();
+        int size = rect.width();
+        if (on) {
+            Panel.sunken(graphics, x, y, size, size, Panel.SLOT_FILL);
+            graphics.fill(x + 3, y + size - 4, x + size - 3, y + size - 2, Glyphs.OPEN_COLOR);
+            Glyphs.draw(graphics, glyph, x + size / 2, y + size / 2, Glyphs.DARK);
+        } else {
+            Panel.raised(graphics, x, y, size, size);
+            Glyphs.draw(graphics, glyph, x + size / 2, y + size / 2 - 1, Glyphs.DARKER);
+        }
+        if (hovered) {
+            graphics.fill(x + 2, y + 2, x + size - 2, y + size - 2, HOVER);
         }
     }
 
     /** The toggle: a small cube-like icon of four colored squares. */
     private void drawToggle(GuiGraphics graphics) {
-        Panel.raised(graphics, toggleX, toggleY, SidePanelLayout.TOGGLE, SidePanelLayout.TOGGLE);
-        graphics.fill(toggleX + 4, toggleY + 4, toggleX + 8, toggleY + 8, IMPORT_COLOR);
-        graphics.fill(toggleX + 8, toggleY + 4, toggleX + 12, toggleY + 8, EXPORT_COLOR);
-        graphics.fill(toggleX + 4, toggleY + 8, toggleX + 8, toggleY + 12, BOTH_COLOR);
-        graphics.fill(toggleX + 8, toggleY + 8, toggleX + 12, toggleY + 12, OFF_COLOR);
+        Panel.raised(graphics, toggleX, toggleY, GlyphSidePanelLayout.TOGGLE, GlyphSidePanelLayout.TOGGLE);
+        graphics.fill(toggleX + 4, toggleY + 4, toggleX + 8, toggleY + 8, Glyphs.IMPORT_COLOR);
+        graphics.fill(toggleX + 8, toggleY + 4, toggleX + 12, toggleY + 8, Glyphs.EXPORT_COLOR);
+        graphics.fill(toggleX + 4, toggleY + 8, toggleX + 8, toggleY + 12, Glyphs.OPEN_COLOR);
+        graphics.fill(toggleX + 8, toggleY + 8, toggleX + 12, toggleY + 12, Glyphs.OFF_COLOR);
     }
 
-    private void drawFace(GuiGraphics graphics, Font font, FaceLabel label) {
+    /**
+     * A square tab with the resource's glyph. The chosen tab is pressed in, like a held-down
+     * button, with a bar of the resource's color along its bottom; the others stand up, ready to click.
+     */
+    private void drawTab(GuiGraphics graphics, int index) {
+        MachineLayout.Rect rect = layout.tab(index);
+        int x = windowX + rect.x();
+        int y = windowY + rect.y();
+        int size = rect.width();
+        String glyph = Glyphs.resourceGlyph(resources.get(index));
+        if (index == tab) {
+            Panel.sunken(graphics, x, y, size, size, Panel.SLOT_FILL);
+            graphics.fill(x + 3, y + size - 4, x + size - 3, y + size - 2, Glyphs.resourceColor(resources.get(index)));
+            Glyphs.draw(graphics, glyph, x + size / 2, y + size / 2, Glyphs.DARK);
+        } else {
+            Panel.raised(graphics, x, y, size, size);
+            Glyphs.draw(graphics, glyph, x + size / 2, y + size / 2 - 1, Glyphs.DARKER);
+        }
+    }
+
+    /**
+     * One face of the cube: a box in the mode's color with the neighboring block's item on it (so
+     * a glance shows what each face touches), a cross when blocked, a white dot on the front.
+     */
+    private void drawFace(GuiGraphics graphics, FaceLabel label) {
         MachineLayout.Rect rect = layout.face(label);
         int x = windowX + rect.x();
         int y = windowY + rect.y();
         ConnectionMode mode = model.mode(resource(), label.faceFor(facing));
-        graphics.fill(x, y, x + rect.width(), y + rect.height(), Panel.EDGE);
-        graphics.fill(x + 1, y + 1, x + rect.width() - 1, y + rect.height() - 1, color(mode));
-        if (label == selectedFace) {
-            graphics.renderOutline(x - 1, y - 1, rect.width() + 2, rect.height() + 2, SELECTED);
+        Glyphs.bevelBox(graphics, x, y, rect.width(), Glyphs.modeColor(mode), 1.25);
+        ItemStack neighbor = model.neighborItem(label.faceFor(facing), resource());
+        if (!neighbor.isEmpty()) {
+            // An item is 16 pixels; the box keeps a ring of its mode color around it.
+            int inset = (rect.width() - 16) / 2;
+            graphics.renderItem(neighbor, x + inset, y + inset);
         }
         if (mode == ConnectionMode.BLOCKED) {
-            // A cross says "closed" without relying on the red alone.
-            for (int step = 2; step < rect.width() - 2; step++) {
-                graphics.fill(x + step, y + step, x + step + 1, y + step + 1, SELECTED);
-                graphics.fill(x + rect.width() - 1 - step, y + step, x + rect.width() - step, y + step + 1, SELECTED);
-            }
-        } else {
-            Component text = Component.translatable("face_label.aeroflux." + label.id() + ".short");
-            graphics.drawString(font, text, x + (rect.width() - font.width(text)) / 2, y + (rect.height() - 8) / 2 + 1, 0xFFFFFFFF, true);
+            // The cross says "closed" without relying on the red alone.
+            Glyphs.draw(graphics, "mode_blocked", x + GlyphSidePanelLayout.CELL / 2, y + GlyphSidePanelLayout.CELL / 2, Glyphs.WHITE);
+        }
+        if (label == FaceLabel.FRONT) {
+            graphics.fill(x + 3, y + 3, x + 6, y + 6, Glyphs.WHITE);
         }
     }
 
-    private void drawButton(GuiGraphics graphics, Font font, MachineLayout.Rect rect, String key) {
+    private void drawButton(GuiGraphics graphics, MachineLayout.Rect rect, String glyph, boolean hovered) {
         int x = windowX + rect.x();
         int y = windowY + rect.y();
-        graphics.fill(x, y, x + rect.width(), y + rect.height(), Panel.SHADOW);
-        graphics.fill(x + 1, y + 1, x + rect.width() - 1, y + rect.height() - 1, Panel.PANEL);
-        Component label = Component.translatable(key);
-        graphics.drawString(font, label, x + (rect.width() - font.width(label)) / 2, y + 2, Panel.TEXT, false);
+        Panel.raised(graphics, x, y, rect.width(), rect.height());
+        if (hovered) {
+            graphics.fill(x + 2, y + 2, x + rect.width() - 2, y + rect.height() - 2, HOVER);
+        }
+        Glyphs.draw(graphics, glyph, x + rect.width() / 2, y + rect.height() / 2, Glyphs.DARK);
     }
 
     // --- Clicking ----------------------------------------------------------------------------
@@ -213,7 +264,7 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
         if (!overWindow(mouseX, mouseY)) {
             return false;
         }
-        SidePanelLayout.Hit hit = layout.hit(mouseX - windowX, mouseY - windowY);
+        SidePanelLayout.Hit hit = hitAt(mouseX, mouseY);
         switch (hit.part()) {
             case TAB -> tab = hit.index();
             case FACE -> {
@@ -226,6 +277,8 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
             case ALL_OFF -> model.send(SideCommand.allTo(resource(), ConnectionMode.OFF).encode());
             case COPY_TO_ALL -> model.send(SideCommand.copyToAll(resource(), selectedFace.faceFor(facing)).encode());
             case RESET -> model.send(SideCommand.reset(resource()).encode());
+            case AUTO_IMPORT -> model.send(MachineConfigActions.AUTO_IMPORT_BUTTON);
+            case AUTO_EXPORT -> model.send(MachineConfigActions.AUTO_EXPORT_BUTTON);
             default -> {
             }
         }
@@ -234,39 +287,49 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
 
     // --- Tooltip -----------------------------------------------------------------------------
 
+    /** With no words in the window, the tooltips carry every name. */
     @Override
     public List<Component> tooltip(int mouseX, int mouseY) {
         if (overToggle(mouseX, mouseY)) {
             return List.of(Component.translatable("screen.aeroflux.side_config.title"),
-                    Component.translatable("screen.aeroflux.side_config.toggle_hint").withStyle(net.minecraft.ChatFormatting.GRAY));
+                    Component.translatable("screen.aeroflux.side_config.toggle_hint").withStyle(ChatFormatting.GRAY));
         }
-        if (!overWindow(mouseX, mouseY)) {
-            return List.of();
-        }
-        SidePanelLayout.Hit hit = layout.hit(mouseX - windowX, mouseY - windowY);
+        SidePanelLayout.Hit hit = hitAt(mouseX, mouseY);
         List<Component> lines = new ArrayList<>();
         switch (hit.part()) {
+            case TAB -> lines.add(Component.translatable("side_resource.aeroflux." + resources.get(hit.index()).id()));
             case FACE -> {
                 FaceLabel label = FaceLabel.values()[hit.index()];
                 Face face = label.faceFor(facing);
                 ConnectionMode mode = model.mode(resource(), face);
                 lines.add(Component.translatable("face_label.aeroflux." + label.id()));
-                lines.add(modeName(mode).withStyle(Style.EMPTY.withColor(color(mode) & 0xFFFFFF)));
-                lines.add(Component.translatable(modeKey(mode) + ".tooltip").withStyle(net.minecraft.ChatFormatting.GRAY));
+                lines.add(modeName(mode).withStyle(Style.EMPTY.withColor(Glyphs.modeColor(mode) & 0xFFFFFF)));
+                lines.add(Component.translatable(modeKey(mode) + ".tooltip").withStyle(ChatFormatting.GRAY));
                 lines.add(Component.translatable("screen.aeroflux.side_config.neighbor", model.neighbor(face))
-                        .withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
+                        .withStyle(ChatFormatting.DARK_GRAY));
             }
-            case ALL_OFF -> lines.add(Component.translatable("screen.aeroflux.side_config.all_off.tooltip"));
-            case COPY_TO_ALL -> lines.add(Component.translatable("screen.aeroflux.side_config.copy_all.tooltip"));
-            case RESET -> lines.add(Component.translatable("screen.aeroflux.side_config.reset.tooltip"));
+            case ALL_OFF -> button(lines, "screen.aeroflux.side_config.all_off");
+            case COPY_TO_ALL -> button(lines, "screen.aeroflux.side_config.copy_all");
+            case RESET -> button(lines, "screen.aeroflux.side_config.reset");
+            case AUTO_IMPORT -> autoSwitch(lines, "screen.aeroflux.side_config.auto_import", model.autoImport());
+            case AUTO_EXPORT -> autoSwitch(lines, "screen.aeroflux.side_config.auto_export", model.autoExport());
             default -> {
             }
         }
         return lines;
     }
 
-    private static String modeKey(ConnectionMode mode) {
-        return "machine_mode.aeroflux." + mode.name().toLowerCase(java.util.Locale.ROOT);
+    /** A button's name, then what it does. */
+    private static void button(List<Component> lines, String key) {
+        lines.add(Component.translatable(key));
+        lines.add(Component.translatable(key + ".tooltip").withStyle(ChatFormatting.GRAY));
+    }
+
+    /** A switch's name with On or Off, then what it does. */
+    private static void autoSwitch(List<Component> lines, String key, boolean on) {
+        lines.add(Component.translatable(key).append(": ").append(Component.translatable(on ? "options.on" : "options.off")
+                .withStyle(style -> style.withColor(on ? Glyphs.OPEN_COLOR & 0xFFFFFF : 0xAAAAAA))));
+        lines.add(Component.translatable(key + ".tooltip").withStyle(ChatFormatting.GRAY));
     }
 
     @Override

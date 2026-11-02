@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.AeroFluxConfig;
 import com.itmecasey.aeroflux.block.FluxTankBlock;
 import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import net.minecraft.core.BlockPos;
@@ -35,7 +36,17 @@ public class FluxTankBlockEntity extends BlockEntity {
     public FluxTankBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TANK.get(), pos, state);
         int capacity = AeroFluxConfig.tankCapacity(((FluxTankBlock) state.getBlock()).tier());
-        this.tank = new FluidTank(capacity, stack -> ModFluids.isFlux(stack.getFluid())) {
+        this.tank = new FluxFluidTank(capacity, stack -> ModFluids.isAnyFlux(stack.getFluid())) {
+            /**
+             * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
+             * update); it still takes nothing more, and probes such as Jade, which refuse a fill above
+             * 100%, see a full tank instead of crashing.
+             */
+            @Override
+            public int getCapacity() {
+                return Math.max(super.getCapacity(), getFluidAmount());
+            }
+
             @Override
             protected void onContentsChanged() {
                 setChanged();
@@ -55,7 +66,8 @@ public class FluxTankBlockEntity extends BlockEntity {
         if (level == null || level.isClientSide) {
             return;
         }
-        FluxType type = tank.getFluid().getFluid().isSame(ModFluids.MOON_FLUX.get()) ? FluxType.MOON : FluxType.AERO;
+        FluxType found = ModFluids.fluxTypeOf(tank.getFluid().getFluid());
+        FluxType type = found == null ? FluxType.AERO : found;
         int key = FillLevel.syncKey(tank.getFluidAmount(), tank.getCapacity(), type);
         if (key != syncedKey) {
             syncedKey = key;

@@ -1,0 +1,15 @@
+{
+  "parent": "aeroflux:block/plant_grower_base",
+  "textures": {
+    "side": "aeroflux:block/plant_grower_side_fluxium",
+    "back": "aeroflux:block/plant_grower_back_fluxium",
+    "top": "aeroflux:block/plant_grower_top_fluxium",
+    "bottom": "aeroflux:block/plant_grower_bottom_fluxium",
+    "front": "aeroflux:block/plant_grower_front_active_fluxium",
+    "particle": "aeroflux:block/plant_grower_side_fluxium",
+    "inner": "aeroflux:block/plant_grower_inner",
+    "soil": "aeroflux:block/plant_grower_soil",
+    "lamp": "aeroflux:block/plant_grower_lamp_active",
+    "glass": "aeroflux:block/plant_grower_glass"
+  }
+}

@@ -2,7 +2,9 @@ package com.itmecasey.aeroflux.conduit.transfer;
 
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
+import com.itmecasey.aeroflux.core.conduit.EndpointFilter;
 import com.itmecasey.aeroflux.core.conduit.Face;
+import com.itmecasey.aeroflux.core.conduit.PriorityPlanner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
@@ -14,9 +16,25 @@ import net.minecraft.core.Direction;
  * @param target       position of the machine block the face points at
  * @param mode         what the pipe does at this face; never OFF or BLOCKED for a collected endpoint
  * @param distribution the distribution mode of the pipe that owns the face
+ * @param filter       a copy of the face's Filter upgrade settings, or {@code null} without one
+ * @param priority     the face's priority; {@link PriorityPlanner#DEFAULT} without a Priority upgrade
  */
 public record NetworkEndpoint(BlockPos bundle, Face face, BlockPos target, ConnectionMode mode,
-                              DistributionMode distribution) {
+                              DistributionMode distribution, EndpointFilter filter, int priority) {
+
+    /** An endpoint with no Filter or Priority upgrade. */
+    public NetworkEndpoint(BlockPos bundle, Face face, BlockPos target, ConnectionMode mode,
+                           DistributionMode distribution) {
+        this(bundle, face, target, mode, distribution, null, PriorityPlanner.DEFAULT);
+    }
+
+    /**
+     * Whether this face lets the item or fluid with this registry id through, in either
+     * direction. A face without a filter lets everything through.
+     */
+    public boolean allows(String id) {
+        return filter == null || filter.accepts(id);
+    }
 
     /** The direction from the bundle toward the machine. */
     public Direction facing() {

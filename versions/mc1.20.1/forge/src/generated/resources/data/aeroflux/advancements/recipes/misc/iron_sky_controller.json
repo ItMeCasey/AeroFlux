@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_sky_controller": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:sky_controller"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:iron_sky_controller"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_sky_controller",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:iron_sky_controller"
+    ]
+  },
+  "sends_telemetry_event": false
+}

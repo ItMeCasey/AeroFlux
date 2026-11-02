@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:gravel"
+      }
+    }
+  ],
+  "mesh": "diamond",
+  "outputs": [
+    {
+      "chance": 0.01,
+      "item": "minecraft:diamond"
+    },
+    {
+      "chance": 0.01,
+      "item": "minecraft:emerald"
+    }
+  ],
+  "time": 100
+}

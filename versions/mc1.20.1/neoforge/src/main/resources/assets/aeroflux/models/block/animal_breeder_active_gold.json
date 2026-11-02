@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/animal_breeder_base",
+  "textures": {
+    "side": "aeroflux:block/animal_breeder_side_gold",
+    "back": "aeroflux:block/animal_breeder_back_gold",
+    "top": "aeroflux:block/animal_breeder_top_gold",
+    "bottom": "aeroflux:block/animal_breeder_bottom_gold",
+    "front": "aeroflux:block/animal_breeder_front_active_gold",
+    "particle": "aeroflux:block/animal_breeder_side_gold"
+  }
+}

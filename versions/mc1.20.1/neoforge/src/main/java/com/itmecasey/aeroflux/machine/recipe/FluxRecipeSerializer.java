@@ -23,72 +23,64 @@ import net.minecraftforge.registries.ForgeRegistries;
  * Reads and writes {@link FluxRecipe}s for one machine, from datapack JSON and over the network.
  * Every machine has its own instance, so the recipe a file defines belongs to the folder it is in.
  *
- * <p>A recipe file looks like this; only {@code inputs} and {@code outputs} are required:
+ * <p>The file format:
  * <pre>{@code
  * {
  *   "type": "aeroflux:grinder",
- *   "inputs": [ { "ingredient": { "item": "minecraft:gravel" }, "count": 1 } ],
- *   "outputs": [ { "item": "minecraft:sand", "count": 1 }, { "item": "minecraft:flint", "chance": 0.25 } ],
+ *   "inputs": [ { "ingredient": { "item": "minecraft:bone" }, "count": 1 } ],
+ *   "outputs": [ { "item": "minecraft:bone_meal", "count": 6, "chance": 1.0 } ],
  *   "time": 100,
  *   "flux": 0,
- *   "flux_type": "aero"
+ *   "flux_type": "moon",
+ *   "mesh": "flint",
+ *   "water": 50
  * }
  * }</pre>
+ * Only {@code inputs} and {@code outputs} are required; the counts default to 1, the chance to 1,
+ * the time to 200 ticks and the extra flux to 0, and a missing {@code flux_type} means either flux
+ * will do. {@code mesh} (the Sifter's mesh) and {@code water} (mB per run, Purifier and Sifter)
+ * default to none.
  */
 public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> {
+    private static final int DEFAULT_TIME = 200;
+
     private final MachineType machine;
 
     public FluxRecipeSerializer(MachineType machine) {
         this.machine = machine;
     }
 
+    // --- JSON --------------------------------------------------------------------------------
+
     @Override
     public FluxRecipe fromJson(ResourceLocation id, JsonObject json) {
         List<FluxRecipe.Input> inputs = new ArrayList<>();
         for (JsonElement element : GsonHelper.getAsJsonArray(json, "inputs")) {
-            JsonObject input = GsonHelper.convertToJsonObject(element, "input");
-            // An empty ingredient could never match anything, so it is an error rather than a dead recipe.
-            Ingredient ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(input, "ingredient"), false);
-            inputs.add(new FluxRecipe.Input(ingredient, boundedInt(input, "count", 1, 1, 64)));
+            JsonObject entry = GsonHelper.convertToJsonObject(element, "input");
+            Ingredient ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(entry, "ingredient"));
+            inputs.add(new FluxRecipe.Input(ingredient, intInRange(entry, "count", 1, 1, 64)));
         }
+
         List<FluxRecipe.Output> outputs = new ArrayList<>();
         for (JsonElement element : GsonHelper.getAsJsonArray(json, "outputs")) {
-            JsonObject output = GsonHelper.convertToJsonObject(element, "output");
-            ItemStack stack = CraftingHelper.getItemStack(output, true);
-            float chance = GsonHelper.getAsFloat(output, "chance", 1.0F);
+            JsonObject entry = GsonHelper.convertToJsonObject(element, "output");
+            float chance = GsonHelper.getAsFloat(entry, "chance", 1.0F);
             if (chance < 0.0F || chance > 1.0F) {
-                throw new JsonSyntaxException("chance must be between 0 and 1, not " + chance);
+                throw new JsonSyntaxException("chance must be between 0 and 1, was " + chance);
             }
-            outputs.add(new FluxRecipe.Output(stack, chance));
+            outputs.add(new FluxRecipe.Output(CraftingHelper.getItemStack(entry, true), chance));
         }
-        if (inputs.isEmpty() || outputs.isEmpty()) {
-            throw new JsonSyntaxException("A machine recipe needs at least one input and one output");
-        }
-        int time = boundedInt(json, "time", 200, 1, 1_000_000);
-        int flux = boundedInt(json, "flux", 0, 0, 1_000_000);
+
+        int time = intInRange(json, "time", DEFAULT_TIME, 1, 1_000_000);
+        int flux = intInRange(json, "flux", 0, 0, 1_000_000);
         FluxType fluxType = json.has("flux_type") ? parseFlux(GsonHelper.getAsString(json, "flux_type")) : null;
-        return new FluxRecipe(id, machine, inputs, outputs, time, flux, fluxType);
+        String mesh = GsonHelper.getAsString(json, "mesh", "");
+        int water = intInRange(json, "water", 0, 0, 1_000_000);
+        return new FluxRecipe(id, machine, inputs, outputs, time, flux, fluxType, mesh, water);
     }
 
-    /** An integer field that falls back to a default when missing and must stay within a range. */
-    private static int boundedInt(JsonObject json, String name, int fallback, int min, int max) {
-        int value = GsonHelper.getAsInt(json, name, fallback);
-        if (value < min || value > max) {
-            throw new JsonSyntaxException(name + " must be between " + min + " and " + max + ", not " + value);
-        }
-        return value;
-    }
-
-    private static FluxType parseFlux(String name) {
-        try {
-            return FluxType.valueOf(name.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new JsonSyntaxException("Unknown flux_type '" + name + "'");
-        }
-    }
-
-    /** Writes a recipe the way {@link #fromJson} reads it; the data generator uses this for the files it creates. */
-    public static void toJson(FluxRecipe recipe, JsonObject json) {
+    /** Writes a recipe in the format {@link #fromJson} reads; the data generator uses it. */
+    public void toJson(FluxRecipe recipe, JsonObject json) {
         JsonArray inputs = new JsonArray();
         for (FluxRecipe.Input input : recipe.inputs()) {
             JsonObject entry = new JsonObject();
@@ -103,8 +95,7 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
         JsonArray outputs = new JsonArray();
         for (FluxRecipe.Output output : recipe.outputs()) {
             JsonObject entry = new JsonObject();
-            ResourceLocation item = ForgeRegistries.ITEMS.getKey(output.stack().getItem());
-            entry.addProperty("item", item.toString());
+            entry.addProperty("item", String.valueOf(ForgeRegistries.ITEMS.getKey(output.stack().getItem())));
             if (output.stack().getCount() != 1) {
                 entry.addProperty("count", output.stack().getCount());
             }
@@ -115,14 +106,40 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
         }
         json.add("outputs", outputs);
 
-        json.addProperty("time", recipe.time());
+        if (recipe.time() != DEFAULT_TIME) {
+            json.addProperty("time", recipe.time());
+        }
         if (recipe.flux() != 0) {
             json.addProperty("flux", recipe.flux());
         }
         if (recipe.fluxType() != null) {
             json.addProperty("flux_type", recipe.fluxType().name().toLowerCase(Locale.ROOT));
         }
+        if (!recipe.mesh().isEmpty()) {
+            json.addProperty("mesh", recipe.mesh());
+        }
+        if (recipe.water() != 0) {
+            json.addProperty("water", recipe.water());
+        }
     }
+
+    private static int intInRange(JsonObject json, String key, int fallback, int min, int max) {
+        int value = GsonHelper.getAsInt(json, key, fallback);
+        if (value < min || value > max) {
+            throw new JsonSyntaxException(key + " must be between " + min + " and " + max + ", was " + value);
+        }
+        return value;
+    }
+
+    private static FluxType parseFlux(String name) {
+        try {
+            return FluxType.valueOf(name.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new JsonSyntaxException("Unknown flux_type '" + name + "', expected aero, moon or twilight");
+        }
+    }
+
+    // --- Network -----------------------------------------------------------------------------
 
     @Nullable
     @Override
@@ -142,8 +159,10 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
         int time = buf.readVarInt();
         int flux = buf.readVarInt();
         int type = buf.readVarInt();
+        String mesh = buf.readUtf();
+        int water = buf.readVarInt();
         return new FluxRecipe(id, machine, inputs, outputs, time, flux,
-                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type]);
+                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type], mesh, water);
     }
 
     @Override
@@ -160,7 +179,9 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
         }
         buf.writeVarInt(recipe.time());
         buf.writeVarInt(recipe.flux());
-        // Negative stands for "either flux"; VarInt can carry it, just not compactly, and it is rare.
-        buf.writeVarInt(recipe.fluxType() == null ? -1 : recipe.fluxType().ordinal());
+        // VarInt cannot hold a negative number compactly, so "either flux" goes over the wire as a large value.
+        buf.writeVarInt(recipe.fluxType() == null ? Integer.MAX_VALUE : recipe.fluxType().ordinal());
+        buf.writeUtf(recipe.mesh());
+        buf.writeVarInt(recipe.water());
     }
 }

@@ -1,0 +1,12 @@
+{
+  "parent": "aeroflux:block/sun_lamp_base",
+  "textures": {
+    "base": "aeroflux:block/sun_lamp_base_iron",
+    "basetop": "aeroflux:block/sun_lamp_basetop_iron",
+    "cap": "aeroflux:block/sun_lamp_cap_iron",
+    "captop": "aeroflux:block/sun_lamp_captop_iron",
+    "post": "aeroflux:block/sun_lamp_post",
+    "crystal": "aeroflux:block/sun_lamp_crystal_active",
+    "particle": "aeroflux:block/sun_lamp_base_iron"
+  }
+}

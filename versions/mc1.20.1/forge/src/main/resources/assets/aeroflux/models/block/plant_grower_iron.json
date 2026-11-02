@@ -1,0 +1,15 @@
+{
+  "parent": "aeroflux:block/plant_grower_base",
+  "textures": {
+    "side": "aeroflux:block/plant_grower_side_iron",
+    "back": "aeroflux:block/plant_grower_back_iron",
+    "top": "aeroflux:block/plant_grower_top_iron",
+    "bottom": "aeroflux:block/plant_grower_bottom_iron",
+    "front": "aeroflux:block/plant_grower_front_iron",
+    "particle": "aeroflux:block/plant_grower_side_iron",
+    "inner": "aeroflux:block/plant_grower_inner",
+    "soil": "aeroflux:block/plant_grower_soil",
+    "lamp": "aeroflux:block/plant_grower_lamp",
+    "glass": "aeroflux:block/plant_grower_glass"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "forge:ingots/gold"
+    },
+    "P": {
+      "item": "aeroflux:iron_fluid_pipe"
+    },
+    "S": {
+      "tag": "forge:gems/amethyst"
+    },
+    "T": {
+      "tag": "forge:ingots/gold"
+    }
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "item": "aeroflux:gold_fluid_pipe"
+  },
+  "show_notification": true
+}

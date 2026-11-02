@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "aeroflux:block/moon_lamp_diamond"
+    },
+    "lit=true": {
+      "model": "aeroflux:block/moon_lamp_active_diamond"
+    }
+  }
+}

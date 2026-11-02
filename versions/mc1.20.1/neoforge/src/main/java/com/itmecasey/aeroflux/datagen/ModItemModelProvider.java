@@ -1,12 +1,13 @@
 package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.AeroFlux;
-import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.registry.ModItems;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
@@ -20,31 +21,17 @@ public class ModItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        flatItem("flux_dust");
-        flatItem("sawdust");
+        basicItem(ModItems.FLUX_DUST.get());
+        basicItem(ModItems.SAWDUST.get());
         fluidBucket("aero_flux_bucket", ModFluids.AERO_FLUX.get());
         fluidBucket("moon_flux_bucket", ModFluids.MOON_FLUX.get());
+        fluidBucket("twilight_flux_bucket", ModFluids.TWILIGHT_FLUX.get());
 
-        // Each higher-tier machine shows its own tier's block model (see ModBlockStateProvider);
-        // the first tier's item model ships with the art.
-        for (MachineType machine : MachineType.values()) {
-            for (Tier tier : Tier.values()) {
-                if (tier != Tier.COPPER) {
-                    String name = ModBlocks.machineBlockName(machine, tier);
-                    withExistingParent(name, modLoc("block/" + name));
-                }
-            }
-        }
     }
 
-    /** Registers a flat item model that uses the texture {@code item/<name>}. */
-    private void flatItem(String name) {
-        withExistingParent(name, mcLoc("item/generated")).texture("layer0", modLoc("item/" + name));
-    }
-
-    /** A bucket that draws the fluid it holds, tinted, through the loader's dynamic container model. */
+    /** A bucket that draws the fluid it holds, tinted, through Forge's fluid container model. */
     private void fluidBucket(String name, Fluid fluid) {
-        withExistingParent(name, Ids.of("forge", "item/bucket"))
+        withExistingParent(name, new ResourceLocation("forge", "item/bucket"))
                 .customLoader(DynamicFluidContainerModelBuilder::begin)
                 .fluid(fluid);
     }

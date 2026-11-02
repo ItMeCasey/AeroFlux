@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.conduit.config.PipeConfigActions;
 import com.itmecasey.aeroflux.conduit.config.PipeConfigMenu;
 import com.itmecasey.aeroflux.conduit.transfer.TransferEngine;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModItems;
@@ -68,10 +69,12 @@ public class ConduitBundleBlock extends BaseEntityBlock {
      * Players holding the wrench, the Conduit Tool, a pipe or an upgrade in either hand keep
      * the click those items already have, so this passes and lets the item act. A click that
      * is not on a connector passes too, so ordinary building next to a bundle still works.
+     * Sneaking with something in hand never gets here: the game skips the block then.
      */
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult hit) {
+        // This version asks once per hand, so both hands are looked at here.
         if (!(level.getBlockEntity(pos) instanceof ConduitBundleBlockEntity entity)
                 || PipeConfigActions.keepsOwnClick(player.getMainHandItem())
                 || PipeConfigActions.keepsOwnClick(player.getOffhandItem())) {
@@ -143,7 +146,10 @@ public class ConduitBundleBlock extends BaseEntityBlock {
                 : 0;
     }
 
-    /** A bundle gives back one pipe item of the right tier for every pipe it held, plus its upgrades. */
+    /**
+     * A bundle gives back one pipe item of the right tier for every pipe it held, plus its
+     * upgrades, the Filter and Priority upgrades at its faces included.
+     */
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         List<ItemStack> drops = new ArrayList<>();
@@ -158,8 +164,21 @@ public class ConduitBundleBlock extends BaseEntityBlock {
                 if (bundle.capacityUpgrades(lane) > 0) {
                     drops.add(new ItemStack(ModItems.CAPACITY_UPGRADE.get(), bundle.capacityUpgrades(lane)));
                 }
+                addEndpointUpgrades(drops, entity.endpoints(), lane);
             }
         }
         return drops;
+    }
+
+    /** Adds the Filter and Priority upgrades installed at the faces of one lane to a list of items. */
+    public static void addEndpointUpgrades(List<ItemStack> into, EndpointSettings endpoints, int lane) {
+        int filters = endpoints.count(lane, EndpointSettings.Upgrade.FILTER);
+        if (filters > 0) {
+            into.add(new ItemStack(ModItems.FILTER_UPGRADE.get(), filters));
+        }
+        int priorities = endpoints.count(lane, EndpointSettings.Upgrade.PRIORITY);
+        if (priorities > 0) {
+            into.add(new ItemStack(ModItems.PRIORITY_UPGRADE.get(), priorities));
+        }
     }
 }

@@ -2,7 +2,6 @@ package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.machine.EnchantRules;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,9 +20,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * level than it has) and what it costs live in {@link EnchantRules}; this class applies them to
  * real stacks.
  *
- * <p>Enchantments in this version are plain item data: an item keeps its own in the
- * {@code Enchantments} list and a book keeps the ones it stores in {@code StoredEnchantments},
- * and {@link EnchantmentHelper} reads and writes either as a map.
+ * <p>In 1.20.1 an enchantment is just an entry in the item's NBT, so the work is done on maps from
+ * enchantment to level: the ones on the item ("Enchantments") and the ones stored in the book
+ * ("StoredEnchantments"), which {@link EnchantmentHelper} reads and writes for both kinds of stack.
  */
 public class EnchanterBlockEntity extends FluxMachineBlockEntity {
     private static final int ITEM = 0;
@@ -44,14 +43,14 @@ public class EnchanterBlockEntity extends FluxMachineBlockEntity {
             return null;
         }
 
-        // The item's enchantments after the book is applied, built up one enchantment at a time
-        // so that each one is judged against what was applied before it.
-        Map<Enchantment, Integer> enchantments = new LinkedHashMap<>(EnchantmentHelper.getEnchantments(target));
+        ItemStack result = target.copy();
+        result.setCount(1);
+        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(result);
         int total = 0;
         for (Map.Entry<Enchantment, Integer> entry : EnchantmentHelper.getEnchantments(book).entrySet()) {
             Enchantment enchantment = entry.getKey();
             if (!EnchantRules.enchanterAllows(enchantment.isCurse(), enchantment.isTreasureOnly())
-                    || !target.canApplyAtEnchantingTable(enchantment)
+                    || !enchantment.canEnchant(target)
                     || clashes(enchantments, enchantment)) {
                 continue;
             }
@@ -65,9 +64,6 @@ public class EnchanterBlockEntity extends FluxMachineBlockEntity {
         if (total == 0 || lapis.getCount() < EnchantRules.lapisCost(total)) {
             return null;
         }
-
-        ItemStack result = target.copy();
-        result.setCount(1);
         EnchantmentHelper.setEnchantments(enchantments, result);
         return new EnchantJob(result, total, Objects.hash(target.getItem(), target.getTag(), book.getItem(), book.getTag()));
     }
@@ -75,13 +71,12 @@ public class EnchanterBlockEntity extends FluxMachineBlockEntity {
     /** Whether the enchantment cannot sit next to one the item already has (Sharpness and Smite, say). */
     private static boolean clashes(Map<Enchantment, Integer> enchantments, Enchantment candidate) {
         for (Enchantment present : enchantments.keySet()) {
-            if (present != candidate && !present.isCompatibleWith(candidate)) {
+            if (present != candidate && !candidate.isCompatibleWith(present)) {
                 return true;
             }
         }
         return false;
     }
-
     @Override
     protected boolean isInputValid(int slot, ItemStack stack) {
         return level != null && MachineInputs.accepts(machine(), level, slot, stack);

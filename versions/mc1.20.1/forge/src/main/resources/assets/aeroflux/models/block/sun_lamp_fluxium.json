@@ -1,0 +1,12 @@
+{
+  "parent": "aeroflux:block/sun_lamp_base",
+  "textures": {
+    "base": "aeroflux:block/sun_lamp_base_fluxium",
+    "basetop": "aeroflux:block/sun_lamp_basetop_fluxium",
+    "cap": "aeroflux:block/sun_lamp_cap_fluxium",
+    "captop": "aeroflux:block/sun_lamp_captop_fluxium",
+    "post": "aeroflux:block/sun_lamp_post",
+    "crystal": "aeroflux:block/sun_lamp_crystal",
+    "particle": "aeroflux:block/sun_lamp_base_fluxium"
+  }
+}

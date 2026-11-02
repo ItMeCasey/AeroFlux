@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_iron_flux_disenchanter": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "aeroflux:iron_flux_disenchanter"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:gold_flux_disenchanter"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_iron_flux_disenchanter",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:gold_flux_disenchanter"
+    ]
+  },
+  "sends_telemetry_event": false
+}

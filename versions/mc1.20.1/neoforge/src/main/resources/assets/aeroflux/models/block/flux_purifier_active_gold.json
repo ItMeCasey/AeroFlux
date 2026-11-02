@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_purifier_base",
+  "textures": {
+    "side": "aeroflux:block/flux_purifier_side_gold",
+    "back": "aeroflux:block/flux_purifier_back_gold",
+    "top": "aeroflux:block/flux_purifier_top_gold",
+    "bottom": "aeroflux:block/flux_purifier_bottom_gold",
+    "front": "aeroflux:block/flux_purifier_front_active_gold",
+    "particle": "aeroflux:block/flux_purifier_side_gold"
+  }
+}

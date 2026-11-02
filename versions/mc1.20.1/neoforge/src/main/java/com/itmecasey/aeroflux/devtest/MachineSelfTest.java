@@ -3,7 +3,6 @@ package com.itmecasey.aeroflux.devtest;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
-import com.itmecasey.aeroflux.conduit.NeighborCapabilities;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
@@ -14,8 +13,11 @@ import com.itmecasey.aeroflux.core.machine.MachineLayout;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.SideCommand;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.machine.MachineFactory;
@@ -27,26 +29,29 @@ import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import com.itmecasey.aeroflux.registry.ModRecipes;
 import io.netty.buffer.Unpooled;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerSynchronizer;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
@@ -149,7 +154,7 @@ final class MachineSelfTest {
         }
         if (!built) {
             BlockPos probe = new BlockPos(2, Y, 2);
-            if (level.isPositionEntityTicking(probe)) {
+            if (level.shouldTickBlocksAt(probe) && level.isPositionEntityTicking(probe)) {
                 player = FakePlayerFactory.getMinecraft(level);
                 build();
                 built = true;
@@ -268,7 +273,7 @@ final class MachineSelfTest {
                 names &= ForgeRegistries.BLOCKS.getKey(block).getPath().equals(expected);
                 items &= block.asItem() != Items.AIR && ForgeRegistries.ITEMS.getKey(block.asItem()).getPath().equals(expected);
             }
-            BlockPos pos = new BlockPos(15, Y + 10, 1 + type.ordinal());
+            BlockPos pos = new BlockPos(15 - type.ordinal() / 14, Y + 10, 1 + type.ordinal() % 14);
             BlockState state = ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState();
             level.setBlock(pos, state, Block.UPDATE_ALL);
             drops &= Block.getDrops(state, level, pos, level.getBlockEntity(pos)).stream()
@@ -384,7 +389,8 @@ final class MachineSelfTest {
 
         // Flux: only Aero goes in, never Moon or water, and the mode decides which way.
         IFluidHandler fluid = fluid(pos, Direction.UP);
-        SelfTest.check("faces: the furnace takes Aero Flux", fluid.fill(new FluidStack(ModFluids.AERO_FLUX.get(), 1_000), IFluidHandler.FluidAction.EXECUTE) == 1_000);
+        // Half the copper tank, so there is room left for the "both" face to fill below.
+        SelfTest.check("faces: the furnace takes Aero Flux", fluid.fill(new FluidStack(ModFluids.AERO_FLUX.get(), 500), IFluidHandler.FluidAction.EXECUTE) == 500);
         SelfTest.check("faces: it refuses Moon Flux", fluid.fill(new FluidStack(ModFluids.MOON_FLUX.get(), 1_000), IFluidHandler.FluidAction.SIMULATE) == 0);
         SelfTest.check("faces: it refuses water", fluid.fill(new FluidStack(net.minecraft.world.level.material.Fluids.WATER, 1_000), IFluidHandler.FluidAction.SIMULATE) == 0);
         SelfTest.check("faces: the fluid tank reports it is a Flux tank only",
@@ -407,13 +413,13 @@ final class MachineSelfTest {
                 items(pos, Direction.DOWN) != null && items(pos, Direction.DOWN).extractItem(1, 1, true).isEmpty());
         MachineConfigActions.apply(furnace, SideCommand.set(SideResource.ITEMS, Face.DOWN, ConnectionMode.BLOCKED));
         SelfTest.check("faces: a blocked face hides the item capability completely",
-                !NeighborCapabilities.offers(level, pos, ForgeCapabilities.ITEM_HANDLER, Direction.DOWN));
+                items(pos, Direction.DOWN) == null);
         MachineConfigActions.apply(furnace, SideCommand.set(SideResource.FLUID, Face.WEST, ConnectionMode.BLOCKED));
         SelfTest.check("faces: a blocked face hides the fluid capability completely",
-                !NeighborCapabilities.offers(level, pos, ForgeCapabilities.FLUID_HANDLER, Direction.WEST)
-                        && NeighborCapabilities.offers(level, pos, ForgeCapabilities.FLUID_HANDLER, Direction.EAST));
+                fluid(pos, Direction.WEST) == null
+                        && fluid(pos, Direction.EAST) != null);
         SelfTest.check("faces: a query without a side (a player's bucket) always works",
-                NeighborCapabilities.offers(level, pos, ForgeCapabilities.ITEM_HANDLER, null));
+                items(pos, null) != null);
 
         SelfTest.check("faces: a command that changes nothing reports no change",
                 !MachineConfigActions.apply(furnace, SideCommand.set(SideResource.ITEMS, Face.DOWN, ConnectionMode.BLOCKED)));
@@ -422,12 +428,12 @@ final class MachineSelfTest {
         SelfTest.check("faces: a number that is no command does nothing", !MachineConfigActions.applyButton(furnace, 9_999));
         MachineConfigActions.apply(furnace, SideCommand.reset(SideResource.ITEMS));
         SelfTest.check("faces: reset brings the blocked face back",
-                NeighborCapabilities.offers(level, pos, ForgeCapabilities.ITEM_HANDLER, Direction.DOWN));
+                items(pos, Direction.DOWN) != null);
 
         // Which machines take which fluid.
         boolean flux = true;
         for (MachineType type : MachineType.values()) {
-            BlockPos at = new BlockPos(14, Y + 12, 1 + type.ordinal());
+            BlockPos at = new BlockPos(14 - type.ordinal() / 14, Y + 12, 1 + type.ordinal() % 14);
             level.setBlock(at, ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
             FluxMachineBlockEntity machine = machine(at);
             flux &= machine.acceptsFlux(new FluidStack(ModFluids.AERO_FLUX.get(), 1)) == type.acceptedFlux().contains(FluxType.AERO);
@@ -446,7 +452,7 @@ final class MachineSelfTest {
         SelfTest.check("pipes: Flux arrived in the furnace from a tank through a fluid pipe", furnace > 0);
         SelfTest.check("pipes: nothing was lost or made on the way", furnace + tank == 1_000);
         SelfTest.check("pipes: the furnace's fluid cap was the one the pipe attached to",
-                NeighborCapabilities.offers(level, pipeFedFurnace, ForgeCapabilities.FLUID_HANDLER, Direction.WEST));
+                fluid(pipeFedFurnace, Direction.WEST) != null);
     }
 
     /** At tick 20 the pipe has had time to pull, but the furnace's import-only face must have refused. */
@@ -619,7 +625,7 @@ final class MachineSelfTest {
 
         MachineLayout layout = MachineLayout.of(1, 1);
         SelfTest.check("menu: the slots sit where the layout says",
-                server.slots.size() == 2 + 36
+                server.slots.size() == 2 + MachineUpgrades.slots(Tier.FLUXIUM) + 36
                         && server.getSlot(0).x == layout.inputSlot(0).x() && server.getSlot(0).y == layout.inputSlot(0).y()
                         && server.getSlot(1).x == layout.outputSlot(0).x() && server.getSlot(1).y == layout.outputSlot(0).y());
 
@@ -684,14 +690,15 @@ final class MachineSelfTest {
         // One menu per machine type has the right slots and a sensible layout.
         boolean slots = true;
         for (MachineType type : MachineType.values()) {
-            BlockPos at = new BlockPos(1 + type.ordinal() * 2, Y, 7);
+            // Seven to a row, in a layer of their own, so every machine fits in the loaded chunk.
+            BlockPos at = new BlockPos(1 + (type.ordinal() % 7) * 2, Y + 8, 7 + (type.ordinal() / 7) * 2);
             level.setBlock(at, ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
             player.setPos(at.getX() + 0.5, at.getY(), at.getZ() - 1.5);
             MachineMenu menu = new MachineMenu(2, player.getInventory(), machine(at));
-            slots &= menu.slots.size() == type.inputSlots() + type.outputSlots() + 36 && menu.stillValid(player)
+            slots &= menu.slots.size() == type.inputSlots() + type.outputSlots() + MachineUpgrades.slots(Tier.COPPER) + 36 && menu.stillValid(player)
                     && menu.machine() == type;
         }
-        SelfTest.check("menu: all eight machines open a menu with their own slot counts", slots);
+        SelfTest.check("menu: every machine opens a menu with its own slot counts", slots);
         player.closeContainer();
     }
 
@@ -761,28 +768,35 @@ final class MachineSelfTest {
         return machine.inventory().getStackInSlot(machine.machine().inputSlots() + index);
     }
 
+    /** The item capability a neighbor would get from the machine, or {@code null} if the face hides it. */
     private static IItemHandler items(BlockPos pos, Direction side) {
-        return NeighborCapabilities.find(level, pos, ForgeCapabilities.ITEM_HANDLER, side);
+        return capability(pos, ForgeCapabilities.ITEM_HANDLER, side);
     }
 
+    /** The fluid capability a neighbor would get from the machine, or {@code null} if the face hides it. */
     private static IFluidHandler fluid(BlockPos pos, Direction side) {
-        return NeighborCapabilities.find(level, pos, ForgeCapabilities.FLUID_HANDLER, side);
+        return capability(pos, ForgeCapabilities.FLUID_HANDLER, side);
     }
 
-    /** The level of an enchantment on an item, or stored in an enchanted book; 0 if it is not there. */
+    private static <T> T capability(BlockPos pos, Capability<T> capability, Direction side) {
+        return level.getBlockEntity(pos).getCapability(capability, side).orElse(null);
+    }
+
+    /** The level of an enchantment on an item, or in an enchanted book; 0 if it is not there. */
     private static int level(ItemStack stack, Enchantment enchantment) {
         return EnchantmentHelper.getEnchantments(stack).getOrDefault(enchantment, 0);
     }
 
     /** An enchanted book holding the given enchantments, as pairs of enchantment and level. */
     private static ItemStack book(Object... pairs) {
-        ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+        Map<Enchantment, Integer> stored = new LinkedHashMap<>();
         for (int i = 0; i < pairs.length; i += 2) {
-            EnchantedBookItem.addEnchantment(book, new EnchantmentInstance((Enchantment) pairs[i], (Integer) pairs[i + 1]));
+            stored.put((Enchantment) pairs[i], (Integer) pairs[i + 1]);
         }
+        ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+        EnchantmentHelper.setEnchantments(stored, book);
         return book;
     }
-
     /** Hands everything the server would send a player to another menu, cut to 16 bits like the network does. */
     private record Mirror(AbstractContainerMenu target) implements ContainerSynchronizer {
         @Override

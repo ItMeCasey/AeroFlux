@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:gravel"
+      }
+    }
+  ],
+  "mesh": "iron",
+  "outputs": [
+    {
+      "chance": 0.1,
+      "item": "minecraft:gold_nugget"
+    },
+    {
+      "chance": 0.05,
+      "item": "minecraft:lapis_lazuli"
+    }
+  ],
+  "time": 100
+}

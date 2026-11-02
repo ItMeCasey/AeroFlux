@@ -27,7 +27,7 @@ final class EnergyMover implements ResourceMover {
             if (storage == null) {
                 continue;
             }
-            EnergyPort port = new EnergyPort(endpoint.target(), storage);
+            EnergyPort port = new EnergyPort(endpoint.target(), storage, endpoint.priority());
             if (endpoint.pulls() && storage.canExtract()) {
                 sources.add(port);
                 modes.add(endpoint.distribution());
@@ -40,7 +40,7 @@ final class EnergyMover implements ResourceMover {
     }
 
     /** A machine's energy storage. Energy has one kind, so no filtering is needed. */
-    private record EnergyPort(BlockPos target, IEnergyStorage storage) implements AmountMover.Port {
+    private record EnergyPort(BlockPos target, IEnergyStorage storage, int priority) implements AmountMover.Port {
         @Override
         public long available(long limit) {
             return storage.extractEnergy((int) limit, true);

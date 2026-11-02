@@ -1,0 +1,26 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:dirt"
+      }
+    }
+  ],
+  "mesh": "flint",
+  "outputs": [
+    {
+      "chance": 0.05,
+      "item": "minecraft:potato"
+    },
+    {
+      "chance": 0.05,
+      "item": "minecraft:carrot"
+    },
+    {
+      "chance": 0.05,
+      "item": "minecraft:oak_sapling"
+    }
+  ],
+  "time": 100
+}

@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -26,7 +25,7 @@ import net.minecraft.world.level.Level;
  * <p>Ingredients are matched against the input slots in any order, so a recipe does not care
  * which slot an item sits in.
  */
-public class FluxRecipe implements Recipe<Container> {
+public class FluxRecipe implements Recipe<MachineInput> {
     /** An ingredient and how many of it one job uses. */
     public record Input(Ingredient ingredient, int count) {
     }
@@ -43,9 +42,11 @@ public class FluxRecipe implements Recipe<Container> {
     private final int flux;
     @Nullable
     private final FluxType fluxType;
+    private final String mesh;
+    private final int water;
 
     /**
-     * @param id       the recipe's name, such as {@code aeroflux:grinder/iron_ore}
+     * @param id       the recipe's name, as the datapack file gives it
      * @param machine  which machine this recipe is for; it picks the recipe type
      * @param inputs   the ingredients
      * @param outputs  the products
@@ -53,9 +54,20 @@ public class FluxRecipe implements Recipe<Container> {
      * @param flux     extra Flux in mB taken when the job finishes
      * @param fluxType the flux type the job needs, or {@code null} for either
      */
-    public FluxRecipe(ResourceLocation id, MachineType machine, List<Input> inputs, List<Output> outputs,
-                      int time, int flux, @Nullable FluxType fluxType) {
+    public FluxRecipe(ResourceLocation id, MachineType machine, List<Input> inputs, List<Output> outputs, int time,
+                      int flux, @Nullable FluxType fluxType) {
+        this(id, machine, inputs, outputs, time, flux, fluxType, "", 0);
+    }
+
+    /**
+     * @param mesh  the sieve mesh the recipe needs (Sifter only), such as "flint"; empty for any
+     * @param water mB of water one run takes from the machine's water tank (Purifier and Sifter)
+     */
+    public FluxRecipe(ResourceLocation id, MachineType machine, List<Input> inputs, List<Output> outputs, int time,
+                      int flux, @Nullable FluxType fluxType, String mesh, int water) {
         this.id = id;
+        this.mesh = mesh;
+        this.water = water;
         this.machine = machine;
         this.inputs = List.copyOf(inputs);
         this.outputs = List.copyOf(outputs);
@@ -89,6 +101,16 @@ public class FluxRecipe implements Recipe<Container> {
     @Nullable
     public FluxType fluxType() {
         return fluxType;
+    }
+
+    /** The sieve mesh a Sifter needs for this recipe; empty for any. */
+    public String mesh() {
+        return mesh;
+    }
+
+    /** mB of water one run uses; 0 for none. */
+    public int water() {
+        return water;
     }
 
     /**
@@ -148,13 +170,18 @@ public class FluxRecipe implements Recipe<Container> {
     // --- Recipe ------------------------------------------------------------------------------
 
     @Override
-    public boolean matches(Container container, Level level) {
-        return container instanceof MachineInput input && assign(input) != null;
+    public boolean matches(MachineInput input, Level level) {
+        return assign(input) != null;
     }
 
     @Override
-    public ItemStack assemble(Container container, RegistryAccess registries) {
+    public ItemStack assemble(MachineInput input, RegistryAccess registries) {
         return outputs.isEmpty() ? ItemStack.EMPTY : outputs.get(0).stack().copy();
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return id;
     }
 
     @Override
@@ -180,11 +207,6 @@ public class FluxRecipe implements Recipe<Container> {
     @Override
     public boolean isSpecial() {
         return true;
-    }
-
-    @Override
-    public ResourceLocation getId() {
-        return id;
     }
 
     @Override

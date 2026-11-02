@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:gravel"
+      }
+    }
+  ],
+  "mesh": "flint",
+  "outputs": [
+    {
+      "chance": 0.15,
+      "item": "minecraft:iron_nugget"
+    },
+    {
+      "chance": 0.08,
+      "item": "minecraft:coal"
+    }
+  ],
+  "time": 100
+}

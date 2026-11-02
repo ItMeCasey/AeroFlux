@@ -1,0 +1,15 @@
+{
+  "parent": "aeroflux:block/flux_magnet_base",
+  "textures": {
+    "side": "aeroflux:block/flux_magnet_side_diamond",
+    "back": "aeroflux:block/flux_magnet_back_diamond",
+    "top": "aeroflux:block/flux_magnet_top_diamond",
+    "bottom": "aeroflux:block/flux_magnet_bottom_diamond",
+    "front": "aeroflux:block/flux_magnet_front_active_diamond",
+    "particle": "aeroflux:block/flux_magnet_side_diamond",
+    "tray": "aeroflux:block/flux_magnet_tray_diamond",
+    "steel": "aeroflux:block/flux_magnet_steel",
+    "red": "aeroflux:block/flux_magnet_red",
+    "blue": "aeroflux:block/flux_magnet_blue"
+  }
+}
