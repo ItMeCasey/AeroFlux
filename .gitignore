@@ -38,3 +38,6 @@ RODIN_PROMPTS.md
 .env
 *.token
 local.properties
+
+# Concept art; kept local
+concept/
