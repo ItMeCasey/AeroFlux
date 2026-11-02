@@ -1,5 +1,7 @@
 package com.itmecasey.aeroflux.conduit;
 
+import com.itmecasey.aeroflux.conduit.config.PipeConfigActions;
+import com.itmecasey.aeroflux.conduit.config.PipeConfigMenu;
 import com.itmecasey.aeroflux.conduit.transfer.TransferEngine;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
@@ -9,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -21,6 +27,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -53,6 +61,35 @@ public class ConduitBundleBlock extends BaseEntityBlock {
         return level.getBlockEntity(pos) instanceof ConduitBundleBlockEntity bundle
                 ? BundleShapes.of(bundle.bundle())
                 : Shapes.block();
+    }
+
+    /**
+     * Right-clicking a pipe connector (the arm of one pipe at a face) opens that pipe's screen.
+     * Players holding the wrench, the Conduit Tool, a pipe or an upgrade in either hand keep
+     * the click those items already have, so this passes and lets the item act. A click that
+     * is not on a connector passes too, so ordinary building next to a bundle still works.
+     * Sneaking with something in hand never gets here: the game skips the block then.
+     */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
+                                 BlockHitResult hit) {
+        // This version asks once per hand, so both hands are looked at here.
+        if (!(level.getBlockEntity(pos) instanceof ConduitBundleBlockEntity entity)
+                || PipeConfigActions.keepsOwnClick(player.getMainHandItem())
+                || PipeConfigActions.keepsOwnClick(player.getOffhandItem())) {
+            return InteractionResult.PASS;
+        }
+
+        // Where the crosshair hit, in pixels inside the block, as the wrench works it out.
+        Vec3 local = hit.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ()).scale(16.0);
+        PipeConfigActions.Target target = PipeConfigActions.resolveTarget(entity.bundle(), local.x, local.y, local.z);
+        if (target == null) {
+            return InteractionResult.PASS;
+        }
+        if (player instanceof ServerPlayer serverPlayer) {
+            PipeConfigMenu.open(serverPlayer, entity, target.pipe(), target.face());
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override

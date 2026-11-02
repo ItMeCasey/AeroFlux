@@ -7,6 +7,7 @@ import com.itmecasey.aeroflux.registry.ModCreativeTabs;
 import com.itmecasey.aeroflux.registry.ModFluidTypes;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
+import com.itmecasey.aeroflux.registry.ModMenus;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -42,6 +43,7 @@ public final class AeroFlux {
         ModBlocks.register(modBusGroup);
         ModBlockEntities.register(modBusGroup);
         ModItems.register(modBusGroup);
+        ModMenus.register(modBusGroup);
         ModCreativeTabs.register(modBusGroup);
         GatherDataEvent.getBus(modBusGroup).addListener(DataGenerators::gatherData);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);

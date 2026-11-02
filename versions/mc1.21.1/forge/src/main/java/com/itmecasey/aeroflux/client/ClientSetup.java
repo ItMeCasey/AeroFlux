@@ -3,8 +3,11 @@ package com.itmecasey.aeroflux.client;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.client.model.BundleGeometryLoader;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.registry.ModMenus;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -33,10 +36,14 @@ public final class ClientSetup {
         event.register("conduit_bundle", new BundleGeometryLoader());
     }
 
-    /** The fluid textures are slightly see-through, so the fluids need the translucent layer. */
+    /**
+     * The fluid textures are slightly see-through, so the fluids need the translucent layer.
+     * The pipe menu is paired with its screen here too; Forge has no separate event for that.
+     */
     @SubscribeEvent
     public static void setRenderLayers(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
+            MenuScreens.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
             RenderType translucent = RenderType.translucent();
             ItemBlockRenderTypes.setRenderLayer(ModFluids.AERO_FLUX.get(), translucent);
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_AERO_FLUX.get(), translucent);

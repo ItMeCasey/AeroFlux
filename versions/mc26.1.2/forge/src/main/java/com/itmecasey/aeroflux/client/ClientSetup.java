@@ -5,8 +5,11 @@ import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.client.model.BundleBlockStateModel;
 import com.itmecasey.aeroflux.client.model.BundleGeometryLoader;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
+import com.itmecasey.aeroflux.registry.ModMenus;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
@@ -14,6 +17,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 /** Client-only setup: teaches the model system how to draw a conduit bundle. */
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID, value = Dist.CLIENT)
@@ -25,6 +29,12 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
+    }
+
+    /** Pairs the pipe menu with its screen. */
+    @SubscribeEvent
+    public static void registerScreens(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> MenuScreens.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new));
     }
 
     /** Teaches the model system the {@code aeroflux:conduit_bundle} model type. */

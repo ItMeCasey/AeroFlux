@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.registry.ModCreativeTabs;
 import com.itmecasey.aeroflux.registry.ModFluidTypes;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
+import com.itmecasey.aeroflux.registry.ModMenus;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -40,6 +41,7 @@ public class AeroFlux {
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
         ModItems.register(modEventBus);
+        ModMenus.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         modContainer.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
 

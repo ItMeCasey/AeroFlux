@@ -86,6 +86,38 @@ public class ModLanguageProvider extends LanguageProvider {
         add("message." + AeroFlux.MODID + ".pipe_no_distribution", "%s pipes have no distribution setting");
 
         addConduitToolTranslations();
+        addPipeScreenTranslations();
+    }
+
+    /** Texts of the pipe screen: headings, the speed lines and the button tooltips. */
+    private void addPipeScreenTranslations() {
+        String screen = "screen." + AeroFlux.MODID + ".pipe_config.";
+        add(screen + "title", "%s Pipe (%s)");
+        add(screen + "title_untiered", "%s Pipe");
+        add(screen + "side", "Side: %s");
+        add(screen + "modes", "Face mode");
+        add(screen + "distribution", "Distribution");
+        add(screen + "rate", "Throughput");
+        add(screen + "upgrades", "Upgrades (%s of %s)");
+        add(screen + "rate_items", "%s items every %s ticks");
+        add(screen + "rate_fluid", "%s mB per tick");
+        add(screen + "rate_gas", "%s mB per tick");
+        add(screen + "rate_energy", "%s FE per tick");
+        add(screen + "rate_channels", "%s redstone channels");
+        add(screen + "rate_me_channels", "%s channels, handled by AE2");
+
+        String mode = "connection_mode." + AeroFlux.MODID + ".";
+        add(mode + "open.tooltip", "Connected. Moves contents both ways.");
+        add(mode + "import.tooltip", "Connected. Only pulls from the neighbor into the network.");
+        add(mode + "export.tooltip", "Connected. Only pushes from the network into the neighbor.");
+        add(mode + "off.tooltip", "Connected but passive. The stub stays visible.");
+        add(mode + "blocked.tooltip", "Not connected. Nothing can attach here.");
+
+        String distribution = "distribution_mode." + AeroFlux.MODID + ".";
+        add(distribution + "round_robin.tooltip", "Shares evenly and rotates who gets the leftover.");
+        add(distribution + "first_to_last.tooltip", "Fills the first destination before moving on to the next.");
+        add(distribution + "last_to_first.tooltip", "Fills the last destination first, then works backward.");
+        add(distribution + "random.tooltip", "Fills destinations in a different random order each time.");
     }
 
     /** Names and messages of the Conduit Tool. */

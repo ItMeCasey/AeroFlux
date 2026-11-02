@@ -34,7 +34,8 @@ import net.minecraftforge.fml.common.Mod;
  *
  * <p>Results are written to the log as {@code AEROFLUX-SELFTEST PASS/FAIL <name>}, followed by a
  * summary line, and the server then stops. The transfer scenarios (pipes moving fluid, items and
- * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}.
+ * redstone) live in {@link TransferSelfTest}, the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's
+ * menu in {@link ScreenSelfTest}.
  */
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SelfTest {
@@ -77,6 +78,7 @@ public final class SelfTest {
         setUpCollectors();
         TransferSelfTest.setUp(level);
         ToolSelfTest.setUp(level);
+        ScreenSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -92,9 +94,13 @@ public final class SelfTest {
         if (TransferSelfTest.finished()) {
             ToolSelfTest.tick();
         }
+        // The screen checks follow the tool checks for the same reason.
+        if (ToolSelfTest.finished()) {
+            ScreenSelfTest.tick();
+        }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer and tool checks to finish too.
-            if (TransferSelfTest.finished() && ToolSelfTest.finished()) {
+            if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()) {
                 finish();
             }
             return;
