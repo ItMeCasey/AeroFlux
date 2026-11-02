@@ -152,6 +152,7 @@
   "item.aeroflux.netherite_gas_pipe": "Netherite Gas Pipe",
   "item.aeroflux.netherite_item_pipe": "Netherite Item Pipe",
   "item.aeroflux.netherite_redstone_pipe": "Netherite Redstone Pipe",
+  "item.aeroflux.sawdust": "Sawdust",
   "item.aeroflux.speed_upgrade": "Speed Upgrade",
   "itemGroup.aeroflux": "AeroFlux",
   "machine.aeroflux.status.idle": "Idle",

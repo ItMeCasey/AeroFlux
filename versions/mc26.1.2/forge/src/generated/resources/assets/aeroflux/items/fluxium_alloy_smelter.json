@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/alloy_smelter"
+    "model": "aeroflux:block/fluxium_alloy_smelter"
   }
 }

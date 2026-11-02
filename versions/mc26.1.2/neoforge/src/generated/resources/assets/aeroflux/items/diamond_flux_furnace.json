@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/flux_furnace"
+    "model": "aeroflux:block/diamond_flux_furnace"
   }
 }

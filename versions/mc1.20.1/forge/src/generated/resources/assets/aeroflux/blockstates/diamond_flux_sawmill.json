@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=east": {
-      "model": "aeroflux:block/flux_sawmill",
+      "model": "aeroflux:block/diamond_flux_sawmill",
       "y": 90
     },
     "facing=north": {
-      "model": "aeroflux:block/flux_sawmill"
+      "model": "aeroflux:block/diamond_flux_sawmill"
     },
     "facing=south": {
-      "model": "aeroflux:block/flux_sawmill",
+      "model": "aeroflux:block/diamond_flux_sawmill",
       "y": 180
     },
     "facing=west": {
-      "model": "aeroflux:block/flux_sawmill",
+      "model": "aeroflux:block/diamond_flux_sawmill",
       "y": 270
     }
   }

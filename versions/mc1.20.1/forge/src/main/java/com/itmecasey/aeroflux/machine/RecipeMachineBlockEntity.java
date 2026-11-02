@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -22,9 +23,21 @@ import org.jetbrains.annotations.Nullable;
 public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
     @Nullable
     private FluxRecipe lastRecipe;
+    /** Rolls the chance products when set; otherwise the level's random does. Never saved. */
+    @Nullable
+    private RandomSource seededRolls;
 
     public RecipeMachineBlockEntity(BlockPos pos, BlockState state) {
         super(pos, state);
+    }
+
+    /**
+     * Makes this machine roll its chance products (the Sawmill's sawdust, the Grinder's flint)
+     * from a random of its own, started from the given seed, so a test sees the same rolls on
+     * every run. It is not saved: once the machine is reloaded it uses the level's random again.
+     */
+    public void seedRolls(long seed) {
+        seededRolls = RandomSource.create(seed);
     }
 
     @Nullable
@@ -98,8 +111,9 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
                 consumeInput(slots[i], recipe.inputs().get(i).count());
             }
             List<ItemStack> products = new ArrayList<>();
+            RandomSource rolls = seededRolls != null ? seededRolls : level.random;
             for (FluxRecipe.Output output : recipe.outputs()) {
-                if (OutputChance.drops(output.chance(), level.random.nextDouble())) {
+                if (OutputChance.drops(output.chance(), rolls.nextDouble())) {
                     products.add(output.stack().copy());
                 }
             }

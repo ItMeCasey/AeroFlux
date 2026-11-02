@@ -1,0 +1,9 @@
+{
+  "parent": "aeroflux:block/alloy_smelter",
+  "textures": {
+    "front": "aeroflux:block/smelter_front_iron",
+    "particle": "aeroflux:block/machine_metal_side_iron",
+    "side": "aeroflux:block/machine_metal_side_iron",
+    "top": "aeroflux:block/smelter_top_iron"
+  }
+}

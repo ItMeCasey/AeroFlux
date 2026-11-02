@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=east": {
-      "model": "aeroflux:block/flux_grinder",
+      "model": "aeroflux:block/fluxium_flux_grinder",
       "y": 90
     },
     "facing=north": {
-      "model": "aeroflux:block/flux_grinder"
+      "model": "aeroflux:block/fluxium_flux_grinder"
     },
     "facing=south": {
-      "model": "aeroflux:block/flux_grinder",
+      "model": "aeroflux:block/fluxium_flux_grinder",
       "y": 180
     },
     "facing=west": {
-      "model": "aeroflux:block/flux_grinder",
+      "model": "aeroflux:block/fluxium_flux_grinder",
       "y": 270
     }
   }

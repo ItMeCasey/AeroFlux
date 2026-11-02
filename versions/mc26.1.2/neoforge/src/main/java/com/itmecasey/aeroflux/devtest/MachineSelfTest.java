@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.devtest;
 
+import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -19,12 +20,14 @@ import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.machine.MachineFactory;
 import com.itmecasey.aeroflux.machine.MachineMenu;
+import com.itmecasey.aeroflux.machine.RecipeMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import com.itmecasey.aeroflux.registry.ModRecipes;
 import io.netty.buffer.Unpooled;
+import java.util.Collection;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -80,6 +83,15 @@ final class MachineSelfTest {
     private static final int EARLY = 40;
     private static final int RUN_OUT = 60;
     private static final int LAST = 200;
+    /**
+     * Tick at which the sawdust count is read. The sawdust sawmill runs {@link #SAWDUST_LOGS}
+     * jobs of 9 ticks each at the top tier, so this leaves plenty of slack.
+     */
+    private static final int SAWDUST_DONE = 400;
+    /** How many logs the sawdust sawmill cuts: enough jobs for its one-in-four chance to show. */
+    private static final int SAWDUST_LOGS = 32;
+    /** Seed for the sawdust sawmill's rolls, so its count is the same on every run. */
+    private static final long SAWDUST_SEED = 0x5A3D057L;
 
     private static ServerLevel level;
     private static FakePlayer player;
@@ -108,6 +120,11 @@ final class MachineSelfTest {
     private static BlockPos grinder;
     private static BlockPos gravelGrinder;
     private static BlockPos sawmill;
+    private static BlockPos stemSawmill;
+    private static BlockPos plankSawmill;
+    private static BlockPos sawdustSawmill;
+    /** Planks taken out of the sawdust sawmill so far, the way a pipe would empty it. */
+    private static int sawdustPlanks;
     private static BlockPos alloy;
     private static BlockPos bulkAlloy;
     private static BlockPos infuser;
@@ -163,10 +180,16 @@ final class MachineSelfTest {
         if (tick == RUN_OUT) {
             checkRunOut();
         }
+        if (tick < SAWDUST_DONE) {
+            emptySawdustPlanks();
+        }
         if (tick == LAST) {
             checkProcesses();
             checkResumed();
             checkPipeDrain();
+        }
+        if (tick == SAWDUST_DONE) {
+            checkSawdustRate();
             finished = true;
         }
     }
@@ -193,7 +216,12 @@ final class MachineSelfTest {
         grinder = placed(1, Y, 3, MachineType.GRINDER, 5_000, FluxType.AERO, new ItemStack(Items.IRON_ORE));
         gravelGrinder = placed(3, Y, 3, MachineType.GRINDER, 5_000, FluxType.AERO, new ItemStack(Items.GRAVEL, 12));
         sawmill = placed(5, Y, 3, MachineType.SAWMILL, 5_000, FluxType.AERO, new ItemStack(Items.OAK_LOG, 2));
-        alloy = placed(7, Y, 3, MachineType.ALLOY_SMELTER, 5_000, FluxType.AERO,
+        stemSawmill = placed(1, Y, 9, MachineType.SAWMILL, 5_000, FluxType.AERO, new ItemStack(Items.CRIMSON_STEM));
+        plankSawmill = placed(3, Y, 9, MachineType.SAWMILL, 5_000, FluxType.AERO, new ItemStack(Items.OAK_PLANKS));
+        sawdustSawmill = placed(5, Y, 9, MachineType.SAWMILL, 5_000, FluxType.AERO, new ItemStack(Items.OAK_LOG, SAWDUST_LOGS));
+        ((RecipeMachineBlockEntity) machine(sawdustSawmill)).seedRolls(SAWDUST_SEED);
+        sawdustPlanks = 0;
+        alloy =placed(7, Y, 3, MachineType.ALLOY_SMELTER, 5_000, FluxType.AERO,
                 new ItemStack(Items.IRON_INGOT), new ItemStack(ModItems.FLUX_DUST.get()));
         // Out of order on purpose: the recipe does not care which slot holds what.
         bulkAlloy = placed(9, Y, 3, MachineType.ALLOY_SMELTER, 5_000, FluxType.AERO,
@@ -262,6 +290,8 @@ final class MachineSelfTest {
         SelfTest.check("machines: every machine and tier has its block under the delivered art's name", names);
         SelfTest.check("machines: every machine block has an item", items);
         SelfTest.check("machines: every machine block drops itself", drops);
+        SelfTest.check("items: sawdust is registered as aeroflux:sawdust",
+                ModItems.SAWDUST.get() != Items.AIR && "sawdust".equals(BuiltInRegistries.ITEM.getKey(ModItems.SAWDUST.get()).getPath()));
         SelfTest.check("machines: the art's ids are the first-tier blocks",
                 "flux_furnace".equals(BuiltInRegistries.BLOCK.getKey(ModBlocks.machine(MachineType.FURNACE, Tier.COPPER).get()).getPath())
                         && "plant_grower".equals(BuiltInRegistries.BLOCK.getKey(ModBlocks.machine(MachineType.PLANT_GROWER, Tier.COPPER).get()).getPath())
@@ -278,6 +308,16 @@ final class MachineSelfTest {
         SelfTest.check("recipes: every recipe machine has data-driven recipes of its own type", all);
         SelfTest.check("recipes: vanilla smelting recipes are there for the furnace",
                 !level.recipeAccess().recipeMap().byType(RecipeType.SMELTING).isEmpty());
+
+        // Eleven wood types, bamboo and planks; each has a chance of sawdust on the side and nothing else.
+        Collection<RecipeHolder<FluxRecipe>> sawmillRecipes = level.recipeAccess().recipeMap().byType(ModRecipes.type(MachineType.SAWMILL).get());
+        boolean sawdustOnly = !sawmillRecipes.isEmpty();
+        for (RecipeHolder<FluxRecipe> holder : sawmillRecipes) {
+            List<FluxRecipe.Output> outputs = holder.value().outputs();
+            sawdustOnly &= outputs.size() == 2 && outputs.get(1).stack().is(ModItems.SAWDUST.get()) && outputs.get(1).chance() < 1.0F;
+        }
+        SelfTest.check("recipes: the sawmill has its thirteen recipes (pale oak included)", sawmillRecipes.size() == 13);
+        SelfTest.check("recipes: every sawmill byproduct is a chance of sawdust", sawdustOnly);
 
         // The network format must carry a recipe unchanged, or clients would see different recipes.
         RecipeHolder<FluxRecipe> any = level.recipeAccess().recipeMap().byType(ModRecipes.type(MachineType.ALLOY_SMELTER).get()).stream()
@@ -481,9 +521,13 @@ final class MachineSelfTest {
         SelfTest.check("grinder: every ground gravel gave sand", input(gravelGrinder, 0).isEmpty() && sand == 12);
         SelfTest.check("grinder: the byproduct dropped by chance, never more than one per job", flint >= 0 && flint <= 12);
 
-        SelfTest.check("sawmill: two logs became twelve planks", output(sawmill, 0).is(Items.OAK_PLANKS) && output(sawmill, 0).getCount() == 12);
-        SelfTest.check("sawmill: sticks only came as the byproduct, within their chance",
-                output(sawmill, 1).isEmpty() || (output(sawmill, 1).is(Items.STICK) && output(sawmill, 1).getCount() <= 4));
+        SelfTest.check("sawmill: two oak logs became twelve oak planks", output(sawmill, 0).is(Items.OAK_PLANKS) && output(sawmill, 0).getCount() == 12);
+        SelfTest.check("sawmill: sawdust only came as the byproduct, at most one per log",
+                output(sawmill, 1).isEmpty() || (output(sawmill, 1).is(ModItems.SAWDUST.get()) && output(sawmill, 1).getCount() <= 2));
+        SelfTest.check("sawmill: a crimson stem became six crimson planks",
+                output(stemSawmill, 0).is(Items.CRIMSON_PLANKS) && output(stemSawmill, 0).getCount() == 6 && input(stemSawmill, 0).isEmpty());
+        SelfTest.check("sawmill: a plank became two sticks",
+                output(plankSawmill, 0).is(Items.STICK) && output(plankSawmill, 0).getCount() == 2 && input(plankSawmill, 0).isEmpty());
 
         SelfTest.check("alloy smelter: iron and Flux Dust made Fluxsteel", output(alloy, 0).is(ModItems.FLUXSTEEL_INGOT.get()) && output(alloy, 0).getCount() == 1);
         SelfTest.check("alloy smelter: a three-ingredient recipe works with the slots in any order",
@@ -546,6 +590,32 @@ final class MachineSelfTest {
                         && flux(wrongFluxGrower) == 10_000);
         SelfTest.check("plant grower: on Moon Flux the mushrooms grew into a bigger harvest",
                 output(moonGrower, 0).is(Items.RED_MUSHROOM) && output(moonGrower, 0).getCount() == 3);
+    }
+
+    // --- Sawdust over many jobs --------------------------------------------------------------
+
+    /** Takes the planks out of the sawdust sawmill each tick, as a pipe would, so it never stops for a full slot. */
+    private static void emptySawdustPlanks() {
+        ItemStack planks = output(sawdustSawmill, 0);
+        if (!planks.isEmpty()) {
+            sawdustPlanks += planks.getCount();
+            machine(sawdustSawmill).setStackIn(MachineType.SAWMILL.inputSlots(), ItemStack.EMPTY);
+        }
+    }
+
+    /**
+     * The sawdust sawmill rolls from a fixed seed, so its count is the same on every run. The
+     * bound is still a fair one for a one-in-four chance (8 expected from 32 logs), so a new seed
+     * or a change in the order of the rolls cannot make this fail by bad luck.
+     */
+    private static void checkSawdustRate() {
+        ItemStack sawdust = output(sawdustSawmill, 1);
+        int count = sawdust.is(ModItems.SAWDUST.get()) ? sawdust.getCount() : 0;
+        AeroFlux.LOGGER.info("AEROFLUX-SELFTEST INFO sawdust={} from {} logs, planks={}", count, SAWDUST_LOGS, sawdustPlanks);
+        SelfTest.check("sawmill: every log of the long run was cut into six planks",
+                input(sawdustSawmill, 0).isEmpty() && sawdustPlanks == SAWDUST_LOGS * 6);
+        SelfTest.check("sawmill: sawdust dropped at a plausible rate for its one-in-four chance",
+                (sawdust.isEmpty() || sawdust.is(ModItems.SAWDUST.get())) && count >= 2 && count <= 16);
     }
 
     // --- Menus -------------------------------------------------------------------------------

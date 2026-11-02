@@ -28,6 +28,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.MOON_CRYSTAL.get());
                         output.accept(ModItems.FLUXSTEEL_INGOT.get());
                         output.accept(ModItems.AEROGOLD_INGOT.get());
+                        output.accept(ModItems.SAWDUST.get());
                         output.accept(ModItems.AERO_FLUX_BUCKET.get());
                         output.accept(ModItems.MOON_FLUX_BUCKET.get());
                         output.accept(ModItems.FLUX_WRENCH.get());

@@ -14,7 +14,7 @@ TRIM_SWAPS = {
     "sawmill_front": "3A3D42", "sawmill_top": "3A3D42",
     "smelter_front": "C86F4A", "smelter_top": "C86F4A",
     "infuser_side": "C86F4A", "infuser_top": "C86F4A",
-    "enchanter_front": None, "disenchanter_front": None,
+    "lectern_side": "9A6BD6", "enchanter_front": "9A6BD6", "disenchanter_front": "9A6BD6",
 }
 MAKERS = {
     "machine_stone_side": g.stone_side, "machine_metal_side": g.dark_metal_side, "machine_wood_side": g.wood_side,
@@ -22,6 +22,8 @@ MAKERS = {
     "sawmill_front": g.front_sawmill, "sawmill_top": g.top_sawmill,
     "smelter_front": g.front_smelter, "smelter_top": g.top_smelter,
     "infuser_side": g.side_infuser, "infuser_top": g.top_infuser,
+    "lectern_side": g.lectern_side, "enchanter_front": lambda: g.front_enchanter(False),
+    "disenchanter_front": lambda: g.front_enchanter(True),
 }
 CORNERS = ((0, 0), (13, 0), (0, 13), (13, 13))
 

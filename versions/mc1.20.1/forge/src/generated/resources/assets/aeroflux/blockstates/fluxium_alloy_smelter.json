@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=east": {
-      "model": "aeroflux:block/alloy_smelter",
+      "model": "aeroflux:block/fluxium_alloy_smelter",
       "y": 90
     },
     "facing=north": {
-      "model": "aeroflux:block/alloy_smelter"
+      "model": "aeroflux:block/fluxium_alloy_smelter"
     },
     "facing=south": {
-      "model": "aeroflux:block/alloy_smelter",
+      "model": "aeroflux:block/fluxium_alloy_smelter",
       "y": 180
     },
     "facing=west": {
-      "model": "aeroflux:block/alloy_smelter",
+      "model": "aeroflux:block/fluxium_alloy_smelter",
       "y": 270
     }
   }

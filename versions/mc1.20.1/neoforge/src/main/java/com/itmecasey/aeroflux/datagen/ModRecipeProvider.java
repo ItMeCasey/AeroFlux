@@ -85,6 +85,8 @@ public class ModRecipeProvider extends RecipeProvider {
     // --- Sawmill -----------------------------------------------------------------------------
 
     private void sawmill() {
+        // Each vanilla tag covers the log, the wood and both stripped forms of its type
+        // (the stem, hyphae and stripped forms for the nether woods). Pale oak arrives in 1.21.4.
         log("oak", ItemTags.OAK_LOGS, Items.OAK_PLANKS);
         log("spruce", ItemTags.SPRUCE_LOGS, Items.SPRUCE_PLANKS);
         log("birch", ItemTags.BIRCH_LOGS, Items.BIRCH_PLANKS);
@@ -95,14 +97,24 @@ public class ModRecipeProvider extends RecipeProvider {
         log("cherry", ItemTags.CHERRY_LOGS, Items.CHERRY_PLANKS);
         log("crimson", ItemTags.CRIMSON_STEMS, Items.CRIMSON_PLANKS);
         log("warped", ItemTags.WARPED_STEMS, Items.WARPED_PLANKS);
-        add(MachineType.SAWMILL, "bamboo", List.of(in(Ingredient.of(Items.BAMBOO_BLOCK), 1)),
-                List.of(out(Items.BAMBOO_PLANKS, 6, 1.0F), out(Items.STICK, 2, 0.25F)), 100, 0, null);
+
+        // A bamboo block (plain or stripped) crafts into only two planks, so the saw's half again makes three.
+        add(MachineType.SAWMILL, "bamboo", List.of(in(Ingredient.of(ItemTags.BAMBOO_BLOCKS), 1)),
+                List.of(out(Items.BAMBOO_PLANKS, 3, 1.0F), sawdust(0.25F)), 100, 0, null);
+        // Any plank into two sticks, the crafting rate, but one plank at a time and a quick cut.
+        add(MachineType.SAWMILL, "planks", List.of(in(Ingredient.of(ItemTags.PLANKS), 1)),
+                List.of(out(Items.STICK, 2, 1.0F), sawdust(0.10F)), 50, 0, null);
     }
 
-    /** A log into six planks, with a one in four chance of two sticks as the byproduct (no sawdust item exists yet). */
+    /** Every log of one wood type into six planks (half again what crafting gives), with a one in four chance of sawdust. */
     private void log(String wood, TagKey<Item> logs, ItemLike planks) {
         add(MachineType.SAWMILL, wood, List.of(in(Ingredient.of(logs), 1)),
-                List.of(out(planks, 6, 1.0F), out(Items.STICK, 2, 0.25F)), 100, 0, null);
+                List.of(out(planks, 6, 1.0F), sawdust(0.25F)), 100, 0, null);
+    }
+
+    /** The Sawmill's byproduct: a single sawdust at the given chance. */
+    private static FluxRecipe.Output sawdust(float chance) {
+        return out(ModItems.SAWDUST.get(), 1, chance);
     }
 
     // --- Alloy Smelter -----------------------------------------------------------------------

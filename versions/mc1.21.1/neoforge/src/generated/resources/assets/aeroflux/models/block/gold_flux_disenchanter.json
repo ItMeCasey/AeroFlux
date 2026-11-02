@@ -2,8 +2,8 @@
   "parent": "aeroflux:block/flux_disenchanter",
   "textures": {
     "book": "aeroflux:block/book_closed",
-    "front": "aeroflux:block/disenchanter_front",
-    "particle": "aeroflux:block/lectern_side",
-    "side": "aeroflux:block/lectern_side"
+    "front": "aeroflux:block/disenchanter_front_gold",
+    "particle": "aeroflux:block/lectern_side_gold",
+    "side": "aeroflux:block/lectern_side_gold"
   }
 }

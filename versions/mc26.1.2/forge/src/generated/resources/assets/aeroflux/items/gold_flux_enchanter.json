@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/flux_enchanter"
+    "model": "aeroflux:block/gold_flux_enchanter"
   }
 }

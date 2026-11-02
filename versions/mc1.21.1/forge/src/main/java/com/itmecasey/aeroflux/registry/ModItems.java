@@ -46,6 +46,10 @@ public final class ModItems {
     public static final RegistryObject<Item> AEROGOLD_INGOT =
             ITEMS.register("aerogold_ingot", () -> new Item(new Item.Properties()));
 
+    /** The Sawmill's byproduct: a log or plank sometimes leaves a pile of it behind. */
+    public static final RegistryObject<Item> SAWDUST =
+            ITEMS.register("sawdust", () -> new Item(new Item.Properties()));
+
     public static final RegistryObject<BucketItem> AERO_FLUX_BUCKET = ITEMS.register("aero_flux_bucket",
             () -> new BucketItem(ModFluids.AERO_FLUX, bucketProperties()));
 

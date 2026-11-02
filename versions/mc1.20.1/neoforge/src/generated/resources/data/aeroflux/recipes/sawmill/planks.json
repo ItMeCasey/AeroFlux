@@ -1,0 +1,21 @@
+{
+  "type": "aeroflux:sawmill",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "minecraft:planks"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "item": "minecraft:stick"
+    },
+    {
+      "chance": 0.1,
+      "item": "aeroflux:sawdust"
+    }
+  ],
+  "time": 50
+}

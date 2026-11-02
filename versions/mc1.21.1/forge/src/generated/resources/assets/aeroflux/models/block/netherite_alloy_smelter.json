@@ -1,0 +1,9 @@
+{
+  "parent": "aeroflux:block/alloy_smelter",
+  "textures": {
+    "front": "aeroflux:block/smelter_front_netherite",
+    "particle": "aeroflux:block/machine_metal_side_netherite",
+    "side": "aeroflux:block/machine_metal_side_netherite",
+    "top": "aeroflux:block/smelter_top_netherite"
+  }
+}

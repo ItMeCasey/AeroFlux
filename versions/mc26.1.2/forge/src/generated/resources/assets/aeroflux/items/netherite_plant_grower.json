@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/plant_grower"
+    "model": "aeroflux:block/netherite_plant_grower"
   }
 }

@@ -1,0 +1,9 @@
+{
+  "parent": "aeroflux:block/flux_furnace",
+  "textures": {
+    "front": "aeroflux:block/furnace_front_fluxium",
+    "particle": "aeroflux:block/machine_stone_side_fluxium",
+    "side": "aeroflux:block/machine_stone_side_fluxium",
+    "top": "aeroflux:block/machine_stone_side_fluxium"
+  }
+}

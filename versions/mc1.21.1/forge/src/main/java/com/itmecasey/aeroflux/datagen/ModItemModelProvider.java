@@ -21,14 +21,17 @@ public class ModItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         flatItem("flux_dust");
+        flatItem("sawdust");
         fluidBucket("aero_flux_bucket", ModFluids.AERO_FLUX.get());
         fluidBucket("moon_flux_bucket", ModFluids.MOON_FLUX.get());
 
-        // Higher-tier machines show the first tier's block model; the first tier's item model ships with the art.
+        // Each higher-tier machine shows its own tier's block model (see ModBlockStateProvider);
+        // the first tier's item model ships with the art.
         for (MachineType machine : MachineType.values()) {
             for (Tier tier : Tier.values()) {
                 if (tier != Tier.COPPER) {
-                    withExistingParent(ModBlocks.machineBlockName(machine, tier), modLoc("block/" + machine.blockId()));
+                    String name = ModBlocks.machineBlockName(machine, tier);
+                    withExistingParent(name, modLoc("block/" + name));
                 }
             }
         }

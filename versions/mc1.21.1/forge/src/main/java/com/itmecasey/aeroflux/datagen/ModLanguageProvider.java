@@ -54,6 +54,7 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.MOON_CRYSTAL, "Moon Crystal");
         addItem(ModItems.FLUXSTEEL_INGOT, "Fluxsteel Ingot");
         addItem(ModItems.AEROGOLD_INGOT, "Aerogold Ingot");
+        addItem(ModItems.SAWDUST, "Sawdust");
 
         for (MachineType machine : MachineType.values()) {
             for (Tier tier : Tier.values()) {

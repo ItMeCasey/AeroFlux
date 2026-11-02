@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=east": {
-      "model": "aeroflux:block/plant_grower",
+      "model": "aeroflux:block/iron_plant_grower",
       "y": 90
     },
     "facing=north": {
-      "model": "aeroflux:block/plant_grower"
+      "model": "aeroflux:block/iron_plant_grower"
     },
     "facing=south": {
-      "model": "aeroflux:block/plant_grower",
+      "model": "aeroflux:block/iron_plant_grower",
       "y": 180
     },
     "facing=west": {
-      "model": "aeroflux:block/plant_grower",
+      "model": "aeroflux:block/iron_plant_grower",
       "y": 270
     }
   }

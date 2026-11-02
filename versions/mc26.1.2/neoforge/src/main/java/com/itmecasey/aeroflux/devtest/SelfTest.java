@@ -106,8 +106,9 @@ public final class SelfTest {
         if (ToolSelfTest.finished()) {
             ScreenSelfTest.tick();
         }
-        // The machine checks come last, after the screen checks have finished.
-        if (ScreenSelfTest.finished()) {
+        // The machine checks run beside the tool and screen checks: they build in their own layer of the
+        // chunk and use no timing the other two disturb. They still wait for the timed transfer checks.
+        if (TransferSelfTest.finished()) {
             MachineSelfTest.tick();
         }
         if (phase == 2) {

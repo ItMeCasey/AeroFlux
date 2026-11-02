@@ -39,6 +39,9 @@ public final class ModItems {
     /** Gold and an Aero Crystal, made in the Alloy Smelter. */
     public static final DeferredItem<Item> AEROGOLD_INGOT = ITEMS.registerSimpleItem("aerogold_ingot");
 
+    /** The Sawmill's byproduct: a log or plank sometimes leaves a pile of it behind. */
+    public static final DeferredItem<Item> SAWDUST = ITEMS.registerSimpleItem("sawdust");
+
     public static final DeferredItem<BucketItem> AERO_FLUX_BUCKET =ITEMS.registerItem("aero_flux_bucket",
             properties -> new BucketItem(ModFluids.AERO_FLUX.get(), properties), ModItems::bucketProperties);
 

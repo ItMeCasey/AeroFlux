@@ -19,4 +19,9 @@ public final class Ids {
     public static ResourceLocation of(String namespace, String path) {
         return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }
+
+    /** A location written as text, such as {@code aeroflux:block/flux_still} (no namespace means {@code minecraft}). */
+    public static ResourceLocation parse(String location) {
+        return ResourceLocation.parse(location);
+    }
 }

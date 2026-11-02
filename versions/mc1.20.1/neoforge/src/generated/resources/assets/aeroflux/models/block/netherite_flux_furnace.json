@@ -1,0 +1,9 @@
+{
+  "parent": "aeroflux:block/flux_furnace",
+  "textures": {
+    "front": "aeroflux:block/furnace_front_netherite",
+    "particle": "aeroflux:block/machine_stone_side_netherite",
+    "side": "aeroflux:block/machine_stone_side_netherite",
+    "top": "aeroflux:block/machine_stone_side_netherite"
+  }
+}

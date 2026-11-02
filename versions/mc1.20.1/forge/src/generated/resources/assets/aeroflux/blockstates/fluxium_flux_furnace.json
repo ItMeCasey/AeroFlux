@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=east": {
-      "model": "aeroflux:block/flux_furnace",
+      "model": "aeroflux:block/fluxium_flux_furnace",
       "y": 90
     },
     "facing=north": {
-      "model": "aeroflux:block/flux_furnace"
+      "model": "aeroflux:block/fluxium_flux_furnace"
     },
     "facing=south": {
-      "model": "aeroflux:block/flux_furnace",
+      "model": "aeroflux:block/fluxium_flux_furnace",
       "y": 180
     },
     "facing=west": {
-      "model": "aeroflux:block/flux_furnace",
+      "model": "aeroflux:block/fluxium_flux_furnace",
       "y": 270
     }
   }

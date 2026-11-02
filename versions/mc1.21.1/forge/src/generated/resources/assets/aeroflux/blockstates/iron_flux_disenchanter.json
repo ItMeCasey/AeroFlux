@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=east": {
-      "model": "aeroflux:block/flux_disenchanter",
+      "model": "aeroflux:block/iron_flux_disenchanter",
       "y": 90
     },
     "facing=north": {
-      "model": "aeroflux:block/flux_disenchanter"
+      "model": "aeroflux:block/iron_flux_disenchanter"
     },
     "facing=south": {
-      "model": "aeroflux:block/flux_disenchanter",
+      "model": "aeroflux:block/iron_flux_disenchanter",
       "y": 180
     },
     "facing=west": {
-      "model": "aeroflux:block/flux_disenchanter",
+      "model": "aeroflux:block/iron_flux_disenchanter",
       "y": 270
     }
   }

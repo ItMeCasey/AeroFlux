@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.AeroFlux;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -19,11 +20,17 @@ public final class DataGenerators {
     private DataGenerators() {
     }
 
-    /** Registers the client-side providers: translations and item/block models. */
+    /**
+     * Registers the client-side providers: translations and item/block models. The model provider
+     * reads the hand-made models and textures through the client resources, which hold the
+     * {@code --existing} pack ({@code src/main/resources}).
+     */
     @SubscribeEvent
     public static void gatherClientData(GatherDataEvent.Client event) {
         event.createProvider(ModLanguageProvider::new);
-        event.createProvider(ModModelProvider::new);
+        // Not a lambda here: it would become a method of this class that names the client-only
+        // model provider, and the dedicated server fails while scanning this class for events.
+        event.createProvider(ModModelProvider.reading(event.getResourceManager(PackType.CLIENT_RESOURCES)));
     }
 
     /** Registers the server-side providers: recipes, block tags and loot tables. */

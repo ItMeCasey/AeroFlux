@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/plant_grower",
+  "textures": {
+    "frame": "aeroflux:block/frame_netherite",
+    "moon": "aeroflux:block/moon_panel",
+    "particle": "aeroflux:block/frame_netherite",
+    "soil": "aeroflux:block/soil_top",
+    "sprout": "aeroflux:block/sprout",
+    "sun": "aeroflux:block/sun_panel"
+  }
+}

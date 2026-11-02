@@ -19,4 +19,12 @@ public final class Ids {
     public static ResourceLocation of(String namespace, String path) {
         return new ResourceLocation(namespace, path);
     }
+
+    /**
+     * Reads a location written as {@code namespace:path}, as model and recipe files store them.
+     * A bare path falls into the {@code minecraft} namespace, the same as in vanilla files.
+     */
+    public static ResourceLocation parse(String id) {
+        return new ResourceLocation(id);
+    }
 }

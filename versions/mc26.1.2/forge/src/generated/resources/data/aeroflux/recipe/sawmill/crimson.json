@@ -15,8 +15,7 @@
     {
       "chance": 0.25,
       "item": {
-        "count": 2,
-        "id": "minecraft:stick"
+        "id": "aeroflux:sawdust"
       }
     }
   ],

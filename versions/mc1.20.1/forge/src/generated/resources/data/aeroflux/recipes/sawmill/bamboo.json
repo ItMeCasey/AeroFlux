@@ -3,19 +3,18 @@
   "inputs": [
     {
       "ingredient": {
-        "item": "minecraft:bamboo_block"
+        "tag": "minecraft:bamboo_blocks"
       }
     }
   ],
   "outputs": [
     {
-      "count": 6,
+      "count": 3,
       "item": "minecraft:bamboo_planks"
     },
     {
       "chance": 0.25,
-      "count": 2,
-      "item": "minecraft:stick"
+      "item": "aeroflux:sawdust"
     }
   ],
   "time": 100

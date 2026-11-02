@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/flux_infuser"
+    "model": "aeroflux:block/netherite_flux_infuser"
   }
 }

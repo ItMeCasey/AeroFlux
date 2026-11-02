@@ -1,0 +1,9 @@
+{
+  "parent": "aeroflux:block/flux_enchanter",
+  "textures": {
+    "book": "aeroflux:block/book_open",
+    "front": "aeroflux:block/enchanter_front_diamond",
+    "particle": "aeroflux:block/lectern_side_diamond",
+    "side": "aeroflux:block/lectern_side_diamond"
+  }
+}
