@@ -11,6 +11,7 @@ import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import com.itmecasey.aeroflux.registry.ModMenus;
 import com.itmecasey.aeroflux.registry.ModRecipes;
+import com.itmecasey.aeroflux.registry.ModSounds;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -50,9 +51,12 @@ public final class AeroFlux {
         ModMenus.register(modBusGroup);
         ModRecipes.register(modBusGroup);
         ModCreativeTabs.register(modBusGroup);
+        ModSounds.register(modBusGroup);
         ChunkLoaderTickets.register(modBusGroup);
         GatherDataEvent.getBus(modBusGroup).addListener(DataGenerators::gatherData);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
+        // Sound and particle settings only matter where the game is drawn.
+        context.registerConfig(ModConfig.Type.CLIENT, AeroFluxClientConfig.SPEC);
         StorageSizesSync.register();
 
         LOGGER.info("AeroFlux loaded (Forge 26.1.2)");

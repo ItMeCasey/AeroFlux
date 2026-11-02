@@ -1,5 +1,5 @@
-// 26.1.2	2026-11-02T09:52:26.1962442	Tags for minecraft:block mod id aeroflux
+// 26.1.2	2026-11-02T17:28:31.709746	Tags for minecraft:block mod id aeroflux
 e75eb4659f0f25e42fa60a7ca7cae6e6d716ff2d data/aeroflux/tags/block/moon_lamp_plants.json
 e2bf84fbc6b8ed609a0886658e822a4eec5c468d data/aeroflux/tags/block/sun_lamp_plants.json
-268b35058273be893ff2d60cd864fa470d94febc data/minecraft/tags/block/mineable/pickaxe.json
+b74d444a6caa98b9bf85b9b56889fb1368bb3b81 data/minecraft/tags/block/mineable/pickaxe.json
 a4b986821c6586d31047a0a5bc72eaa94c12bc02 data/minecraft/tags/block/needs_stone_tool.json

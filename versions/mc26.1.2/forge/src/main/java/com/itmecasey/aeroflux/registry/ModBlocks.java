@@ -10,6 +10,7 @@ import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.creative.CreativeFluxTankBlock;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
@@ -59,6 +60,10 @@ public final class ModBlocks {
 
     /** The block that carries every kind of pipe; see {@link ConduitBundleBlock}. */
     public static final RegistryObject<ConduitBundleBlock> CONDUIT_BUNDLE = BLOCKS.register("conduit_bundle", () -> new ConduitBundleBlock(bundleProperties("conduit_bundle")));
+
+    /** The creative-only endless tank; see {@link CreativeFluxTankBlock}. */
+    public static final RegistryObject<CreativeFluxTankBlock> CREATIVE_TANK = BLOCKS.register("creative_flux_tank",
+            () -> new CreativeFluxTankBlock(tankProperties("creative_flux_tank")));
 
     static {
         for (Tier tier : Tier.values()) {

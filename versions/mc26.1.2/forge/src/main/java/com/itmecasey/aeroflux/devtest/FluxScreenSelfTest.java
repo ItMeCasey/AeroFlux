@@ -180,6 +180,8 @@ final class FluxScreenSelfTest {
                 client.blocker() == Blocks.STONE && client.blockerPos().equals(coveredCollector.above(2)));
         SelfTest.check("collector screen: a roofed collector makes nothing and will not fill",
                 client.ratePerTick() == 0.0 && client.ticksToFull() == -1);
+        SelfTest.check("collector motes: a roofed collector tells clients it collects nothing",
+                covered.collecting() == null && !covered.getUpdateTag(level.registryAccess()).contains("collecting"));
 
         FluxCollectorBlockEntity other = collector(otherCollector);
         CollectorMenu otherClient = syncedCollector(other);
@@ -190,6 +192,9 @@ final class FluxScreenSelfTest {
                 otherClient.skyVisible() == other.skyVisible() && (other.blocker() == null) == (otherClient.blocker() == null));
         SelfTest.check("collector screen: the rate arrives to a thousandth of a mB",
                 Math.abs(otherClient.ratePerTick() - other.lastRate()) < 0.001);
+        SelfTest.check("collector motes: clients are told the flux exactly while the collector makes some",
+                other.collecting() == (other.lastRate() > 0.0 ? other.offered() : null)
+                        && other.getUpdateTag(level.registryAccess()).contains("collecting") == (other.collecting() != null));
 
         DimensionRules rules = FluxDimensions.rulesFor(level);
         long clock = level.getDefaultClockTime();

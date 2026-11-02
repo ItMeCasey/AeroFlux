@@ -24,6 +24,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.registries.DeferredRegister;
@@ -127,6 +128,8 @@ public final class ModItems {
                 registerBlockItem(ModBlocks.lamp(kind, tier));
             }
         }
+        ITEMS.register("creative_flux_tank", () -> new BlockItem(ModBlocks.CREATIVE_TANK.get(),
+                new Item.Properties().setId(ITEMS.key("creative_flux_tank")).useBlockDescriptionPrefix().rarity(Rarity.EPIC)));
     }
 
     private ModItems() {

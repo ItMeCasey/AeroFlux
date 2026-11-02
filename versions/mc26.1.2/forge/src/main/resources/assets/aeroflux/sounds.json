@@ -1,0 +1,101 @@
+{
+  "machine.furnace.loop": {
+    "subtitle": "subtitles.aeroflux.machine.furnace",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/furnace_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.grinder.loop": {
+    "subtitle": "subtitles.aeroflux.machine.grinder",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/grinder_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.smelter.loop": {
+    "subtitle": "subtitles.aeroflux.machine.smelter",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/smelter_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.sawmill.loop": {
+    "subtitle": "subtitles.aeroflux.machine.sawmill",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/sawmill_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.infuser.loop": {
+    "subtitle": "subtitles.aeroflux.machine.infuser",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/infuser_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.enchanter.loop": {
+    "subtitle": "subtitles.aeroflux.machine.enchanter",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/enchanter_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.disenchanter.loop": {
+    "subtitle": "subtitles.aeroflux.machine.disenchanter",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/disenchanter_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.grower.loop": {
+    "subtitle": "subtitles.aeroflux.machine.grower",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/grower_loop",
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "machine.start": {
+    "subtitle": "subtitles.aeroflux.machine.start",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/start",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "machine.stop": {
+    "subtitle": "subtitles.aeroflux.machine.stop",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/stop",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "machine.done": {
+    "subtitle": "subtitles.aeroflux.machine.done",
+    "sounds": [
+      {
+        "name": "aeroflux:machine/done",
+        "attenuation_distance": 16
+      }
+    ]
+  }
+}

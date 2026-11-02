@@ -28,6 +28,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.HashedStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -684,6 +685,11 @@ final class ScreenSelfTest {
         @Override
         public void closeContainer() {
             doCloseContainer();
+        }
+
+        /** Chat and action bar messages would go out on the missing connection, so they are dropped. */
+        @Override
+        public void sendSystemMessage(Component message, boolean overlay) {
         }
     }
 }
