@@ -9,10 +9,10 @@ import com.itmecasey.aeroflux.conduit.transfer.TransferNetworks;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Box;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
-import com.itmecasey.aeroflux.core.conduit.PipeGeometry;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.registry.ModBlocks;
@@ -109,24 +109,31 @@ final class ScreenSelfTest {
         state.addPipe(PipeType.ITEM);
         state.setConnection(PipeType.FLUID.lane(), Face.SOUTH, true, true);
         state.setConnection(PipeType.ITEM.lane(), Face.SOUTH, true, true);
-        List<PipeGeometry.Slot> slots = PipeGeometry.layout(2);
+        ConduitLayout layout = ConduitLayout.of(state);
 
-        Box fluidArm = PipeGeometry.arm(slots.get(0), Face.SOUTH, true);
-        Box itemArm = PipeGeometry.arm(slots.get(1), Face.SOUTH, true);
         SelfTest.check("screen target: a click on the fluid arm picks fluid at that face",
-                new PipeConfigActions.Target(PipeType.FLUID, Face.SOUTH).equals(at(state, fluidArm)));
+                new PipeConfigActions.Target(PipeType.FLUID, Face.SOUTH).equals(at(state, layout.armOf(PipeType.FLUID, Face.SOUTH))));
         SelfTest.check("screen target: a click on the item arm picks item at that face",
-                new PipeConfigActions.Target(PipeType.ITEM, Face.SOUTH).equals(at(state, itemArm)));
-        Box connector = PipeGeometry.connector(2, Face.SOUTH);
-        PipeConfigActions.Target onConnector = at(state, connector);
+                new PipeConfigActions.Target(PipeType.ITEM, Face.SOUTH).equals(at(state, layout.armOf(PipeType.ITEM, Face.SOUTH))));
+        PipeConfigActions.Target onConnector = at(state, layout.plateOf(Face.SOUTH));
         SelfTest.check("screen target: a click on the machine connector finds the face",
                 onConnector != null && onConnector.face() == Face.SOUTH);
         SelfTest.check("screen target: a click on a pipe core is not a connector click",
-                at(state, PipeGeometry.core(slots.get(0))) == null);
+                at(state, coreOf(layout, PipeType.FLUID)) == null);
         SelfTest.check("screen target: a click on empty bundle space is not a connector click",
                 PipeConfigActions.resolveTarget(state, 1, 1, 1) == null);
         SelfTest.check("screen target: an empty bundle has no target",
                 PipeConfigActions.resolveTarget(new BundleState(), 8, 8, 8) == null);
+    }
+
+    /** The core cube a pipe has in the layout. */
+    private static Box coreOf(ConduitLayout layout, PipeType type) {
+        for (ConduitLayout.Piece piece : layout.pieces()) {
+            if (piece.kind() == ConduitLayout.Kind.CORE && piece.type() == type) {
+                return piece.box();
+            }
+        }
+        throw new IllegalStateException("No core for " + type);
     }
 
     private static PipeConfigActions.Target at(BundleState state, Box box) {
@@ -138,7 +145,7 @@ final class ScreenSelfTest {
         BlockPos pos = next();
         ConduitBundleBlockEntity entity = placeWithTank(pos, PipeType.FLUID, Tier.IRON);
         prepare(pos);
-        Box arm = PipeGeometry.arm(PipeGeometry.layout(1).get(0), Face.SOUTH, true);
+        Box arm = ConduitLayout.of(entity.bundle()).armOf(PipeType.FLUID, Face.SOUTH);
         BlockHitResult onArm = hit(pos, (arm.minX() + arm.maxX()) / 2, arm.maxY(), (arm.minZ() + arm.maxZ()) / 2);
 
         InteractionResult result = level.getBlockState(pos).useWithoutItem(level, player, onArm);
@@ -165,10 +172,10 @@ final class ScreenSelfTest {
 
     private static void checkHeldItems() {
         BlockPos pos = next();
-        placeWithTank(pos, PipeType.FLUID, Tier.COPPER);
+        ConduitBundleBlockEntity entity = placeWithTank(pos, PipeType.FLUID, Tier.COPPER);
         prepare(pos);
-        Box arm = PipeGeometry.arm(PipeGeometry.layout(1).get(0), Face.SOUTH, true);
-        BlockHitResult onArm = hit(pos, 8, arm.maxY(), 12);
+        Box arm = ConduitLayout.of(entity.bundle()).armOf(PipeType.FLUID, Face.SOUTH);
+        BlockHitResult onArm = hit(pos, (arm.minX() + arm.maxX()) / 2, arm.maxY(), 12);
 
         List<ItemStack> keepers = List.of(new ItemStack(ModItems.FLUX_WRENCH.get()), new ItemStack(ModItems.CONDUIT_TOOL.get()),
                 new ItemStack(ModItems.pipe(PipeType.ITEM, Tier.GOLD).get()), new ItemStack(ModItems.SPEED_UPGRADE.get()));
@@ -359,9 +366,9 @@ final class ScreenSelfTest {
         PipeConfigMenu meMenu = new PipeConfigMenu(2, player.getInventory(), me, PipeType.ME, Face.UP);
         SelfTest.check("screen upgrades: an ME pipe has no upgrade slots", meMenu.slots.size() == 36
                 && !PipeConfigActions.addUpgrade(me, PipeType.ME, PipeUpgrades.Kind.SPEED));
-        SelfTest.check("screen upgrades: the ME title has no tier",
-                "screen.aeroflux.pipe_config.title_untiered".equals(contentKey(PipeConfigMenu.title(PipeType.ME, Tier.COPPER)))
-                        && "screen.aeroflux.pipe_config.title".equals(contentKey(PipeConfigMenu.title(PipeType.FLUID, Tier.GOLD))));
+        SelfTest.check("screen title: just the pipe's own name, with nothing repeated after it",
+                "item.aeroflux.me_pipe".equals(contentKey(PipeConfigMenu.title(PipeType.ME, Tier.COPPER)))
+                        && "item.aeroflux.gold_fluid_pipe".equals(contentKey(PipeConfigMenu.title(PipeType.FLUID, Tier.GOLD))));
     }
 
     private static String contentKey(net.minecraft.network.chat.Component component) {
@@ -462,6 +469,8 @@ final class ScreenSelfTest {
     private static void checkLayouts() {
         boolean fits = true;
         boolean apart = true;
+        boolean mockup = true;
+        boolean side = true;
         for (PipeType type : PipeType.values()) {
             for (Tier tier : Tier.values()) {
                 PipeConfigLayout layout = PipeConfigLayout.of(type, tier);
@@ -469,23 +478,98 @@ final class ScreenSelfTest {
                         && layout.hotbarY() + PipeConfigLayout.SLOT <= layout.height()
                         && layout.inventoryX() + 9 * PipeConfigLayout.SLOT <= layout.width()
                         && layout.upgradeSlotCount() == PipeConfigActions.upgradeSlots(type, tier);
-                List<PipeConfigLayout.Rect> all = new ArrayList<>(layout.modeButtons());
-                all.addAll(layout.distributionButtons());
+                // Buttons count with the two-pixel selection ring around them, so two rings never touch.
+                List<PipeConfigLayout.Rect> all = new ArrayList<>();
+                for (PipeConfigLayout.Rect button : layout.modeButtons()) {
+                    all.add(ringed(button));
+                }
+                for (PipeConfigLayout.Rect button : layout.distributionButtons()) {
+                    all.add(ringed(button));
+                }
+                all.add(layout.pipeBox());
+                all.add(layout.tierGem());
+                all.add(layout.faceNet());
+                all.add(layout.rateArea());
+                for (int i = 0; i < PipeConfigLayout.TIER_CELLS; i++) {
+                    all.add(layout.tierCell(i));
+                }
+                if (layout.upgradeSlotCount() > 0) {
+                    all.add(layout.upgradeGlyphs());
+                    for (int i = 0; i < layout.upgradeSlotCount(); i++) {
+                        all.add(new PipeConfigLayout.Rect(layout.upgradeSlotX(i) - 1, layout.upgradeSlotY() - 1,
+                                PipeConfigLayout.SLOT, PipeConfigLayout.SLOT));
+                    }
+                    fits &= layout.upgradeSlotY() + PipeConfigLayout.SLOT <= layout.inventoryY();
+                }
+                if (layout.hasFilterSlot()) {
+                    all.add(layout.filterUpgradeSlot());
+                }
+                if (layout.hasPrioritySlot()) {
+                    all.add(layout.priorityUpgradeSlot());
+                }
+                side &= checkSidePanel(layout);
                 for (int i = 0; i < all.size(); i++) {
                     PipeConfigLayout.Rect a = all.get(i);
-                    fits &= a.x() >= 0 && a.x() + a.width() <= layout.width() && a.y() + a.height() <= layout.height();
+                    // Inside the panel's two-pixel border, and above the player inventory.
+                    fits &= a.x() >= 2 && a.y() >= 2 && a.x() + a.width() <= layout.width() - 2
+                            && a.y() + a.height() < layout.inventoryY();
                     for (int j = i + 1; j < all.size(); j++) {
                         apart &= !a.overlaps(all.get(j));
                     }
                 }
-                if (layout.upgradeSlotCount() > 0) {
-                    fits &= layout.upgradeSlotX(layout.upgradeSlotCount() - 1) + PipeConfigLayout.SLOT <= layout.width()
-                            && layout.upgradeSlotY() + PipeConfigLayout.SLOT <= layout.inventoryY();
-                }
+                mockup &= layout.height() == 178 + (layout.hasDistribution() ? 32 : 0) + (layout.upgradeSlotCount() > 0 ? 26 : 0);
             }
         }
         SelfTest.check("screen layout: every pipe and tier fits in 176 by 270 pixels", fits);
-        SelfTest.check("screen layout: no two buttons overlap", apart);
+        SelfTest.check("screen layout: no two buttons or drawn parts overlap", apart);
+        SelfTest.check("screen layout: the rows and panel height follow the mockup", mockup);
+        SelfTest.check("screen layout: the filter and priority side panel holds its parts apart and fits a 320 pixel wide window", side);
+    }
+
+    /**
+     * The side panel for every combination of installed upgrades: its parts lie inside it and
+     * apart from each other, and the main panel plus the side panel fit the smallest GUI width.
+     */
+    private static boolean checkSidePanel(PipeConfigLayout layout) {
+        boolean ok = true;
+        for (int combo = 1; combo < 4; combo++) {
+            boolean filter = (combo & 1) != 0 && layout.hasFilterSlot();
+            boolean priority = (combo & 2) != 0 && layout.hasPrioritySlot();
+            PipeConfigLayout.Rect panel = layout.sidePanel(filter, priority);
+            if (panel == null) {
+                continue;
+            }
+            List<PipeConfigLayout.Rect> parts = new ArrayList<>();
+            if (filter) {
+                parts.add(layout.filterIcon());
+                parts.add(layout.filterModeButton());
+                for (int i = 0; i < layout.filterSlotCount(); i++) {
+                    parts.add(layout.filterSlot(i));
+                }
+            }
+            if (priority) {
+                parts.add(layout.priorityDownButton(filter));
+                parts.add(layout.priorityValue(filter));
+                parts.add(layout.priorityUpButton(filter));
+            }
+            for (int i = 0; i < parts.size(); i++) {
+                PipeConfigLayout.Rect a = parts.get(i);
+                ok &= a.x() >= panel.x() + 2 && a.y() >= panel.y() + 2
+                        && a.x() + a.width() <= panel.x() + panel.width() - 2
+                        && a.y() + a.height() <= panel.y() + panel.height() - 2;
+                for (int j = i + 1; j < parts.size(); j++) {
+                    ok &= !a.overlaps(parts.get(j));
+                }
+            }
+            ok &= panel.x() >= layout.width() && panel.y() + panel.height() <= layout.height()
+                    && (320 - layout.width()) / 2 + panel.x() + panel.width() <= 320;
+        }
+        return ok;
+    }
+
+    /** A button grown by the two pixels of its selection ring. */
+    private static PipeConfigLayout.Rect ringed(PipeConfigLayout.Rect button) {
+        return new PipeConfigLayout.Rect(button.x() - 2, button.y() - 2, button.width() + 4, button.height() + 4);
     }
 
     // --- Helpers -----------------------------------------------------------------------------

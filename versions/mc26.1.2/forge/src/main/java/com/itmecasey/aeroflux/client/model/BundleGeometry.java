@@ -1,7 +1,7 @@
 package com.itmecasey.aeroflux.client.model;
 
-import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.mojang.math.Quadrant;
+import java.util.List;
 import net.minecraft.client.renderer.block.dispatch.ModelState;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelDebugName;
@@ -16,8 +16,9 @@ import net.minecraft.core.Direction;
 import org.joml.Vector3f;
 
 /**
- * The unbaked form of the conduit bundle model. The model file names one texture per pipe type
- * (after the type's id), plus {@code node} for connectors and {@code particle}.
+ * The unbaked form of the conduit bundle model. The model file names the white pipe textures
+ * {@code side} and {@code end}, which every pipe shares and tints with its color, plus
+ * {@code node} for connectors and {@code particle}.
  *
  * <p>A baked geometry in 26.1 is a fixed list of quads, which cannot depend on the block
  * entity. So this bakes only a swatch per texture: tiny stand-in quads that carry the baked
@@ -27,14 +28,15 @@ import org.joml.Vector3f;
 public class BundleGeometry implements UnbakedGeometry {
     /** The face every swatch is baked on. Which one does not matter. */
     private static final Direction SWATCH_FACE = Direction.SOUTH;
+    /** The texture slots, in the order {@link BundleMaterials} reads them back. */
+    private static final List<String> SLOTS = List.of("side", "end", "node");
 
     @Override
     public QuadCollection bake(TextureSlots textures, ModelBaker baker, ModelState state, ModelDebugName name) {
         QuadCollection.Builder swatches = new QuadCollection.Builder();
-        for (PipeType type : PipeType.values()) {
-            swatches.addUnculledFace(swatch(textures, baker, state, name, type.id()));
+        for (String slot : SLOTS) {
+            swatches.addUnculledFace(swatch(textures, baker, state, name, slot));
         }
-        swatches.addUnculledFace(swatch(textures, baker, state, name, "node"));
         return swatches.build();
     }
 

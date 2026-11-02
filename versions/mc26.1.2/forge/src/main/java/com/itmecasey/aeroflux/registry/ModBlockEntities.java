@@ -3,7 +3,10 @@ package com.itmecasey.aeroflux.registry;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
+import com.itmecasey.aeroflux.lamp.FluxLampBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineFactory;
 import java.util.Set;
@@ -37,6 +40,18 @@ public final class ModBlockEntities {
     public static final RegistryObject<BlockEntityType<ConduitBundleBlockEntity>> CONDUIT_BUNDLE =
             BLOCK_ENTITIES.register("conduit_bundle", () -> new BlockEntityType<>(ConduitBundleBlockEntity::new,
                     Set.<Block>of(ModBlocks.CONDUIT_BUNDLE.get())));
+
+    public static final RegistryObject<BlockEntityType<FluxChunkLoaderBlockEntity>> CHUNK_LOADER =
+            BLOCK_ENTITIES.register("chunk_loader", () -> new BlockEntityType<>(FluxChunkLoaderBlockEntity::new,
+                    validBlocks(ModBlocks.chunkLoaders())));
+
+    public static final RegistryObject<BlockEntityType<FluxConverterBlockEntity>> CONVERTER =
+            BLOCK_ENTITIES.register("converter", () -> new BlockEntityType<>(FluxConverterBlockEntity::new,
+                    validBlocks(ModBlocks.converters())));
+
+    public static final RegistryObject<BlockEntityType<FluxLampBlockEntity>> LAMP =
+            BLOCK_ENTITIES.register("lamp", () -> new BlockEntityType<>(FluxLampBlockEntity::new,
+                    validBlocks(ModBlocks.lamps())));
 
     private ModBlockEntities() {
     }

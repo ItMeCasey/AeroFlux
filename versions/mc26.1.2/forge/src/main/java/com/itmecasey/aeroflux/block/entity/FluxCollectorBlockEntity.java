@@ -7,6 +7,7 @@ import com.itmecasey.aeroflux.core.DimensionRules;
 import com.itmecasey.aeroflux.core.FluxAccumulator;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.fluid.OutputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
@@ -55,7 +56,16 @@ public class FluxCollectorBlockEntity extends BlockEntity {
     public FluxCollectorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COLLECTOR.get(), pos, state);
         this.tier = ((FluxCollectorBlock) state.getBlock()).tier();
-        this.buffer = new FluidTank(AeroFluxConfig.collectorBuffer(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
+        this.buffer = new FluxFluidTank(AeroFluxConfig.collectorBuffer(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
+            /**
+             * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
+             * update); it still takes nothing more, and probes see a full tank rather than more than 100%.
+             */
+            @Override
+            public int getCapacity() {
+                return Math.max(super.getCapacity(), getFluidAmount());
+            }
+
             @Override
             protected void onContentsChanged() {
                 setChanged();
@@ -102,7 +112,10 @@ public class FluxCollectorBlockEntity extends BlockEntity {
         int moonPhase = level.environmentAttributes().getValue(EnvironmentAttributes.MOON_PHASE, pos).index();
 
         for (FluxType type : FluxType.values()) {
-            Fluid fluid = type == FluxType.AERO ? ModFluids.AERO_FLUX.get() : ModFluids.MOON_FLUX.get();
+            if (!type.collected()) {
+                continue;
+            }
+            Fluid fluid = ModFluids.fluidOf(type);
             if (!buffer.isEmpty() && !buffer.getFluid().getFluid().isSame(fluid)) {
                 continue;
             }

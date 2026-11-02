@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.OutputChance;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.machine.recipe.MachineInput;
@@ -45,7 +46,7 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
     @Nullable
     @Override
     protected Job findJob() {
-        if (!(level instanceof ServerLevel serverLevel)) {
+        if (!(level instanceof ServerLevel server)) {
             return null;
         }
         MachineInput input = new MachineInput(inputStacks());
@@ -54,13 +55,32 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             return null;
         }
         RecipeHolder<FluxRecipe> recipe = lastRecipe;
-        if (recipe == null || !recipe.value().matches(input, serverLevel)) {
+        if (recipe == null || !recipe.value().matches(input, server)) {
             Optional<RecipeHolder<FluxRecipe>> found =
-                    serverLevel.recipeAccess().getRecipeFor(ModRecipes.type(machine()).get(), input, serverLevel);
-            recipe = found.orElse(null);
+                    server.recipeAccess().getRecipeFor(ModRecipes.type(machine()).get(), input, server);
+            // The machine's own recipes win; recipes imported from other mods fill the gaps.
+            recipe = found.orElseGet(() -> RecipeImports.of(server, machine()).stream()
+                    .filter(imported -> imported.value().matches(input, server)).findFirst().orElse(null));
             lastRecipe = recipe;
         }
-        return recipe == null ? null : new RecipeJob(recipe);
+        // A recipe that needs water (the Purifier's) waits until the tank has enough.
+        if (recipe == null || !hasWater(recipe.value().water())) {
+            return null;
+        }
+        return new RecipeJob(recipe);
+    }
+
+    private int waterTank() {
+        return extraTankIndex(ExtraTank.WATER);
+    }
+
+    /** Whether the water tank holds enough for a run (always true for a run that needs none). */
+    private boolean hasWater(int needed) {
+        if (needed <= 0) {
+            return true;
+        }
+        int tank = waterTank();
+        return tank >= 0 && extraAmount(tank) >= needed;
     }
 
     @Override
@@ -86,10 +106,20 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             return holder.value().time();
         }
 
+        /**
+         * Only the products a run always makes must have room. Chance byproducts (seeds, sawdust)
+         * take whatever space is left, so a slot full of them never stops the machine while its
+         * main product still fits.
+         */
         @Override
         public boolean outputFits() {
-            // Judged on the full set of products, so a lucky roll can never find the outputs full.
-            return canFitOutputs(holder.value().possibleProducts());
+            List<ItemStack> certain = new ArrayList<>();
+            for (FluxRecipe.Output output : holder.value().outputs()) {
+                if (output.chance() >= 1.0) {
+                    certain.add(output.stack());
+                }
+            }
+            return canFitOutputs(certain);
         }
 
         @Override
@@ -112,6 +142,9 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             }
             for (int i = 0; i < slots.length; i++) {
                 consumeInput(slots[i], recipe.inputs().get(i).count());
+            }
+            if (recipe.water() > 0) {
+                drainExtra(waterTank(), recipe.water(), false);
             }
             RandomSource rolls = seededRolls != null ? seededRolls : level.getRandom();
             List<ItemStack> products = new ArrayList<>();

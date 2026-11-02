@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.fluid.Buckets;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -26,19 +28,24 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.fluids.FluidUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * The block of every Flux machine: one class for all eight machines and all six tiers. The
  * machine type decides what the block entity does and the tier decides how fast and how big;
  * the block itself only faces a direction, opens the screen and hands out its contents when it
- * breaks (the block entity drops them, see {@link FluxMachineBlockEntity#preRemoveSideEffects}).
+ * breaks.
  */
 public class FluxMachineBlock extends BaseEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    /** True while the machine is working; the model then shows its animated front. */
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;
+    /** How much light a working machine gives off, the same as a lit furnace. */
+    public static final int LIT_LIGHT = 13;
 
     public static final MapCodec<FluxMachineBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Codec.STRING.xmap(name -> Tier.valueOf(name.toUpperCase(Locale.ROOT)), Tier::id)
@@ -55,7 +62,7 @@ public class FluxMachineBlock extends BaseEntityBlock {
         super(properties);
         this.tier = tier;
         this.machine = machine;
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
     public Tier tier() {
@@ -73,7 +80,7 @@ public class FluxMachineBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
 
     /** The front faces the player who placed it. */
@@ -93,6 +100,12 @@ public class FluxMachineBlock extends BaseEntityBlock {
     }
 
     @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        // Block entity blocks are invisible unless they say otherwise; these use their JSON models.
+        return RenderShape.MODEL;
+    }
+
+    @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return MachineFactory.create(pos, state);
     }
@@ -101,7 +114,7 @@ public class FluxMachineBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hit) {
-        if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, null)) {
+        if (Buckets.interact(player, hand, level, pos, null)) {
             return InteractionResult.SUCCESS;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
@@ -116,10 +129,19 @@ public class FluxMachineBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    /** Only the server works, so only the server ticks. */
-    @Nullable
+    /** Tells the machine about its redstone signal whenever a neighbor changes, which is when that signal can change. */
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbor,
+                                   @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighbor, orientation, movedByPiston);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FluxMachineBlockEntity entity) {
+            entity.readSignal(level);
+        }
+    }
+
+    /** Only the server works, so only the server ticks. */
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null
                 : createTickerHelper(type, ModBlockEntities.MACHINE.get(), FluxMachineBlockEntity::serverTick);
     }

@@ -7,33 +7,49 @@ import java.util.Map;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 
 /**
- * The baked look of every texture a bundle draws with: one per pipe type, plus the connector
- * texture. Minecraft 26.1 bakes a material into each quad rather than handing out sprites, so the
- * model gets these by baking one swatch quad per texture (see {@link BundleGeometry}) and
- * keeping the material that came out.
+ * The baked look of the three textures a bundle draws with: the pipe side, the pipe end and the
+ * connector. Minecraft 26.1 bakes a material into each quad rather than handing out sprites, so the
+ * model gets these by baking one swatch quad per texture (see {@link BundleGeometry}) and keeping
+ * the material that came out.
+ *
+ * <p>The pipe textures are white and tinted with the pipe's color. Forge has no per-quad color,
+ * so each pipe type gets its own tint index (its ordinal), and the bundle block's tint sources
+ * (see {@code ClientSetup}) give each index its color.
  */
 final class BundleMaterials {
-    private final Map<PipeType, BakedQuad.MaterialInfo> pipes = new EnumMap<>(PipeType.class);
+    private final Map<PipeType, BakedQuad.MaterialInfo> sides = new EnumMap<>(PipeType.class);
+    private final Map<PipeType, BakedQuad.MaterialInfo> ends = new EnumMap<>(PipeType.class);
     private final BakedQuad.MaterialInfo node;
 
     /**
      * Reads the swatches back in the order {@link BundleGeometry} baked them.
      *
-     * @param swatches one quad per pipe type, then one for the node
+     * @param swatches the side, the end and the node, in that order
      */
     BundleMaterials(List<BakedQuad> swatches) {
-        PipeType[] types = PipeType.values();
-        if (swatches.size() != types.length + 1) {
-            throw new IllegalArgumentException("Expected " + (types.length + 1) + " swatches but found " + swatches.size());
+        if (swatches.size() != 3) {
+            throw new IllegalArgumentException("Expected 3 swatches but found " + swatches.size());
         }
-        for (int i = 0; i < types.length; i++) {
-            pipes.put(types[i], swatches.get(i).materialInfo());
+        BakedQuad.MaterialInfo side = swatches.get(0).materialInfo();
+        BakedQuad.MaterialInfo end = swatches.get(1).materialInfo();
+        for (PipeType type : PipeType.values()) {
+            sides.put(type, tinted(side, type));
+            ends.put(type, tinted(end, type));
         }
-        node = swatches.get(types.length).materialInfo();
+        node = swatches.get(2).materialInfo();
     }
 
-    BakedQuad.MaterialInfo pipe(PipeType type) {
-        return pipes.get(type);
+    private static BakedQuad.MaterialInfo tinted(BakedQuad.MaterialInfo base, PipeType type) {
+        return new BakedQuad.MaterialInfo(base.sprite(), base.layer(), base.itemRenderType(), type.ordinal(),
+                base.shade(), base.lightEmission());
+    }
+
+    BakedQuad.MaterialInfo side(PipeType type) {
+        return sides.get(type);
+    }
+
+    BakedQuad.MaterialInfo end(PipeType type) {
+        return ends.get(type);
     }
 
     BakedQuad.MaterialInfo node() {

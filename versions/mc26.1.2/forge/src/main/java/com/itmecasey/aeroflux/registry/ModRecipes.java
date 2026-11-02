@@ -5,9 +5,14 @@ import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipeSerializer;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
@@ -52,6 +57,18 @@ public final class ModRecipes {
     /** The serializer of a machine that has recipes of its own. */
     public static RegistryObject<RecipeSerializer<FluxRecipe>> serializer(MachineType machine) {
         return BY_SERIALIZER.get(machine);
+    }
+
+    /** Every recipe of one type the server has loaded, in no particular order. */
+    @SuppressWarnings("unchecked")
+    public static <T extends Recipe<?>> List<RecipeHolder<T>> all(ServerLevel level, RecipeType<T> type) {
+        List<RecipeHolder<T>> found = new ArrayList<>();
+        for (RecipeHolder<?> holder : level.recipeAccess().getRecipes()) {
+            if (holder.value().getType() == type) {
+                found.add((RecipeHolder<T>) holder);
+            }
+        }
+        return found;
     }
 
     /** Hooks this registry into the mod event bus group; call once from the mod constructor. */

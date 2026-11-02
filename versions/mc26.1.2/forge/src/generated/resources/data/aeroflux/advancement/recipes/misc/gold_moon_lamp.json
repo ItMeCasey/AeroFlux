@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_iron_moon_lamp": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:iron_moon_lamp"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:gold_moon_lamp"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_iron_moon_lamp"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:gold_moon_lamp"
+    ]
+  }
+}

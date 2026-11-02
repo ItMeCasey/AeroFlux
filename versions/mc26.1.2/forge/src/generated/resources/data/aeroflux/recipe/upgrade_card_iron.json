@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "#c:ingots/iron",
+    "D": "aeroflux:flux_dust",
+    "S": "#c:ingots/iron",
+    "T": "#c:ingots/iron"
+  },
+  "pattern": [
+    " T ",
+    "SDS",
+    " B "
+  ],
+  "result": {
+    "id": "aeroflux:upgrade_card_iron"
+  }
+}

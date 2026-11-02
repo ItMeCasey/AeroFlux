@@ -1,7 +1,12 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/fluxium_energy_pipe"
+    "model": "aeroflux:item/fluxium_energy_pipe",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -1543398
+      }
+    ]
   }
 }
-

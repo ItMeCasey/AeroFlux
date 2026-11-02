@@ -1,0 +1,24 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": "minecraft:sand"
+    }
+  ],
+  "mesh": "iron",
+  "outputs": [
+    {
+      "chance": 0.05,
+      "item": {
+        "id": "minecraft:quartz"
+      }
+    },
+    {
+      "chance": 0.05,
+      "item": {
+        "id": "minecraft:cactus"
+      }
+    }
+  ],
+  "time": 100
+}

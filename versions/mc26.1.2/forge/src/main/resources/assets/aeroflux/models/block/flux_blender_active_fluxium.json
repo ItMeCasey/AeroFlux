@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_blender_base",
+  "textures": {
+    "side": "aeroflux:block/flux_blender_side_fluxium",
+    "back": "aeroflux:block/flux_blender_back_fluxium",
+    "top": "aeroflux:block/flux_blender_top_fluxium",
+    "bottom": "aeroflux:block/flux_blender_bottom_fluxium",
+    "front": "aeroflux:block/flux_blender_front_active_fluxium",
+    "particle": "aeroflux:block/flux_blender_side_fluxium"
+  }
+}

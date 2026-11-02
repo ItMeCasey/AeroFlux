@@ -1,7 +1,9 @@
 package com.itmecasey.aeroflux.client.model;
 
+import com.itmecasey.aeroflux.conduit.BundleShapes;
 import com.itmecasey.aeroflux.core.conduit.Box;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.mojang.math.Quadrant;
 import java.util.ArrayList;
@@ -29,6 +31,11 @@ import org.joml.Vector3fc;
  * The model of a conduit bundle. It builds its quads on demand from the bundle's contents, which
  * the block entity supplies as model data, and caches them by the bundle's look so that the many
  * bundles sharing the same set and connections cost one build.
+ *
+ * <p>Pipes are plain: every pipe uses the same two white textures, tinted with its own color. The
+ * side texture has a dark line down both long edges and the end texture a dark frame, so the
+ * edges stay readable while the color says what the pipe carries. Side faces are turned so the
+ * lines always run along the pipe.
  */
 public final class BundleBlockStateModel implements BlockStateModel {
     /** Nothing here needs sharing between quads, so the quads can keep their own vectors. */
@@ -43,6 +50,8 @@ public final class BundleBlockStateModel implements BlockStateModel {
             return material;
         }
     };
+
+    private static final CuboidFace.UVs WHOLE = new CuboidFace.UVs(0, 0, 16, 16);
 
     private final BundleMaterials materials;
     private final Material.Baked particle;
@@ -104,29 +113,72 @@ public final class BundleBlockStateModel implements BlockStateModel {
         return materialFlags;
     }
 
+    /**
+     * Builds the quads from the bundle's layout: pipe cores and arms in their pipe's color, and the
+     * junction box, plates and plugs in the shared connector texture.
+     */
     private BlockStateModelPart build(BundleState bundle) {
         QuadCollection.Builder quads = new QuadCollection.Builder();
-        for (PipeType type : bundle.set().types()) {
-            BakedQuad.MaterialInfo material = materials.pipe(type);
-            for (Box box : bundle.boxesOf(type)) {
-                addBox(quads, box, material);
+        for (ConduitLayout.Piece piece : ConduitLayout.of(bundle).pieces()) {
+            switch (piece.kind()) {
+                case CORE, ARM -> addPipeBox(quads, piece.box(), axis(piece.axis()), piece.type());
+                case JUNCTION, PLATE, PLUG -> addConnectorBox(quads, piece.box());
             }
-        }
-        for (Box box : bundle.connectorBoxes()) {
-            addBox(quads, box, materials.node());
         }
         // The pipes do not fill their block's faces, so nothing is ever culled against a neighbor.
         return new SimpleModelWrapper(quads.build(), true, particle);
     }
 
-    /** Adds the six faces of a box. Faces shared with another box are left in; they are hidden. */
-    private static void addBox(QuadCollection.Builder quads, Box box, BakedQuad.MaterialInfo material) {
+    /** The game's axis for a layout axis (0 x, 1 y, 2 z), or {@code null} for none. */
+    @Nullable
+    private static Direction.Axis axis(int axis) {
+        return switch (axis) {
+            case 0 -> Direction.Axis.X;
+            case 1 -> Direction.Axis.Y;
+            case 2 -> Direction.Axis.Z;
+            default -> null;
+        };
+    }
+
+    /**
+     * Adds a piece of pipe running along {@code axis}: its sides show the edge lines along the
+     * pipe and its two ends the framed end. A core with no single direction (a corner, or a pipe
+     * with no connections) is framed on every face.
+     */
+    private void addPipeBox(QuadCollection.Builder quads, Box box, @Nullable Direction.Axis axis, PipeType type) {
+        if (!BundleShapes.hasVolume(box)) {
+            return;
+        }
         Vector3f from = new Vector3f((float) box.minX(), (float) box.minY(), (float) box.minZ());
         Vector3f to = new Vector3f((float) box.maxX(), (float) box.maxY(), (float) box.maxZ());
         for (Direction direction : Direction.values()) {
-            quads.addUnculledFace(FaceBakery.bakeQuad(NO_INTERNING, from, to, uvFor(direction, box),
-                    Quadrant.R0, material, direction, BlockModelRotation.IDENTITY, null));
+            if (axis == null || direction.getAxis() == axis) {
+                addFace(quads, from, to, WHOLE, direction, Quadrant.R0, materials.end(type));
+            } else {
+                // The side texture's lines run down it, so a face whose rows already follow the pipe
+                // takes it as it is and the others take it turned a quarter.
+                boolean rowsFollowPipe = axis == (direction.getAxis() != Direction.Axis.Y ? Direction.Axis.Y : Direction.Axis.Z);
+                addFace(quads, from, to, WHOLE, direction, rowsFollowPipe ? Quadrant.R0 : Quadrant.R90, materials.side(type));
+            }
         }
+    }
+
+    /** Adds the six faces of a junction box, plate or plug, untinted. */
+    private void addConnectorBox(QuadCollection.Builder quads, Box box) {
+        if (!BundleShapes.hasVolume(box)) {
+            return;
+        }
+        Vector3f from = new Vector3f((float) box.minX(), (float) box.minY(), (float) box.minZ());
+        Vector3f to = new Vector3f((float) box.maxX(), (float) box.maxY(), (float) box.maxZ());
+        for (Direction direction : Direction.values()) {
+            addFace(quads, from, to, uvFor(direction, box), direction, Quadrant.R0, materials.node());
+        }
+    }
+
+    private static void addFace(QuadCollection.Builder quads, Vector3f from, Vector3f to, CuboidFace.UVs uvs,
+                                Direction direction, Quadrant rotation, BakedQuad.MaterialInfo material) {
+        quads.addUnculledFace(FaceBakery.bakeQuad(NO_INTERNING, from, to, uvs, rotation, material,
+                direction, BlockModelRotation.IDENTITY, null));
     }
 
     /** The default texture region for a face, the same mapping vanilla uses for unspecified UVs. */

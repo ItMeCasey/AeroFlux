@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.block;
 
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.fluid.Buckets;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.fluids.FluidUtil;
 
 /**
  * A storage tank for Aero Flux and Moon Flux. One class serves all six tiers; the tier decides
@@ -63,7 +63,7 @@ public class FluxTankBlock extends BaseEntityBlock {
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hit) {
         // Lets buckets and other fluid containers move fluid in and out of the tank.
-        if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, hit.getDirection())) {
+        if (Buckets.interact(player, hand, level, pos, hit.getDirection())) {
             return InteractionResult.SUCCESS;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);

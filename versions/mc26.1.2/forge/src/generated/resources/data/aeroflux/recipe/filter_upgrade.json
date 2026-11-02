@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "F": "aeroflux:fluxsteel_ingot",
+    "H": "minecraft:hopper",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "FPF",
+    "PHP",
+    "FPF"
+  ],
+  "result": {
+    "id": "aeroflux:filter_upgrade"
+  }
+}

@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.conduit.tool;
 
+import com.itmecasey.aeroflux.conduit.ConduitBundleBlock;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.conduit.PipeItem;
 import com.itmecasey.aeroflux.conduit.transfer.LaneNetwork;
@@ -82,11 +83,11 @@ public final class ConduitToolActions {
         int pipes = 0;
         if (wholeBundle) {
             for (PipeType type : List.copyOf(entity.bundle().set().types())) {
-                takeLane(entity.bundle(), type, items);
+                takeLane(entity, type, items);
                 pipes++;
             }
         } else {
-            takeLane(entity.bundle(), pipe, items);
+            takeLane(entity, pipe, items);
             pipes = 1;
         }
         settle(level, pos, entity);
@@ -97,13 +98,16 @@ public final class ConduitToolActions {
     }
 
     /**
-     * Removes the pipe in its lane and adds what it was worth (the pipe item and its upgrades)
-     * to {@code into}.
+     * Removes the pipe in its lane and adds what it was worth (the pipe item, its upgrades and
+     * the Filter and Priority upgrades at its faces) to {@code into}.
      */
-    private static void takeLane(BundleState bundle, PipeType type, List<ItemStack> into) {
+    private static void takeLane(ConduitBundleBlockEntity entity, PipeType type, List<ItemStack> into) {
+        BundleState bundle = entity.bundle();
         int lane = type.lane();
         into.add(new ItemStack(ModItems.pipe(type, bundle.tier(lane)).get()));
         addUpgrades(into, bundle.speedUpgrades(lane), bundle.capacityUpgrades(lane));
+        ConduitBundleBlock.addEndpointUpgrades(into, entity.endpoints(), lane);
+        entity.endpoints().clearLane(lane);
         bundle.removeLane(lane);
     }
 
@@ -158,7 +162,7 @@ public final class ConduitToolActions {
             BlockPos at = new BlockPos(step.x(), step.y(), step.z());
             if (level.isLoaded(at) && level.getBlockEntity(at) instanceof ConduitBundleBlockEntity entity
                     && entity.bundle().set().contains(start.pipe())) {
-                takeLane(entity.bundle(), start.pipe(), items);
+                takeLane(entity, start.pipe(), items);
                 settle(level, at, entity);
                 removed++;
             }
@@ -166,21 +170,24 @@ public final class ConduitToolActions {
         return Result.of(true, "message.aeroflux.tool_run_removed", items, removed, pipeName(start.pipe()));
     }
 
-    // --- Replace tier ------------------------------------------------------------------------
+    // --- Tier upgrade ------------------------------------------------------------------------
 
     /**
-     * Swaps the tier of a pipe for the tier of a pipe item. Connections, modes and upgrades stay;
-     * upgrades that no longer fit are returned. The old pipe's item is returned too.
+     * Raises a pipe in a bundle to the tier of a held pipe item; {@link PipeItem} calls this when a
+     * player uses a higher-tier pipe on a bundle that already holds that kind. Only upgrades: a
+     * held pipe of the same or a lower tier changes nothing. Connections, modes and distribution
+     * stay; upgrades are put back while there is room and the rest are returned, along with the
+     * old pipe's item.
      *
-     * @param offhand the stack that supplies the new tier
-     * @param consume whether to use up one of {@code offhand} (false in creative mode)
+     * @param held    the pipe item that supplies the new tier
+     * @param consume whether to use up one of {@code held} (false in creative mode)
      */
-    public static Result replaceTier(ConduitBundleBlockEntity entity, PipeType pipe, ItemStack offhand, boolean consume) {
+    public static Result upgradeTier(ConduitBundleBlockEntity entity, PipeType pipe, ItemStack held, boolean consume) {
         BundleState bundle = entity.bundle();
         int lane = pipe.lane();
-        if (!(offhand.getItem() instanceof PipeItem item) || item.type() != pipe || !PipeTiers.isTiered(pipe)
-                || item.tier() == bundle.tier(lane)) {
-            return Result.of(false, "message.aeroflux.tool_tier_none", pipeName(pipe));
+        if (!(held.getItem() instanceof PipeItem item) || item.type() != pipe || !PipeTiers.isTiered(pipe)
+                || !bundle.set().contains(pipe) || item.tier().ordinal() <= bundle.tier(lane).ordinal()) {
+            return Result.of(false, "message.aeroflux.pipe_tier_not_higher", pipeName(pipe), tierName(bundle.tier(lane)));
         }
 
         Tier oldTier = bundle.tier(lane);
@@ -200,11 +207,11 @@ public final class ConduitToolActions {
         addUpgrades(items, speed, capacity);
 
         if (consume) {
-            offhand.shrink(1);
+            held.shrink(1);
         }
         entity.refreshConnections();
         entity.changed();
-        return Result.of(true, "message.aeroflux.tool_tier_replaced", items, pipeName(pipe), tierName(item.tier()));
+        return Result.of(true, "message.aeroflux.pipe_tier_upgraded", items, pipeName(pipe), tierName(item.tier()));
     }
 
     // --- Copy and paste ----------------------------------------------------------------------

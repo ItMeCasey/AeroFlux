@@ -1,0 +1,87 @@
+{
+  "parent": "aeroflux:root",
+  "criteria": {
+    "aeroflux:diamond_flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:diamond_flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:fluxium_flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:fluxium_flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:gold_flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:gold_flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:iron_flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:iron_flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "aeroflux:netherite_flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:netherite_flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.aeroflux.furnace.description"
+    },
+    "icon": {
+      "id": "aeroflux:flux_furnace"
+    },
+    "title": {
+      "translate": "advancements.aeroflux.furnace.title"
+    }
+  },
+  "requirements": [
+    [
+      "aeroflux:flux_furnace",
+      "aeroflux:iron_flux_furnace",
+      "aeroflux:gold_flux_furnace",
+      "aeroflux:diamond_flux_furnace",
+      "aeroflux:netherite_flux_furnace",
+      "aeroflux:fluxium_flux_furnace"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

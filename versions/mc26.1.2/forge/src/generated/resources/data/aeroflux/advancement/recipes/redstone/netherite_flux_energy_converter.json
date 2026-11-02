@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_diamond_flux_energy_converter": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:diamond_flux_energy_converter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:netherite_flux_energy_converter"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_diamond_flux_energy_converter"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:netherite_flux_energy_converter"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/alloy_smelter_base",
+  "textures": {
+    "side": "aeroflux:block/alloy_smelter_side_fluxium",
+    "back": "aeroflux:block/alloy_smelter_back_fluxium",
+    "top": "aeroflux:block/alloy_smelter_top_fluxium",
+    "bottom": "aeroflux:block/alloy_smelter_bottom_fluxium",
+    "front": "aeroflux:block/alloy_smelter_front_active_fluxium",
+    "particle": "aeroflux:block/alloy_smelter_side_fluxium"
+  }
+}

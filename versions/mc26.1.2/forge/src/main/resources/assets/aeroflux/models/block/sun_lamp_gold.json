@@ -1,0 +1,12 @@
+{
+  "parent": "aeroflux:block/sun_lamp_base",
+  "textures": {
+    "base": "aeroflux:block/sun_lamp_base_gold",
+    "basetop": "aeroflux:block/sun_lamp_basetop_gold",
+    "cap": "aeroflux:block/sun_lamp_cap_gold",
+    "captop": "aeroflux:block/sun_lamp_captop_gold",
+    "post": "aeroflux:block/sun_lamp_post",
+    "crystal": "aeroflux:block/sun_lamp_crystal",
+    "particle": "aeroflux:block/sun_lamp_base_gold"
+  }
+}

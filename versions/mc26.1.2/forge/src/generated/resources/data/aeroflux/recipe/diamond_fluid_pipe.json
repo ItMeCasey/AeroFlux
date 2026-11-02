@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "#c:gems/diamond",
+    "P": "aeroflux:gold_fluid_pipe",
+    "S": "aeroflux:fluxsteel_ingot",
+    "T": "#c:gems/diamond"
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "id": "aeroflux:diamond_fluid_pipe"
+  }
+}

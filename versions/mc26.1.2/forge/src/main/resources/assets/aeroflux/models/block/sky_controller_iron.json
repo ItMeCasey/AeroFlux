@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/sky_controller_base",
+  "textures": {
+    "side": "aeroflux:block/sky_controller_side_iron",
+    "back": "aeroflux:block/sky_controller_back_iron",
+    "top": "aeroflux:block/sky_controller_top_iron",
+    "bottom": "aeroflux:block/sky_controller_bottom_iron",
+    "front": "aeroflux:block/sky_controller_front_iron",
+    "particle": "aeroflux:block/sky_controller_side_iron"
+  }
+}

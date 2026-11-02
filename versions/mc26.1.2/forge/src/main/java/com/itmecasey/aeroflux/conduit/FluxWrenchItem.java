@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.conduit;
 
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
@@ -17,8 +18,9 @@ import net.minecraft.world.phys.Vec3;
 /**
  * The wrench. Used on a conduit bundle it cycles the mode of the pipe nearest the crosshair at
  * the face that was clicked; used while sneaking it cycles that pipe's distribution mode
- * instead. A pipe is only four pixels wide, so the nearest pipe is chosen instead of asking the
- * player to hit it exactly.
+ * instead. A pipe is only two pixels wide, so the nearest pipe is chosen instead of asking the
+ * player to hit it exactly. Blocking a face between two bundles keeps both sides apart: the
+ * neighbor sees the block and drops its half of the connection too.
  */
 public class FluxWrenchItem extends Item {
     public FluxWrenchItem(Properties properties) {
@@ -38,7 +40,7 @@ public class FluxWrenchItem extends Item {
 
         // Where the crosshair hit, in pixels inside the block.
         Vec3 local = context.getClickLocation().subtract(pos.getX(), pos.getY(), pos.getZ()).scale(16.0);
-        PipeType pipe = entity.bundle().nearestPipe(local.x, local.y, local.z);
+        PipeType pipe = ConduitLayout.of(entity.bundle()).nearestPipe(local.x, local.y, local.z);
         if (pipe == null) {
             return InteractionResult.PASS;
         }

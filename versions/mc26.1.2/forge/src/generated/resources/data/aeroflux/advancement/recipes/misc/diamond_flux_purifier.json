@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gold_flux_purifier": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:gold_flux_purifier"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:diamond_flux_purifier"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gold_flux_purifier"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:diamond_flux_purifier"
+    ]
+  }
+}

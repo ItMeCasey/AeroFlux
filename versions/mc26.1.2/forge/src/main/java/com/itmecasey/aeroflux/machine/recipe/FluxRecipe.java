@@ -38,18 +38,18 @@ public class FluxRecipe implements Recipe<MachineInput> {
     }
 
     /**
-     * A product and the chance it drops. The product is kept as a template, which unlike a stack
-     * can be built before the item components are bound (as the data generator does).
+     * A product and the chance it drops. The product is kept as a template, the way the game keeps
+     * recipe results since 26.1, so a recipe can be built before item components exist (data generation).
      */
-    public record Output(ItemStackTemplate item, float chance) {
+    public record Output(ItemStackTemplate template, float chance) {
         public static final Codec<Output> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ItemStackTemplate.CODEC.fieldOf("item").forGetter(Output::item),
+                ItemStackTemplate.CODEC.fieldOf("item").forGetter(Output::template),
                 Codec.floatRange(0.0F, 1.0F).optionalFieldOf("chance", 1.0F).forGetter(Output::chance)
         ).apply(instance, Output::new));
 
-        /** A fresh stack of the product. */
+        /** A new stack of the product. */
         public ItemStack stack() {
-            return item.create();
+            return template.create();
         }
     }
 
@@ -58,8 +58,9 @@ public class FluxRecipe implements Recipe<MachineInput> {
     private final List<Output> outputs;
     private final int time;
     private final int flux;
-    @Nullable
-    private final FluxType fluxType;
+    private final @Nullable FluxType fluxType;
+    private final String mesh;
+    private final int water;
 
     /**
      * @param machine  which machine this recipe is for; it picks the recipe type
@@ -71,6 +72,17 @@ public class FluxRecipe implements Recipe<MachineInput> {
      */
     public FluxRecipe(MachineType machine, List<Input> inputs, List<Output> outputs, int time, int flux,
                       @Nullable FluxType fluxType) {
+        this(machine, inputs, outputs, time, flux, fluxType, "", 0);
+    }
+
+    /**
+     * @param mesh  the sieve mesh the recipe needs (Sifter only), such as "flint"; empty for any
+     * @param water mB of water one run takes from the machine's water tank (Purifier and Sifter)
+     */
+    public FluxRecipe(MachineType machine, List<Input> inputs, List<Output> outputs, int time, int flux,
+                      @Nullable FluxType fluxType, String mesh, int water) {
+        this.mesh = mesh;
+        this.water = water;
         this.machine = machine;
         this.inputs = List.copyOf(inputs);
         this.outputs = List.copyOf(outputs);
@@ -101,17 +113,25 @@ public class FluxRecipe implements Recipe<MachineInput> {
         return flux;
     }
 
-    @Nullable
-    public FluxType fluxType() {
+    public @Nullable FluxType fluxType() {
         return fluxType;
+    }
+
+    /** The sieve mesh a Sifter needs for this recipe; empty for any. */
+    public String mesh() {
+        return mesh;
+    }
+
+    /** mB of water one run uses; 0 for none. */
+    public int water() {
+        return water;
     }
 
     /**
      * Which input slot each ingredient is taken from, or {@code null} if the slots do not hold
      * everything the recipe needs. Each slot serves at most one ingredient.
      */
-    @Nullable
-    public int[] assign(MachineInput input) {
+    public int @Nullable [] assign(MachineInput input) {
         int[] chosen = new int[inputs.size()];
         return assign(input, 0, chosen, new boolean[input.size()]) ? chosen : null;
     }
@@ -172,7 +192,7 @@ public class FluxRecipe implements Recipe<MachineInput> {
         return outputs.isEmpty() ? ItemStack.EMPTY : outputs.get(0).stack();
     }
 
-    /** Machine recipes have no place in the crafting recipe book. */
+    /** Machine recipes are never placed in a grid and have no place in the crafting recipe book. */
     @Override
     public boolean isSpecial() {
         return true;
@@ -189,22 +209,21 @@ public class FluxRecipe implements Recipe<MachineInput> {
     }
 
     @Override
-    public RecipeSerializer<FluxRecipe> getSerializer() {
+    public RecipeSerializer<? extends Recipe<MachineInput>> getSerializer() {
         return ModRecipes.serializer(machine).get();
     }
 
     @Override
-    public RecipeType<FluxRecipe> getType() {
+    public RecipeType<? extends Recipe<MachineInput>> getType() {
         return ModRecipes.type(machine).get();
     }
 
-    /** Nothing can be laid out from a machine recipe, so the recipe book never offers it. */
     @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.NOT_PLACEABLE;
     }
 
-    /** A category is required, but with no recipe displays the book has nothing to file under it. */
+    /** The game wants a category for every recipe; this one is never shown because the recipe has no display. */
     @Override
     public RecipeBookCategory recipeBookCategory() {
         return RecipeBookCategories.CRAFTING_MISC;

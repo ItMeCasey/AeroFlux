@@ -1,6 +1,12 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/dense_me_pipe"
+    "model": "aeroflux:item/dense_me_pipe",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -10604632
+      }
+    ]
   }
 }

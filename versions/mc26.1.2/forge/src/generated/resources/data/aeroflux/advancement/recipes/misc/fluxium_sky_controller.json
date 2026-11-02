@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_netherite_sky_controller": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:netherite_sky_controller"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:fluxium_sky_controller"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_netherite_sky_controller"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:fluxium_sky_controller"
+    ]
+  }
+}

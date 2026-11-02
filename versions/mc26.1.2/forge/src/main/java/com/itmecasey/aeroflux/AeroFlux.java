@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux;
 
+import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
 import com.itmecasey.aeroflux.datagen.DataGenerators;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
@@ -47,6 +48,7 @@ public final class AeroFlux {
         ModMenus.register(modBusGroup);
         ModRecipes.register(modBusGroup);
         ModCreativeTabs.register(modBusGroup);
+        ChunkLoaderTickets.register(modBusGroup);
         GatherDataEvent.getBus(modBusGroup).addListener(DataGenerators::gatherData);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
 

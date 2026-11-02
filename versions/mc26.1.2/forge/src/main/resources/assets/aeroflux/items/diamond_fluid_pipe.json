@@ -1,7 +1,12 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/diamond_fluid_pipe"
+    "model": "aeroflux:item/diamond_fluid_pipe",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -3551533
+      }
+    ]
   }
 }
-

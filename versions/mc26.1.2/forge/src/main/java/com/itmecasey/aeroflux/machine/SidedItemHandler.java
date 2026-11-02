@@ -7,7 +7,6 @@ import com.itmecasey.aeroflux.core.machine.SideResource;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -35,22 +34,20 @@ final class SidedItemHandler implements IItemHandler {
         return machine.inventory().getSlots();
     }
 
-    @NotNull
     @Override
     public ItemStack getStackInSlot(int slot) {
         return machine.inventory().getStackInSlot(slot);
     }
 
-    @NotNull
     @Override
-    public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-        if (!machine.isInputSlot(slot) || !FaceRules.canInsert(PortRole.INPUT, mode())) {
+    public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+        if (!machine.isInputSlot(slot) || !FaceRules.canInsert(PortRole.INPUT, mode())
+                || !machine.acceptsFromOutside(slot, stack)) {
             return stack;
         }
         return machine.inventory().insertItem(slot, stack, simulate);
     }
 
-    @NotNull
     @Override
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
         if (!machine.isOutputSlot(slot) || !FaceRules.canExtract(PortRole.OUTPUT, mode())) {
@@ -65,8 +62,8 @@ final class SidedItemHandler implements IItemHandler {
     }
 
     @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+    public boolean isItemValid(int slot, ItemStack stack) {
         return machine.isInputSlot(slot) && FaceRules.canInsert(PortRole.INPUT, mode())
-                && machine.inventory().isItemValid(slot, stack);
+                && machine.inventory().isItemValid(slot, stack) && machine.acceptsFromOutside(slot, stack);
     }
 }

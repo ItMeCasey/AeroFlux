@@ -1,7 +1,12 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "aeroflux:item/iron_gas_pipe"
+    "model": "aeroflux:item/iron_gas_pipe",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -1657822
+      }
+    ]
   }
 }
-

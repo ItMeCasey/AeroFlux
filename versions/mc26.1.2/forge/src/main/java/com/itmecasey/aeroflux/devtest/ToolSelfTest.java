@@ -223,47 +223,43 @@ final class ToolSelfTest {
                 ToolStackData.runStart(tool) == null && hasPipe(new BlockPos(X, y, Z), PipeType.FLUID));
     }
 
+    /** A higher-tier pipe used on a bundle raises the pipe already there; nothing else does. */
     private static void checkReplaceTier() {
         BlockPos pos = new BlockPos(X, 260, Z);
-        ConduitBundleBlockEntity entity = place(pos, PipeType.FLUID, Tier.NETHERITE);
+        ConduitBundleBlockEntity entity = place(pos, PipeType.FLUID, Tier.IRON);
         int lane = PipeType.FLUID.lane();
         entity.bundle().setMode(lane, Face.NORTH, ConnectionMode.EXPORT);
-        for (int i = 0; i < 2; i++) {
-            entity.bundle().addUpgrade(lane, PipeUpgrades.Kind.SPEED);
-            entity.bundle().addUpgrade(lane, PipeUpgrades.Kind.CAPACITY);
-        }
-        int slotsBefore = entity.bundle().upgradeCount(lane);
+        entity.bundle().addUpgrade(lane, PipeUpgrades.Kind.SPEED);
+        entity.bundle().addUpgrade(lane, PipeUpgrades.Kind.CAPACITY);
 
-        ItemStack wrongType = new ItemStack(ModItems.pipe(PipeType.ITEM, Tier.COPPER).get());
-        ItemStack sameTier = new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.NETHERITE).get());
-        ConduitToolActions.Result none = ConduitToolActions.replaceTier(entity, PipeType.FLUID, wrongType, true);
-        ConduitToolActions.Result same = ConduitToolActions.replaceTier(entity, PipeType.FLUID, sameTier, true);
-        ConduitToolActions.Result empty = ConduitToolActions.replaceTier(entity, PipeType.FLUID, ItemStack.EMPTY, true);
-        SelfTest.check("tool tier: nothing changes without a usable pipe in the off hand",
-                !none.success() && !same.success() && !empty.success()
-                        && "message.aeroflux.tool_tier_none".equals(none.key())
-                        && entity.bundle().tier(lane) == Tier.NETHERITE && wrongType.getCount() == 1 && sameTier.getCount() == 1);
+        ItemStack wrongType = new ItemStack(ModItems.pipe(PipeType.ITEM, Tier.DIAMOND).get());
+        ItemStack sameTier = new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.IRON).get());
+        ItemStack lowerTier = new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.COPPER).get());
+        ConduitToolActions.Result none = ConduitToolActions.upgradeTier(entity, PipeType.FLUID, wrongType, true);
+        ConduitToolActions.Result same = ConduitToolActions.upgradeTier(entity, PipeType.FLUID, sameTier, true);
+        ConduitToolActions.Result lower = ConduitToolActions.upgradeTier(entity, PipeType.FLUID, lowerTier, true);
+        SelfTest.check("pipe tier: the same or a lower tier, or another kind, changes nothing",
+                !none.success() && !same.success() && !lower.success()
+                        && "message.aeroflux.pipe_tier_not_higher".equals(lower.key())
+                        && entity.bundle().tier(lane) == Tier.IRON
+                        && wrongType.getCount() == 1 && sameTier.getCount() == 1 && lowerTier.getCount() == 1);
 
-        ItemStack offhand = new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.COPPER).get(), 2);
-        ConduitToolActions.Result result = ConduitToolActions.replaceTier(entity, PipeType.FLUID, offhand, true);
-        SelfTest.check("tool tier: the pipe takes the new tier", result.success() && entity.bundle().tier(lane) == Tier.COPPER);
-        SelfTest.check("tool tier: the face modes are kept", entity.bundle().mode(lane, Face.NORTH) == ConnectionMode.EXPORT);
-        SelfTest.check("tool tier: the old tier's pipe item comes back",
-                count(result, ModItems.pipe(PipeType.FLUID, Tier.NETHERITE).get()) == 1);
-        SelfTest.check("tool tier: one off-hand item is used up", offhand.getCount() == 1);
-        SelfTest.check("tool tier: upgrades beyond the new slot count are returned",
-                slotsBefore == 4 && entity.bundle().upgradeCount(lane) == PipeUpgrades.slots(Tier.COPPER)
-                        && count(result, ModItems.SPEED_UPGRADE.get()) + count(result, ModItems.CAPACITY_UPGRADE.get()) == 1);
+        ItemStack held = new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.DIAMOND).get(), 2);
+        ConduitToolActions.Result result = ConduitToolActions.upgradeTier(entity, PipeType.FLUID, held, true);
+        SelfTest.check("pipe tier: a higher tier is taken, more than one step at once", result.success() && entity.bundle().tier(lane) == Tier.DIAMOND);
+        SelfTest.check("pipe tier: the face modes are kept", entity.bundle().mode(lane, Face.NORTH) == ConnectionMode.EXPORT);
+        SelfTest.check("pipe tier: the upgrades stay installed",
+                entity.bundle().speedUpgrades(lane) == 1 && entity.bundle().capacityUpgrades(lane) == 1);
+        SelfTest.check("pipe tier: the old pipe's item comes back", count(result, ModItems.pipe(PipeType.FLUID, Tier.IRON).get()) == 1);
+        SelfTest.check("pipe tier: one held pipe is used up", held.getCount() == 1);
 
-        // The upgrades that fit are kept as they were, and creative mode uses nothing up.
+        // Creative mode uses nothing up, and a kind the bundle lacks is still simply added.
         ConduitBundleBlockEntity second = place(new BlockPos(X, 262, Z), PipeType.ITEM, Tier.COPPER);
-        second.bundle().addUpgrade(PipeType.ITEM.lane(), PipeUpgrades.Kind.SPEED);
         ItemStack gold = new ItemStack(ModItems.pipe(PipeType.ITEM, Tier.GOLD).get());
-        ConduitToolActions.Result creative = ConduitToolActions.replaceTier(second, PipeType.ITEM, gold, false);
-        SelfTest.check("tool tier: upgrades that fit are kept and nothing extra comes back",
-                second.bundle().tier(PipeType.ITEM.lane()) == Tier.GOLD && second.bundle().speedUpgrades(PipeType.ITEM.lane()) == 1
-                        && count(creative, ModItems.SPEED_UPGRADE.get()) == 0);
-        SelfTest.check("tool tier: creative mode keeps the off-hand item", gold.getCount() == 1);
+        ConduitToolActions.upgradeTier(second, PipeType.ITEM, gold, false);
+        SelfTest.check("pipe tier: creative mode keeps the held pipe", second.bundle().tier(PipeType.ITEM.lane()) == Tier.GOLD && gold.getCount() == 1);
+        SelfTest.check("pipe tier: a missing kind is still added as a new pipe", second.addPipe(PipeType.ENERGY, Tier.IRON)
+                && second.bundle().tier(PipeType.ENERGY.lane()) == Tier.IRON);
     }
 
     private static void checkCopyPaste() {

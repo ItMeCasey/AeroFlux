@@ -17,15 +17,16 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 /**
- * Builds the serializer of {@link FluxRecipe}s for one machine, which reads and writes them from
- * datapack JSON and over the network. Every machine gets its own, so the recipe a file defines
- * belongs to the folder it is in. Since 26.1 a serializer is a plain pair of codecs rather than
- * an interface to implement, so this is a factory instead of a class.
+ * Builds the serializer of {@link FluxRecipe}s for one machine, which reads and writes the
+ * recipes from datapack JSON and over the network. Every machine gets its own serializer, so the
+ * recipe a file defines belongs to the folder it is in. Minecraft 26.1 made {@link RecipeSerializer}
+ * a plain pair of codecs, so this is a factory instead of a class that implements it.
  */
 public final class FluxRecipeSerializer {
     private FluxRecipeSerializer() {
     }
 
+    /** The serializer for one machine's recipes. */
     public static RecipeSerializer<FluxRecipe> create(MachineType machine) {
         MapCodec<FluxRecipe> codec = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 FluxRecipe.Input.CODEC.listOf().fieldOf("inputs").forGetter(FluxRecipe::inputs),
@@ -33,9 +34,12 @@ public final class FluxRecipeSerializer {
                 Codec.intRange(1, 1_000_000).optionalFieldOf("time", 200).forGetter(FluxRecipe::time),
                 Codec.intRange(0, 1_000_000).optionalFieldOf("flux", 0).forGetter(FluxRecipe::flux),
                 Codec.STRING.optionalFieldOf("flux_type").forGetter(recipe ->
-                        Optional.ofNullable(recipe.fluxType()).map(type -> type.name().toLowerCase(Locale.ROOT)))
-        ).apply(instance, (inputs, outputs, time, flux, fluxType) ->
-                new FluxRecipe(machine, inputs, outputs, time, flux, fluxType.map(FluxRecipeSerializer::parseFlux).orElse(null))));
+                        Optional.ofNullable(recipe.fluxType()).map(type -> type.name().toLowerCase(Locale.ROOT))),
+                Codec.STRING.optionalFieldOf("mesh", "").forGetter(FluxRecipe::mesh),
+                Codec.intRange(0, 1_000_000).optionalFieldOf("water", 0).forGetter(FluxRecipe::water)
+        ).apply(instance, (inputs, outputs, time, flux, fluxType, mesh, water) ->
+                new FluxRecipe(machine, inputs, outputs, time, flux, fluxType.map(FluxRecipeSerializer::parseFlux).orElse(null),
+                        mesh, water)));
 
         StreamCodec<RegistryFriendlyByteBuf, FluxRecipe> streamCodec = StreamCodec.of(
                 FluxRecipeSerializer::write,
@@ -55,12 +59,14 @@ public final class FluxRecipeSerializer {
         }
         buf.writeVarInt(recipe.outputs().size());
         for (FluxRecipe.Output output : recipe.outputs()) {
-            ItemStackTemplate.STREAM_CODEC.encode(buf, output.item());
+            ItemStackTemplate.STREAM_CODEC.encode(buf, output.template());
             buf.writeFloat(output.chance());
         }
         buf.writeVarInt(recipe.time());
         buf.writeVarInt(recipe.flux());
         ByteBufCodecs.VAR_INT.encode(buf, recipe.fluxType() == null ? -1 : recipe.fluxType().ordinal());
+        buf.writeUtf(recipe.mesh());
+        buf.writeVarInt(recipe.water());
     }
 
     private static FluxRecipe read(MachineType machine, RegistryFriendlyByteBuf buf) {
@@ -73,13 +79,15 @@ public final class FluxRecipeSerializer {
         int outputCount = buf.readVarInt();
         List<FluxRecipe.Output> outputs = new ArrayList<>();
         for (int i = 0; i < outputCount; i++) {
-            ItemStackTemplate item = ItemStackTemplate.STREAM_CODEC.decode(buf);
-            outputs.add(new FluxRecipe.Output(item, buf.readFloat()));
+            ItemStackTemplate template = ItemStackTemplate.STREAM_CODEC.decode(buf);
+            outputs.add(new FluxRecipe.Output(template, buf.readFloat()));
         }
         int time = buf.readVarInt();
         int flux = buf.readVarInt();
         int type = ByteBufCodecs.VAR_INT.decode(buf);
+        String mesh = buf.readUtf();
+        int water = buf.readVarInt();
         return new FluxRecipe(machine, inputs, outputs, time, flux,
-                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type]);
+                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type], mesh, water);
     }
 }
