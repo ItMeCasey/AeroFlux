@@ -1,0 +1,19 @@
+{
+  "type": "aeroflux:purifier",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "forge:ores/copper"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:raw_copper"
+      }
+    }
+  ],
+  "water": 50
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "P": {
+      "item": "aeroflux:diamond_flux_energy_converter"
+    },
+    "S": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "T": {
+      "tag": "c:ingots/netherite"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:netherite_flux_energy_converter"
+  }
+}

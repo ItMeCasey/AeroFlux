@@ -2,20 +2,17 @@ package com.itmecasey.aeroflux;
 
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * Builds resource locations. Forge deprecated the two-argument {@code ResourceLocation}
- * constructor in 1.20.1 in favor of a factory method, so construction lives in one place.
- */
+/** Builds resource identifiers. Minecraft 26.1 renamed {@code ResourceLocation} to {@code ResourceLocation}. */
 public final class Ids {
     private Ids() {
     }
 
-    /** A location in this mod's namespace, such as {@code aeroflux:block/flux_still}. */
+    /** An identifier in this mod's namespace, such as {@code aeroflux:block/flux_still}. */
     public static ResourceLocation mod(String path) {
-        return of(AeroFlux.MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(AeroFlux.MODID, path);
     }
 
-    /** A location in any namespace. */
+    /** An identifier in any namespace. */
     public static ResourceLocation of(String namespace, String path) {
         return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }

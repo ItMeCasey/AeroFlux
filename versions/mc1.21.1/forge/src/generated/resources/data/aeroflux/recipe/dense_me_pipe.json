@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "tag": "c:dusts/glowstone"
+    },
+    {
+      "tag": "c:dusts/redstone"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:dense_me_pipe"
+  }
+}

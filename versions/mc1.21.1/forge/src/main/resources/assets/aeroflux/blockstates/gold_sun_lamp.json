@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "aeroflux:block/sun_lamp_gold"
+    },
+    "lit=true": {
+      "model": "aeroflux:block/sun_lamp_active_gold"
+    }
+  }
+}

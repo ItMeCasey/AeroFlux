@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "G": {
+      "tag": "c:gems/amethyst"
+    }
+  },
+  "pattern": [
+    " D ",
+    "DGD",
+    " D "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:moon_crystal"
+  }
+}

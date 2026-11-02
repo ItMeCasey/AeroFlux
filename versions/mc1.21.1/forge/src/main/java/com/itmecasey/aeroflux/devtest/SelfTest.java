@@ -79,6 +79,7 @@ public final class SelfTest {
         ToolSelfTest.setUp(level);
         ScreenSelfTest.setUp(level);
         MachineSelfTest.setUp(level);
+        MoreMachinesSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -102,11 +103,13 @@ public final class SelfTest {
         // chunk and use no timing the other two disturb. They still wait for the timed transfer checks.
         if (TransferSelfTest.finished()) {
             MachineSelfTest.tick();
+            // The second wave of machines builds in a layer of its own.
+            MoreMachinesSelfTest.tick();
         }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer and tool checks to finish too.
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
-                    && MachineSelfTest.finished()) {
+                    && MachineSelfTest.finished() && MoreMachinesSelfTest.finished()) {
                 finish();
             }
             return;
@@ -146,19 +149,20 @@ public final class SelfTest {
         check("a taken lane refuses a second pipe", !bundleA.addPipe(PipeType.FLUID));
         bundleB.addPipe(PipeType.FLUID);
         int fluid = PipeType.FLUID.lane();
-        check("equal sets join (A east)", bundleA.bundle().isConnected(fluid, Face.EAST)
+        check("matching pipes join (A east)", bundleA.bundle().isConnected(fluid, Face.EAST)
                 && !bundleA.bundle().isExternal(fluid, Face.EAST));
-        check("equal sets join (B west)", bundleB.bundle().isConnected(fluid, Face.WEST));
+        check("matching pipes join (B west)", bundleB.bundle().isConnected(fluid, Face.WEST));
 
         bundleB.addPipe(PipeType.ITEM);
-        check("different sets do not join", !bundleA.bundle().isConnected(fluid, Face.EAST));
-
-        level.setBlock(b, ModBlocks.PIPE_NODE.get().defaultBlockState(), Block.UPDATE_ALL);
-        check("a pipe node joins any set", bundleA.bundle().isConnected(fluid, Face.EAST));
+        check("a pipe still joins its kind next to a bundle with more pipes",
+                bundleA.bundle().isConnected(fluid, Face.EAST) && bundleB.bundle().isConnected(fluid, Face.WEST));
+        check("a pipe with no match next door does not join",
+                !bundleB.bundle().isConnected(PipeType.ITEM.lane(), Face.WEST));
 
         bundleA.bundle().setMode(fluid, Face.EAST, ConnectionMode.BLOCKED);
-        bundleA.refreshConnections();
+        bundleA.changed();
         check("a blocked face never connects", !bundleA.bundle().isConnected(fluid, Face.EAST));
+        check("blocking one side drops the other side too", !bundleB.bundle().isConnected(fluid, Face.WEST));
 
         // A fluid pipe should attach to a tank, which draws a machine connector.
         BlockPos tankPos = a.south();
@@ -242,6 +246,11 @@ public final class SelfTest {
 
     private static void command(String command) {
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
+    }
+
+    /** Whether the collector checks, which need day and night on time, are done with the clock. */
+    static boolean collectorChecksDone() {
+        return phase == 2;
     }
 
     static void check(String name, boolean condition) {

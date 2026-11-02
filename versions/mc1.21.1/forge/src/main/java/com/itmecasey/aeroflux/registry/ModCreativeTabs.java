@@ -1,16 +1,19 @@
 package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.Tier;
-import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.DeferredRegister;
 
 /** The creative tabs AeroFlux adds. */
 public final class ModCreativeTabs {
@@ -31,11 +34,19 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SAWDUST.get());
                         output.accept(ModItems.AERO_FLUX_BUCKET.get());
                         output.accept(ModItems.MOON_FLUX_BUCKET.get());
+                        output.accept(ModItems.TWILIGHT_FLUX_BUCKET.get());
+                        output.accept(ModItems.GUIDEBOOK.get());
                         output.accept(ModItems.FLUX_WRENCH.get());
                         output.accept(ModItems.CONDUIT_TOOL.get());
-                        output.accept(ModItems.PIPE_NODE.get());
                         output.accept(ModItems.SPEED_UPGRADE.get());
                         output.accept(ModItems.CAPACITY_UPGRADE.get());
+                        output.accept(ModItems.FILTER_UPGRADE.get());
+                        output.accept(ModItems.PRIORITY_UPGRADE.get());
+                        for (Tier tier : Tier.values()) {
+                            if (tier != Tier.COPPER) {
+                                output.accept(ModItems.upgradeCard(tier).get());
+                            }
+                        }
                         for (PipeType type : PipeType.values()) {
                             if (PipeTiers.isTiered(type)) {
                                 for (Tier tier : Tier.values()) {
@@ -53,6 +64,15 @@ public final class ModCreativeTabs {
                             for (Tier tier : Tier.values()) {
                                 output.accept(ModBlocks.machine(machine, tier).get());
                             }
+                        }
+                        for (Tier tier : Tier.values()) {
+                            output.accept(ModBlocks.chunkLoader(tier).get());
+                        }
+                        for (RegistryObject<FluxConverterBlock> converter : ModBlocks.converters()) {
+                            output.accept(converter.get());
+                        }
+                        for (RegistryObject<FluxLampBlock> lamp : ModBlocks.lamps()) {
+                            output.accept(lamp.get());
                         }
                     })
                     .build());

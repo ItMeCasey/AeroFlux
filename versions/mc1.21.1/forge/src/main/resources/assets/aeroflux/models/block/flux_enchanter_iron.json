@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_enchanter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_enchanter_side_iron",
+    "back": "aeroflux:block/flux_enchanter_back_iron",
+    "top": "aeroflux:block/flux_enchanter_top_iron",
+    "bottom": "aeroflux:block/flux_enchanter_bottom_iron",
+    "front": "aeroflux:block/flux_enchanter_front_iron",
+    "particle": "aeroflux:block/flux_enchanter_side_iron"
+  }
+}

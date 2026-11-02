@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "S": {
+      "item": "aeroflux:aerogold_ingot"
+    },
+    "T": {
+      "tag": "c:ingots/netherite"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SDS",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:upgrade_card_netherite"
+  }
+}

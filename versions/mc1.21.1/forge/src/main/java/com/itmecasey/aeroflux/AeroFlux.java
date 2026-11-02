@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux;
 
+import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModCreativeTabs;
@@ -47,6 +48,8 @@ public class AeroFlux {
         ModRecipes.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
+        // Forge checks the chunk loaders' saved tickets as the world loads; this hands it the check.
+        ChunkLoaderTickets.register();
 
         LOGGER.info("AeroFlux skeleton loaded (Forge 1.21.1)");
     }

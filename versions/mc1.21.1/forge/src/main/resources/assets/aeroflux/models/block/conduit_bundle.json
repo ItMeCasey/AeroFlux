@@ -1,13 +1,8 @@
 {
   "loader": "aeroflux:conduit_bundle",
   "textures": {
-    "fluid": "aeroflux:block/pipe_fluid",
-    "item": "aeroflux:block/pipe_item",
-    "redstone": "aeroflux:block/pipe_redstone",
-    "energy": "aeroflux:block/pipe_energy",
-    "gas": "aeroflux:block/pipe_gas",
-    "me": "aeroflux:block/pipe_me",
-    "dense_me": "aeroflux:block/pipe_dense_me",
+    "side": "aeroflux:block/pipe_side",
+    "end": "aeroflux:block/pipe_end",
     "node": "aeroflux:block/pipe_node",
     "particle": "aeroflux:block/pipe_node"
   }

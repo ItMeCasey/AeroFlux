@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/sky_controller_base",
+  "textures": {
+    "side": "aeroflux:block/sky_controller_side_netherite",
+    "back": "aeroflux:block/sky_controller_back_netherite",
+    "top": "aeroflux:block/sky_controller_top_netherite",
+    "bottom": "aeroflux:block/sky_controller_bottom_netherite",
+    "front": "aeroflux:block/sky_controller_front_netherite",
+    "particle": "aeroflux:block/sky_controller_side_netherite"
+  }
+}

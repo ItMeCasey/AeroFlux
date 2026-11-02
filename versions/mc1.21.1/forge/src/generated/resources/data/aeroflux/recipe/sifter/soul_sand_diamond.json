@@ -1,0 +1,28 @@
+{
+  "type": "aeroflux:sifter",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:soul_sand"
+      }
+    }
+  ],
+  "mesh": "diamond",
+  "outputs": [
+    {
+      "chance": 0.02,
+      "item": {
+        "count": 1,
+        "id": "minecraft:ghast_tear"
+      }
+    },
+    {
+      "chance": 0.05,
+      "item": {
+        "count": 1,
+        "id": "minecraft:blaze_powder"
+      }
+    }
+  ],
+  "time": 100
+}

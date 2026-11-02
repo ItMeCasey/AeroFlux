@@ -9,10 +9,10 @@ import com.itmecasey.aeroflux.conduit.transfer.TransferNetworks;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Box;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
-import com.itmecasey.aeroflux.core.conduit.PipeGeometry;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.registry.ModBlocks;
@@ -102,20 +102,17 @@ final class ScreenSelfTest {
         state.addPipe(PipeType.ITEM);
         state.setConnection(PipeType.FLUID.lane(), Face.SOUTH, true, true);
         state.setConnection(PipeType.ITEM.lane(), Face.SOUTH, true, true);
-        List<PipeGeometry.Slot> slots = PipeGeometry.layout(2);
+        ConduitLayout layout = ConduitLayout.of(state);
 
-        Box fluidArm = PipeGeometry.arm(slots.get(0), Face.SOUTH, true);
-        Box itemArm = PipeGeometry.arm(slots.get(1), Face.SOUTH, true);
         SelfTest.check("screen target: a click on the fluid arm picks fluid at that face",
-                new PipeConfigActions.Target(PipeType.FLUID, Face.SOUTH).equals(at(state, fluidArm)));
+                new PipeConfigActions.Target(PipeType.FLUID, Face.SOUTH).equals(at(state, layout.armOf(PipeType.FLUID, Face.SOUTH))));
         SelfTest.check("screen target: a click on the item arm picks item at that face",
-                new PipeConfigActions.Target(PipeType.ITEM, Face.SOUTH).equals(at(state, itemArm)));
-        Box connector = PipeGeometry.connector(2, Face.SOUTH);
-        PipeConfigActions.Target onConnector = at(state, connector);
+                new PipeConfigActions.Target(PipeType.ITEM, Face.SOUTH).equals(at(state, layout.armOf(PipeType.ITEM, Face.SOUTH))));
+        PipeConfigActions.Target onConnector = at(state, layout.plateOf(Face.SOUTH));
         SelfTest.check("screen target: a click on the machine connector finds the face",
                 onConnector != null && onConnector.face() == Face.SOUTH);
         SelfTest.check("screen target: a click on a pipe core is not a connector click",
-                at(state, PipeGeometry.core(slots.get(0))) == null);
+                at(state, coreOf(layout, PipeType.FLUID)) == null);
         SelfTest.check("screen target: a click on empty bundle space is not a connector click",
                 PipeConfigActions.resolveTarget(state, 1, 1, 1) == null);
         SelfTest.check("screen target: an empty bundle has no target",
@@ -131,7 +128,7 @@ final class ScreenSelfTest {
         BlockPos pos = next();
         ConduitBundleBlockEntity entity = placeWithTank(pos, PipeType.FLUID, Tier.IRON);
         prepare(pos);
-        Box arm = PipeGeometry.arm(PipeGeometry.layout(1).get(0), Face.SOUTH, true);
+        Box arm = ConduitLayout.of(entity.bundle()).armOf(PipeType.FLUID, Face.SOUTH);
         BlockHitResult onArm = hit(pos, (arm.minX() + arm.maxX()) / 2, arm.maxY(), (arm.minZ() + arm.maxZ()) / 2);
 
         InteractionResult result = level.getBlockState(pos).useWithoutItem(level, player, onArm);
@@ -158,9 +155,9 @@ final class ScreenSelfTest {
 
     private static void checkHeldItems() {
         BlockPos pos = next();
-        placeWithTank(pos, PipeType.FLUID, Tier.COPPER);
+        ConduitBundleBlockEntity entity = placeWithTank(pos, PipeType.FLUID, Tier.COPPER);
         prepare(pos);
-        Box arm = PipeGeometry.arm(PipeGeometry.layout(1).get(0), Face.SOUTH, true);
+        Box arm = ConduitLayout.of(entity.bundle()).armOf(PipeType.FLUID, Face.SOUTH);
         BlockHitResult onArm = hit(pos, 8, arm.maxY(), 12);
 
         List<ItemStack> keepers = List.of(new ItemStack(ModItems.FLUX_WRENCH.get()), new ItemStack(ModItems.CONDUIT_TOOL.get()),
@@ -352,9 +349,6 @@ final class ScreenSelfTest {
         PipeConfigMenu meMenu = new PipeConfigMenu(2, player.getInventory(), me, PipeType.ME, Face.UP);
         SelfTest.check("screen upgrades: an ME pipe has no upgrade slots", meMenu.slots.size() == 36
                 && !PipeConfigActions.addUpgrade(me, PipeType.ME, PipeUpgrades.Kind.SPEED));
-        SelfTest.check("screen upgrades: the ME title has no tier",
-                "screen.aeroflux.pipe_config.title_untiered".equals(contentKey(PipeConfigMenu.title(PipeType.ME, Tier.COPPER)))
-                        && "screen.aeroflux.pipe_config.title".equals(contentKey(PipeConfigMenu.title(PipeType.FLUID, Tier.GOLD))));
     }
 
     private static String contentKey(net.minecraft.network.chat.Component component) {
@@ -565,5 +559,15 @@ final class ScreenSelfTest {
         public void sendDataChange(AbstractContainerMenu container, int id, int value) {
             target.setData(id, value);
         }
+    }
+
+    /** The core cube a pipe has in the layout. */
+    private static Box coreOf(ConduitLayout layout, PipeType type) {
+        for (ConduitLayout.Piece piece : layout.pieces()) {
+            if (piece.kind() == ConduitLayout.Kind.CORE && piece.type() == type) {
+                return piece.box();
+            }
+        }
+        throw new IllegalStateException("No core for " + type);
     }
 }

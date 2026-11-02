@@ -1,9 +1,10 @@
 package com.itmecasey.aeroflux.conduit.transfer;
 
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
-import com.itmecasey.aeroflux.conduit.PipeNodeBlock;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
+import com.itmecasey.aeroflux.core.conduit.EndpointFilter;
+import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.NetworkFinder;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
@@ -19,9 +20,8 @@ import net.minecraft.server.level.ServerLevel;
  * Finds the network of one lane around a bundle and works out what it can do.
  *
  * <p>The nodes of the search are block positions. A bundle is a node for a lane when it holds
- * the same pipe type there; a pipe node block is a node for every lane and passes them all
- * through. Two bundles are neighbors when the face between them is a pipe-to-pipe connection on
- * both sides. Unloaded chunks end the network: nothing is read from them.
+ * the same pipe type there, whatever else it holds. Two bundles are neighbors when the face
+ * between them is a pipe-to-pipe connection on both sides. Unloaded chunks end the network: nothing is read from them.
  */
 final class NetworkScanner {
     /**
@@ -66,8 +66,9 @@ final class NetworkScanner {
         // The start is always a member, so these minimums and maximums are set by the first pass.
         int items = Integer.MAX_VALUE;
         for (BlockPos pos : members) {
-            BundleState bundle = bundleAt(level, pos, type).bundle();
-            collectEndpoints(pos, bundle, lane, endpoints);
+            ConduitBundleBlockEntity entity = bundleAt(level, pos, type);
+            BundleState bundle = entity.bundle();
+            collectEndpoints(pos, bundle, entity.endpoints(), lane, endpoints);
             int speed = bundle.speedUpgrades(lane);
             int capacity = bundle.capacityUpgrades(lane);
             amount = Math.min(amount, PipeUpgrades.amountPerTick(type, bundle.tier(lane), speed, capacity));
@@ -78,8 +79,13 @@ final class NetworkScanner {
                 items, found.truncated(), version, level.getGameTime());
     }
 
-    /** Adds every face of this bundle that ends at a machine and does something. Faces come in index order. */
-    private static void collectEndpoints(BlockPos pos, BundleState bundle, int lane, List<NetworkEndpoint> into) {
+    /**
+     * Adds every face of this bundle that ends at a machine and does something. Faces come in
+     * index order. Each endpoint gets its own copy of the face's filter, so the snapshot does not
+     * change under the movers if the player edits the filter; the edit rebuilds the network anyway.
+     */
+    private static void collectEndpoints(BlockPos pos, BundleState bundle, EndpointSettings settings, int lane,
+                                         List<NetworkEndpoint> into) {
         for (Face face : Face.values()) {
             if (!bundle.isConnected(lane, face) || !bundle.isExternal(lane, face)) {
                 continue;
@@ -89,7 +95,9 @@ final class NetworkScanner {
                 continue;
             }
             BlockPos target = pos.relative(Direction.from3DDataValue(face.index()));
-            into.add(new NetworkEndpoint(pos, face, target, mode, bundle.distribution(lane)));
+            EndpointFilter filter = settings.filter(lane, face);
+            into.add(new NetworkEndpoint(pos, face, target, mode, bundle.distribution(lane),
+                    filter == null ? null : filter.copy(), settings.priority(lane, face)));
         }
     }
 
@@ -98,18 +106,17 @@ final class NetworkScanner {
         List<BlockPos> result = new ArrayList<>(6);
         int lane = type.lane();
         ConduitBundleBlockEntity self = bundleAt(level, node, type);
+        if (self == null) {
+            return result;
+        }
         for (Direction direction : Direction.values()) {
-            if (self != null) {
-                // A bundle only reaches out through its own pipe-to-pipe connections.
-                Face face = Face.byIndex(direction.get3DDataValue());
-                if (!self.bundle().isConnected(lane, face) || self.bundle().isExternal(lane, face)) {
-                    continue;
-                }
-            } else if (!isPipeNode(level, node)) {
+            // A bundle only reaches out through its own pipe-to-pipe connections.
+            Face face = Face.byIndex(direction.get3DDataValue());
+            if (!self.bundle().isConnected(lane, face) || self.bundle().isExternal(lane, face)) {
                 continue;
             }
             BlockPos next = node.relative(direction);
-            if (isPipeNode(level, next) || connectsBack(level, next, direction.getOpposite(), type)) {
+            if (connectsBack(level, next, direction.getOpposite(), type)) {
                 result.add(next);
             }
         }
@@ -124,10 +131,6 @@ final class NetworkScanner {
         }
         Face face = Face.byIndex(side.get3DDataValue());
         return other.bundle().isConnected(type.lane(), face) && !other.bundle().isExternal(type.lane(), face);
-    }
-
-    private static boolean isPipeNode(ServerLevel level, BlockPos pos) {
-        return level.isLoaded(pos) && level.getBlockState(pos).getBlock() instanceof PipeNodeBlock;
     }
 
     /** The bundle at {@code pos} if it is loaded and holds exactly this pipe type, otherwise {@code null}. */

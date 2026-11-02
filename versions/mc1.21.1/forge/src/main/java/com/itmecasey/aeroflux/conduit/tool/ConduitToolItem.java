@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.conduit.tool;
 
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.ToolMode;
@@ -40,6 +41,10 @@ public class ConduitToolItem extends Item {
         }
         if (!level.isClientSide) {
             ToolMode next = ToolStackData.mode(stack).next();
+            if (next == ToolMode.REPLACE_TIER) {
+                // Retired: a higher-tier pipe used on the bundle upgrades it in place instead.
+                next = next.next();
+            }
             ToolStackData.setMode(stack, next);
             player.displayClientMessage(Component.translatable("message.aeroflux.tool_mode", modeName(next)), true);
         }
@@ -59,7 +64,7 @@ public class ConduitToolItem extends Item {
 
         // Where the crosshair hit, in pixels inside the block.
         Vec3 local = context.getClickLocation().subtract(pos.getX(), pos.getY(), pos.getZ()).scale(16.0);
-        PipeType pipe = entity.bundle().nearestPipe(local.x, local.y, local.z);
+        PipeType pipe = ConduitLayout.of(entity.bundle()).nearestPipe(local.x, local.y, local.z);
         if (pipe == null) {
             return InteractionResult.PASS;
         }
@@ -72,8 +77,8 @@ public class ConduitToolItem extends Item {
             case EDIT -> ConduitToolActions.edit(entity, pipe, Face.byIndex(context.getClickedFace().get3DDataValue()));
             case REMOVE -> ConduitToolActions.remove(level, pos, entity, pipe, sneaking);
             case REMOVE_RUN -> ConduitToolActions.removeRun(serverLevel, tool, pos, pipe);
-            case REPLACE_TIER -> ConduitToolActions.replaceTier(entity, pipe,
-                    player == null ? ItemStack.EMPTY : player.getOffhandItem(), !isCreative(player));
+            // Tiers are raised by using a higher-tier pipe on the bundle now; the tool skips this mode.
+            case REPLACE_TIER -> ConduitToolActions.inspect(serverLevel, pos, pipe);
             case COPY -> ConduitToolActions.copy(tool, entity);
             case PASTE -> ConduitToolActions.paste(tool, entity);
             case INSPECT -> ConduitToolActions.inspect(serverLevel, pos, pipe);
@@ -106,7 +111,7 @@ public class ConduitToolItem extends Item {
     }
 
     /** Puts the stack in the inventory, dropping whatever does not fit at the player's feet. */
-    private static void giveOrDrop(Player player, ItemStack stack) {
+    public static void giveOrDrop(Player player, ItemStack stack) {
         if (!player.getInventory().add(stack) && !stack.isEmpty()) {
             player.drop(stack, false);
         }

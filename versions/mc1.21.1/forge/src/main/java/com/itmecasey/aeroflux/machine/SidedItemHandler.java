@@ -41,7 +41,8 @@ final class SidedItemHandler implements IItemHandler {
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-        if (!machine.isInputSlot(slot) || !FaceRules.canInsert(PortRole.INPUT, mode())) {
+        if (!machine.isInputSlot(slot) || !FaceRules.canInsert(PortRole.INPUT, mode())
+                || !machine.acceptsFromOutside(slot, stack)) {
             return stack;
         }
         return machine.inventory().insertItem(slot, stack, simulate);
@@ -63,6 +64,6 @@ final class SidedItemHandler implements IItemHandler {
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
         return machine.isInputSlot(slot) && FaceRules.canInsert(PortRole.INPUT, mode())
-                && machine.inventory().isItemValid(slot, stack);
+                && machine.inventory().isItemValid(slot, stack) && machine.acceptsFromOutside(slot, stack);
     }
 }

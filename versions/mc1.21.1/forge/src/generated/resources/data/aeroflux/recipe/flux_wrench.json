@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    }
+  },
+  "pattern": [
+    "C C",
+    " D ",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:flux_wrench"
+  }
+}
