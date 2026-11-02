@@ -12,6 +12,7 @@ import com.itmecasey.aeroflux.machine.CrafterBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.machine.SkyControllerBlockEntity;
+import com.itmecasey.aeroflux.machine.StandInPlayer;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Animal;
@@ -295,6 +297,17 @@ final class MoreMachinesSelfTest {
         // It burned Flux, so it did run; a blaze killed by no one drops nothing.
         SelfTest.check("spawner: without a weapon there is no player kill, so no blaze rods",
                 machine(bareSpawner).fluxAmount() < 8_000 && count(bareSpawner, Items.BLAZE_ROD) == 0);
+        // Other mods may message the killer or drop its connection; the stand-in must shrug both off.
+        StandInPlayer standIn = StandInPlayer.of(level);
+        boolean quiet;
+        try {
+            standIn.sendSystemMessage(Component.literal("AeroFlux self-test"));
+            standIn.connection.disconnect(Component.literal("AeroFlux self-test"));
+            quiet = standIn.connection != null && level.getPlayerByUUID(standIn.getUUID()) == null;
+        } catch (RuntimeException failure) {
+            quiet = false;
+        }
+        SelfTest.check("spawner: its stand-in player takes messages and stays out of the world", quiet);
     }
 
     private static void checkLamp() {

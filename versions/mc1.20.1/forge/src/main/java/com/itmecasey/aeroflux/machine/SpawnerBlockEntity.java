@@ -1,8 +1,11 @@
 package com.itmecasey.aeroflux.machine;
 
+import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.AeroFluxConfig;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -37,6 +40,8 @@ public class SpawnerBlockEntity extends FluxMachineBlockEntity {
     private static final int SPAWN_TICKS = 400;
     private static final int EGG_SLOT = 0;
     private static final int WEAPON_SLOT = 1;
+    /** Mobs whose loot already failed to roll, so each is reported only once. */
+    private static final Set<EntityType<?>> FAILED_ROLLS = new HashSet<>();
 
     public SpawnerBlockEntity(BlockPos pos, BlockState state) {
         super(pos, state);
@@ -128,12 +133,29 @@ public class SpawnerBlockEntity extends FluxMachineBlockEntity {
             if (killer != null) {
                 params = params.withParameter(LootContextParams.LAST_DAMAGE_PLAYER, killer).withLuck(killer.getLuck());
             }
-            table.getRandomItems(params.create(LootContextParamSets.ENTITY), loot::add);
-            if (killer != null) {
-                killer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            try {
+                table.getRandomItems(params.create(LootContextParamSets.ENTITY), loot::add);
+            } catch (RuntimeException failure) {
+                // Loot tables run other mods' code (loot modifiers, conditions). Losing one mob's
+                // loot is better than a crash that takes the whole server down with it.
+                loot.clear();
+                reportFailedRoll(type, failure);
+            } finally {
+                if (killer != null) {
+                    killer.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                }
             }
         }
         living.discard();
         return loot;
+    }
+
+    /** Logs a failed loot roll, once per kind of mob, so a broken loot table cannot flood the log. */
+    private static void reportFailedRoll(EntityType<?> type, RuntimeException failure) {
+        if (FAILED_ROLLS.add(type)) {
+            AeroFlux.LOGGER.error("A Moon Spawner could not roll the loot of {}, so it made nothing for it. "
+                    + "Later failures for this mob are not logged again. The error came from its loot table:",
+                    EntityType.getKey(type), failure);
+        }
     }
 }
