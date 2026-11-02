@@ -57,8 +57,9 @@ public final class BundleState {
      * @param setKey    {@link PipeSet#key()}
      * @param connected the connected masks of all lanes packed into one value
      * @param external  the external masks of all lanes packed into one value
+     * @param tiers     the tier of each pipe present, packed; each tier has its own textures
      */
-    public record ModelKey(int setKey, long connected, long external) {
+    public record ModelKey(int setKey, long connected, long external, int tiers) {
     }
 
     public PipeSet set() {
@@ -275,7 +276,18 @@ public final class BundleState {
 
     /** The key under which the model caches this bundle's quads. */
     public ModelKey modelKey() {
-        return new ModelKey(set.key(), pack(connected), pack(external));
+        return new ModelKey(set.key(), pack(connected), pack(external), packTiers());
+    }
+
+    /** The tiers of the lanes that hold a pipe; an empty lane's leftover tier draws nothing, so it counts as 0. */
+    private int packTiers() {
+        int packed = 0;
+        for (int lane = 0; lane < PipeType.LANES; lane++) {
+            if (set.get(lane) != null) {
+                packed |= tiers[lane].ordinal() << (lane * TIER_BITS);
+            }
+        }
+        return packed;
     }
 
     private static long pack(int[] masks) {

@@ -1,7 +1,8 @@
 package com.itmecasey.aeroflux.client.model;
 
+import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.core.conduit.PipeTextures;
 import com.mojang.math.Quadrant;
-import java.util.List;
 import net.minecraft.client.renderer.block.dispatch.ModelState;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelDebugName;
@@ -16,9 +17,9 @@ import net.minecraft.core.Direction;
 import org.joml.Vector3f;
 
 /**
- * The unbaked form of the conduit bundle model. The model file names the white pipe textures
- * {@code side} and {@code end}, which every pipe shares and tints with its color, plus
- * {@code node} for connectors and {@code particle}.
+ * The unbaked form of the conduit bundle model. The model file names {@code node}, the connector
+ * texture for junctions and machine plates, and {@code particle}. The pipes' own textures, one
+ * set per pipe type and tier (see {@link PipeTextures}), are found by name.
  *
  * <p>A baked geometry in 26.1 is a fixed list of quads, which cannot depend on the block
  * entity. So this bakes only a swatch per texture: tiny stand-in quads that carry the baked
@@ -28,23 +29,21 @@ import org.joml.Vector3f;
 public class BundleGeometry implements UnbakedGeometry {
     /** The face every swatch is baked on. Which one does not matter. */
     private static final Direction SWATCH_FACE = Direction.SOUTH;
-    /** The texture slots, in the order {@link BundleMaterials} reads them back. */
-    private static final List<String> SLOTS = List.of("side", "end", "node");
 
+    /** Bakes the node swatch first, then one per name in {@link PipeTextures#allNames()}, the order {@link BundleMaterials} reads them back. */
     @Override
     public QuadCollection bake(TextureSlots textures, ModelBaker baker, ModelState state, ModelDebugName name) {
         QuadCollection.Builder swatches = new QuadCollection.Builder();
-        for (String slot : SLOTS) {
-            swatches.addUnculledFace(swatch(textures, baker, state, name, slot));
+        swatches.addUnculledFace(swatch(baker, state, baker.materials().resolveSlot(textures, "node", name)));
+        for (String pipe : PipeTextures.allNames()) {
+            swatches.addUnculledFace(swatch(baker, state, baker.materials().get(new Material(Ids.mod("block/" + pipe)), name)));
         }
         return swatches.build();
     }
 
-    private static BakedQuad swatch(TextureSlots textures, ModelBaker baker, ModelState state,
-                                    ModelDebugName name, String slot) {
-        Material.Baked material = baker.materials().resolveSlot(textures, slot, name);
+    private static BakedQuad swatch(ModelBaker baker, ModelState state, Material.Baked material) {
         // The whole texture is covered, so the layer chosen from its transparency fits every face drawn with it.
-        CuboidFace face = new CuboidFace(null, CuboidFace.NO_TINT, slot,
+        CuboidFace face = new CuboidFace(null, CuboidFace.NO_TINT, "swatch",
                 new CuboidFace.UVs(0.0F, 0.0F, 16.0F, 16.0F), Quadrant.R0);
         return FaceBakery.bakeQuad(baker, new Vector3f(6.0F, 6.0F, 6.0F), new Vector3f(10.0F, 10.0F, 10.0F),
                 face, material, SWATCH_FACE, state, null, true, 0);

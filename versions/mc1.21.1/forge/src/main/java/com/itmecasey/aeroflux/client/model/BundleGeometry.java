@@ -1,5 +1,9 @@
 package com.itmecasey.aeroflux.client.model;
 
+import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.core.conduit.PipeTextures;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -7,22 +11,27 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
 import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
 
 /**
- * The unbaked form of the conduit bundle model. Baking looks up the pipe's {@code side} and
- * {@code end} textures, which every pipe shares and tints with its own color, plus {@code node}
- * for the junction boxes and plates and {@code particle}.
+ * The unbaked form of the conduit bundle model. Baking looks up every pipe texture by name (one
+ * set per pipe type and tier, see {@link PipeTextures}) in the block atlas, plus {@code node} for
+ * the junction boxes and plates and {@code particle} from the model file.
  */
 public class BundleGeometry implements IUnbakedGeometry<BundleGeometry> {
     @Override
     public BakedModel bake(IGeometryBakingContext context, ModelBaker baker,
                            Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState,
                            ItemOverrides overrides) {
-        return new BundleBakedModel(
-                spriteGetter.apply(context.getMaterial("side")),
-                spriteGetter.apply(context.getMaterial("end")),
+        Map<String, TextureAtlasSprite> pipes = new HashMap<>();
+        for (String name : PipeTextures.allNames()) {
+            ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(AeroFlux.MODID, "block/" + name);
+            pipes.put(name, spriteGetter.apply(new Material(InventoryMenu.BLOCK_ATLAS, texture)));
+        }
+        return new BundleBakedModel(pipes,
                 spriteGetter.apply(context.getMaterial("node")),
                 spriteGetter.apply(context.getMaterial("particle")));
     }

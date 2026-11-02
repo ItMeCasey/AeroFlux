@@ -3,8 +3,6 @@
     "": {
       "type": "aeroflux:conduit_bundle",
       "textures": {
-        "side": "aeroflux:block/pipe_side",
-        "end": "aeroflux:block/pipe_end",
         "node": "aeroflux:block/pipe_node",
         "particle": "aeroflux:block/pipe_node"
       }

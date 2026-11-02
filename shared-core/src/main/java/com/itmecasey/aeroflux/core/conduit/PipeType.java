@@ -10,7 +10,7 @@ import java.util.Locale;
  * {@link #ME}.
  */
 public enum PipeType {
-    FLUID(0, 0xC9CED3),
+    FLUID(0, 0x8C939A),
     ITEM(1, 0x4B5057),
     REDSTONE(2, 0xD8322C),
     ENERGY(3, 0xE8731A),

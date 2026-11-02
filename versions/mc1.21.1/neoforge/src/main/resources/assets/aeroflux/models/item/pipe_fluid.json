@@ -27,7 +27,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -40,7 +40,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -53,7 +53,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -66,7 +66,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -79,7 +79,7 @@
           ],
           "texture": "#end",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           }
         }
       }
@@ -105,7 +105,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -118,7 +118,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -131,7 +131,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -144,7 +144,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -157,7 +157,7 @@
           ],
           "texture": "#end",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           }
         },
         "east": {
@@ -169,7 +169,7 @@
           ],
           "texture": "#end",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           }
         }
       }
@@ -195,7 +195,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -208,7 +208,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -221,7 +221,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -234,7 +234,7 @@
           ],
           "texture": "#side",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           },
           "rotation": 90
         },
@@ -247,7 +247,7 @@
           ],
           "texture": "#end",
           "neoforge_data": {
-            "color": "FFC9CED3"
+            "color": "FF8C939A"
           }
         }
       }

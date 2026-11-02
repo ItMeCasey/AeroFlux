@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
@@ -516,8 +517,12 @@ public final class ShotTour {
         moveTo(eye, yaw, pitch);
     }
 
-    /** Moves the camera: {@code eye} is where the eyes go; the feet end up 1.62 below. */
+    /**
+     * Moves the camera: {@code eye} is where the eyes go; the feet end up 1.62 below. The server is
+     * told too, or it pulls the player back to where it last saw them before the shot is taken.
+     */
     private static void moveTo(Vec3 eye, float yaw, float pitch) {
+        server(String.format(Locale.ROOT, "tp @a %.3f %.3f %.3f %.2f %.2f", eye.x, eye.y - 1.62, eye.z, yaw, pitch));
         LocalPlayer player = player();
         player.snapTo(eye.x, eye.y - 1.62, eye.z, yaw, pitch);
         player.setYHeadRot(yaw);

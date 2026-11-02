@@ -12,18 +12,13 @@ import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.core.Tier;
-import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModMenus;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import net.minecraft.client.color.block.BlockTintSource;
-import net.minecraft.client.color.block.BlockTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.Direction;
@@ -31,7 +26,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -63,19 +57,6 @@ public final class ClientSetup {
                 MenuScreens.register(ModMenus.machine(machine).get(), MachineScreen::new);
             }
         });
-    }
-
-    /**
-     * Colors the pipes. Every pipe shares the same white textures, and the bundle model gives each
-     * pipe type its own tint index (its ordinal), so the tint at that index is that pipe's color.
-     */
-    @SubscribeEvent
-    public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
-        List<BlockTintSource> pipeColors = new ArrayList<>();
-        for (PipeType type : PipeType.values()) {
-            pipeColors.add(BlockTintSources.constant(0xFF000000 | type.color()));
-        }
-        event.register(pipeColors, ModBlocks.CONDUIT_BUNDLE.get());
     }
 
     /** Teaches the model system the {@code aeroflux:conduit_bundle} model type. */

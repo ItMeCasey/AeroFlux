@@ -150,6 +150,8 @@ final class BlockIoSelfTest {
         fedHopper = fedFurnace.above();
         level.setBlock(fedHopper, Blocks.HOPPER.defaultBlockState(), Block.UPDATE_ALL);
         ((Container) level.getBlockEntity(fedHopper)).setItem(0, new ItemStack(Items.RAW_IRON, 5));
+        // A lid, so items another check drops from above cannot fall in and spoil the count.
+        level.setBlock(fedHopper.above(), Blocks.GLASS.defaultBlockState(), Block.UPDATE_ALL);
 
         // A hopper below a machine pulls from its bottom face, which lets products out.
         drainedFurnace = furnace(10, 2);

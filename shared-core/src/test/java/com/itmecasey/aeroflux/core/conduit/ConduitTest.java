@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.itmecasey.aeroflux.core.Tier;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -307,6 +308,10 @@ class ConduitTest {
         before.addPipe(PipeType.FLUID);
         a.setMode(0, Face.EAST, ConnectionMode.EXPORT);
         assertEquals(before.modelKey(), a.modelKey());
+
+        // Every tier has its own textures, so a tier change is a new look.
+        a.setTier(0, Tier.GOLD);
+        assertNotEquals(before.modelKey(), a.modelKey());
     }
 
     @Test
