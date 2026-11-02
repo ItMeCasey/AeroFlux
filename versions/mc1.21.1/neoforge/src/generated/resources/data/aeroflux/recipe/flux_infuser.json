@@ -3,7 +3,7 @@
   "category": "misc",
   "key": {
     "A": {
-      "item": "aeroflux:moon_crystal"
+      "tag": "c:gems/amethyst"
     },
     "C": {
       "tag": "c:ingots/copper"
@@ -12,7 +12,7 @@
       "item": "aeroflux:flux_dust"
     },
     "M": {
-      "item": "minecraft:brewing_stand"
+      "item": "minecraft:cauldron"
     },
     "S": {
       "tag": "c:ingots/copper"

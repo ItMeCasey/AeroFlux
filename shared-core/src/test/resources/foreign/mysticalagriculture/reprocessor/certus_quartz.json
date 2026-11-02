@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mysticalagriculture:crop_enabled",
+      "crop": "mysticalagriculture:certus_quartz"
+    }
+  ],
+  "type": "mysticalagriculture:reprocessor",
+  "input": "mysticalagriculture:certus_quartz_seeds",
+  "result": {
+    "count": 2,
+    "id": "mysticalagriculture:certus_quartz_essence"
+  }
+}

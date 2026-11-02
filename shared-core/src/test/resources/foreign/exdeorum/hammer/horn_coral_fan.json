@@ -1,0 +1,8 @@
+{
+  "type": "exdeorum:hammer",
+  "ingredient": "minecraft:horn_coral",
+  "result": {
+    "id": "minecraft:horn_coral_fan"
+  },
+  "result_amount": 1.0
+}

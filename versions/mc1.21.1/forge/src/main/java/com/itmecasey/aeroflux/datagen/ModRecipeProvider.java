@@ -1,5 +1,7 @@
 package com.itmecasey.aeroflux.datagen;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -7,13 +9,16 @@ import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.lamp.LampKind;
-import com.itmecasey.aeroflux.machine.SifterBlockEntity;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModItems;
+import com.mojang.serialization.JsonOps;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -28,8 +33,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.crafting.ConditionalRecipe;
+import net.minecraftforge.common.crafting.conditions.ICondition;
+import net.minecraftforge.common.crafting.conditions.ModLoadedCondition;
+import net.minecraftforge.common.crafting.conditions.OrCondition;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -72,7 +82,6 @@ public class ModRecipeProvider extends RecipeProvider {
         infuser();
         plantGrower();
         purifier();
-        sifter();
         lamps();
     }
 
@@ -86,11 +95,10 @@ public class ModRecipeProvider extends RecipeProvider {
      * the first Alloy Smelter calls for either of them.
      */
     private void materials() {
-        shapeless(RecipeCategory.MISC, ModItems.FLUX_DUST.get(), 2)
-                .requires(Tags.Items.DUSTS_GLOWSTONE)
-                .requires(Tags.Items.GEMS_QUARTZ)
-                .requires(Tags.Items.DUSTS_REDSTONE)
-                .unlockedBy("has_glowstone_dust", has(Tags.Items.DUSTS_GLOWSTONE))
+        // Two Sawdust, from the first tree chopped (see SawdustFromLogs) or later from the Sawmill.
+        shapeless(RecipeCategory.MISC, ModItems.FLUX_DUST.get())
+                .requires(ModItems.SAWDUST.get(), 2)
+                .unlockedBy(getHasName(ModItems.SAWDUST.get()), has(ModItems.SAWDUST.get()))
                 .save(output);
         crystal(ModItems.AERO_CRYSTAL.get(), Tags.Items.GEMS_QUARTZ);
         crystal(ModItems.MOON_CRYSTAL.get(), Tags.Items.GEMS_AMETHYST);
@@ -148,6 +156,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .pattern("RGR")
                 .unlockedBy(getHasName(ModItems.AERO_CRYSTAL.get()), has(ModItems.AERO_CRYSTAL.get()))
                 .save(output);
+        machineUpgrades();
         shaped(RecipeCategory.MISC, ModItems.CAPACITY_UPGRADE.get())
                 .define('Q', Tags.Items.GEMS_QUARTZ)
                 .define('I', Tags.Items.INGOTS_IRON)
@@ -206,6 +215,10 @@ public class ModRecipeProvider extends RecipeProvider {
 
     /** One block of a tier from the same block one tier down, wrapped in that tier's kit. */
     private void upgrade(ItemLike result, ItemLike previous, Tier tier) {
+        upgrade(result, previous, tier, output);
+    }
+
+    private void upgrade(ItemLike result, ItemLike previous, Tier tier, RecipeOutput target) {
         TierKit kit = kit(tier);
         shaped(RecipeCategory.MISC, result)
                 .define('T', kit.top())
@@ -216,7 +229,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .pattern("SPS")
                 .pattern(" B ")
                 .unlockedBy(getHasName(previous), has(previous))
-                .save(output);
+                .save(target);
     }
 
     /**
@@ -250,12 +263,12 @@ public class ModRecipeProvider extends RecipeProvider {
      * higher tier is the tier below plus that tier's kit.
      */
     private void collectorsAndTanks() {
+        // Glass to catch the sky over a copper frame, built from things found on the first day.
         shaped(RecipeCategory.MISC, ModBlocks.collector(Tier.COPPER).get())
                 .define('G', Tags.Items.GLASS_BLOCKS_COLORLESS)
-                .define('S', Items.DAYLIGHT_DETECTOR)
                 .define('C', Tags.Items.INGOTS_COPPER)
                 .define('D', ModItems.FLUX_DUST.get())
-                .pattern("GSG")
+                .pattern("GGG")
                 .pattern("CDC")
                 .pattern("CCC")
                 .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
@@ -301,7 +314,8 @@ public class ModRecipeProvider extends RecipeProvider {
             case SAWMILL -> new MachineParts(Items.STONECUTTER, tag(Tags.Items.INGOTS_IRON), copper, ModItems.FLUX_DUST.get());
             case ALLOY_SMELTER -> new MachineParts(Items.BLAST_FURNACE, Ingredient.of(ModItems.AERO_CRYSTAL.get()), copper,
                     ModItems.AERO_CRYSTAL.get());
-            case INFUSER -> new MachineParts(Items.BREWING_STAND, moonCrystal, copper, ModItems.MOON_CRYSTAL.get());
+            // A cauldron to soak things in, under amethyst, so the Infuser comes before the Nether.
+            case INFUSER -> new MachineParts(Items.CAULDRON, tag(Tags.Items.GEMS_AMETHYST), copper, ModItems.FLUX_DUST.get());
             case ENCHANTER -> new MachineParts(Items.ENCHANTING_TABLE, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
             // Vanilla takes enchantments off with a grindstone, so the disenchanter is built around one too.
             case DISENCHANTER -> new MachineParts(Items.GRINDSTONE, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
@@ -323,11 +337,57 @@ public class ModRecipeProvider extends RecipeProvider {
         };
     }
 
-    /** Every machine: the copper one from its vanilla parts, then each tier from the one below. */
+    /**
+     * Where recipes go that should only load when a condition holds. Forge has no conditions on a
+     * recipe output, so each recipe is wrapped in a {@link ConditionalRecipe} under its own id.
+     */
+    private RecipeOutput conditional(ICondition condition) {
+        RecipeOutput target = output;
+        return new RecipeOutput() {
+            @Override
+            public void accept(ResourceLocation id, Recipe<?> recipe, @Nullable AdvancementHolder advancement) {
+                ConditionalRecipe.builder()
+                        .condition(condition)
+                        .recipe(id, recipe, advancement)
+                        .save(target, id);
+            }
+
+            /** Forge's other way in, with the advancement still as JSON: read it and go the usual way. */
+            @Override
+            public void accept(ResourceLocation id, Recipe<?> recipe, @Nullable ResourceLocation advancementId,
+                               @Nullable JsonElement advancement) {
+                AdvancementHolder holder = null;
+                if (advancementId != null && advancement != null) {
+                    holder = new AdvancementHolder(advancementId,
+                            Advancement.CODEC.parse(JsonOps.INSTANCE, advancement).getOrThrow(JsonParseException::new));
+                }
+                accept(id, recipe, holder);
+            }
+
+            @Override
+            public Advancement.Builder advancement() {
+                return target.advancement();
+            }
+
+            @Override
+            public HolderLookup.Provider registry() {
+                return target.registry();
+            }
+        };
+    }
+
+    /**
+     * Every machine: the copper one from its vanilla parts, then each tier from the one below. The
+     * Sifter only runs Ex Deorum's and Ex Nihilo Sequentia's sieve recipes, so it is only craftable
+     * when one of them is installed.
+     */
     private void machines() {
         Tier[] tiers = Tier.values();
+        RecipeOutput withSieveMod = conditional(new OrCondition(List.of(
+                new ModLoadedCondition("exdeorum"), new ModLoadedCondition("exnihilosequentia"))));
         for (MachineType machine : MachineType.values()) {
             MachineParts parts = parts(machine);
+            RecipeOutput target = machine == MachineType.SIFTER ? withSieveMod : output;
             shaped(RecipeCategory.MISC, ModBlocks.machine(machine, Tier.COPPER).get())
                     .define('C', Tags.Items.INGOTS_COPPER)
                     .define('A', parts.top())
@@ -338,9 +398,9 @@ public class ModRecipeProvider extends RecipeProvider {
                     .pattern("SMS")
                     .pattern("CDC")
                     .unlockedBy(getHasName(parts.unlock()), has(parts.unlock()))
-                    .save(output);
+                    .save(target);
             for (int i = 1; i < tiers.length; i++) {
-                upgrade(ModBlocks.machine(machine, tiers[i]).get(), ModBlocks.machine(machine, tiers[i - 1]).get(), tiers[i]);
+                upgrade(ModBlocks.machine(machine, tiers[i]).get(), ModBlocks.machine(machine, tiers[i - 1]).get(), tiers[i], target);
             }
         }
     }
@@ -577,13 +637,62 @@ public class ModRecipeProvider extends RecipeProvider {
                 List.of(out(product, 1, 1.0F)), STANDARD, flux, FluxType.MOON);
     }
 
+    // --- Machine-only upgrades ----------------------------------------------------------------
+
+    /**
+     * The upgrades only machines take. They come after the Alloy Smelter, since each is built on
+     * Fluxsteel, and each wraps the vanilla thing it is named after: lapis and a diamond for
+     * Fortune, string for Silk Touch, prismarine for the Purifier's water.
+     */
+    private void machineUpgrades() {
+        Item fluxsteel = ModItems.FLUXSTEEL_INGOT.get();
+        shaped(RecipeCategory.MISC, ModItems.machineUpgrade(MachineUpgrades.Special.EFFICIENCY).get())
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('M', ModItems.MOON_CRYSTAL.get())
+                .define('F', fluxsteel)
+                .define('A', ModItems.AERO_CRYSTAL.get())
+                .pattern("CMC")
+                .pattern("FAF")
+                .pattern("CMC")
+                .unlockedBy(getHasName(fluxsteel), has(fluxsteel))
+                .save(output);
+        shaped(RecipeCategory.MISC, ModItems.machineUpgrade(MachineUpgrades.Special.FORTUNE).get())
+                .define('L', Tags.Items.GEMS_LAPIS)
+                .define('F', fluxsteel)
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .pattern("LFL")
+                .pattern("FDF")
+                .pattern("LFL")
+                .unlockedBy(getHasName(fluxsteel), has(fluxsteel))
+                .save(output);
+        shaped(RecipeCategory.MISC, ModItems.machineUpgrade(MachineUpgrades.Special.SILK_TOUCH).get())
+                .define('S', Tags.Items.STRINGS)
+                .define('F', fluxsteel)
+                .define('M', ModItems.MOON_CRYSTAL.get())
+                .pattern("SFS")
+                .pattern("FMF")
+                .pattern("SFS")
+                .unlockedBy(getHasName(fluxsteel), has(fluxsteel))
+                .save(output);
+        shaped(RecipeCategory.MISC, ModItems.machineUpgrade(MachineUpgrades.Special.PURITY).get())
+                .define('P', Items.PRISMARINE_CRYSTALS)
+                .define('F', fluxsteel)
+                .define('A', ModItems.AERO_CRYSTAL.get())
+                .pattern("PFP")
+                .pattern("FAF")
+                .pattern("PFP")
+                .unlockedBy(getHasName(fluxsteel), has(fluxsteel))
+                .save(output);
+    }
+
     // --- Plant Grower ------------------------------------------------------------------------
 
     private void plantGrower() {
         // Day crops: Aero Flux. Seeds come back half of the time.
         crop("wheat", Items.WHEAT_SEEDS, Items.WHEAT, 2, Items.WHEAT_SEEDS, FluxType.AERO);
         crop("beetroot", Items.BEETROOT_SEEDS, Items.BEETROOT, 2, Items.BEETROOT_SEEDS, FluxType.AERO);
-        crop("melon", Items.MELON_SEEDS, Items.MELON_SLICE, 3, Items.MELON_SEEDS, FluxType.AERO);
+        crop("melon", Items.MELON_SEEDS, Items.MELON_SLICE, 3, Items.MELON_SEEDS, FluxType.AERO,
+                List.of(out(Items.MELON, 1, 1.0F), out(Items.MELON_SEEDS, 1, 0.5F)));
         crop("pumpkin", Items.PUMPKIN_SEEDS, Items.PUMPKIN, 1, Items.PUMPKIN_SEEDS, FluxType.AERO);
         crop("carrot", Items.CARROT, Items.CARROT, 2, null, FluxType.AERO);
         crop("potato", Items.POTATO, Items.POTATO, 2, null, FluxType.AERO);
@@ -591,17 +700,19 @@ public class ModRecipeProvider extends RecipeProvider {
         crop("cactus", Items.CACTUS, Items.CACTUS, 2, null, FluxType.AERO);
         crop("dandelion", Items.DANDELION, Items.DANDELION, 2, null, FluxType.AERO);
         crop("poppy", Items.POPPY, Items.POPPY, 2, null, FluxType.AERO);
-        tree("oak", Items.OAK_SAPLING, Items.OAK_LOG);
-        tree("spruce", Items.SPRUCE_SAPLING, Items.SPRUCE_LOG);
-        tree("birch", Items.BIRCH_SAPLING, Items.BIRCH_LOG);
-        tree("jungle", Items.JUNGLE_SAPLING, Items.JUNGLE_LOG);
-        tree("acacia", Items.ACACIA_SAPLING, Items.ACACIA_LOG);
-        tree("dark_oak", Items.DARK_OAK_SAPLING, Items.DARK_OAK_LOG);
-        tree("cherry", Items.CHERRY_SAPLING, Items.CHERRY_LOG);
+        tree("oak", Items.OAK_SAPLING, Items.OAK_LOG, Items.OAK_LEAVES);
+        tree("spruce", Items.SPRUCE_SAPLING, Items.SPRUCE_LOG, Items.SPRUCE_LEAVES);
+        tree("birch", Items.BIRCH_SAPLING, Items.BIRCH_LOG, Items.BIRCH_LEAVES);
+        tree("jungle", Items.JUNGLE_SAPLING, Items.JUNGLE_LOG, Items.JUNGLE_LEAVES);
+        tree("acacia", Items.ACACIA_SAPLING, Items.ACACIA_LOG, Items.ACACIA_LEAVES);
+        tree("dark_oak", Items.DARK_OAK_SAPLING, Items.DARK_OAK_LOG, Items.DARK_OAK_LEAVES);
+        tree("cherry", Items.CHERRY_SAPLING, Items.CHERRY_LOG, Items.CHERRY_LEAVES);
 
         // Night growers: fungi and pale flowers give a bigger harvest, but only on Moon Flux.
-        crop("red_mushroom", Items.RED_MUSHROOM, Items.RED_MUSHROOM, 3, null, FluxType.MOON);
-        crop("brown_mushroom", Items.BROWN_MUSHROOM, Items.BROWN_MUSHROOM, 3, null, FluxType.MOON);
+        crop("red_mushroom", Items.RED_MUSHROOM, Items.RED_MUSHROOM, 3, null, FluxType.MOON,
+                List.of(out(Items.RED_MUSHROOM_BLOCK, 1, 1.0F), out(Items.RED_MUSHROOM, 1, 1.0F)));
+        crop("brown_mushroom", Items.BROWN_MUSHROOM, Items.BROWN_MUSHROOM, 3, null, FluxType.MOON,
+                List.of(out(Items.BROWN_MUSHROOM_BLOCK, 1, 1.0F), out(Items.BROWN_MUSHROOM, 1, 1.0F)));
         crop("crimson_fungus", Items.CRIMSON_FUNGUS, Items.CRIMSON_FUNGUS, 2, null, FluxType.MOON);
         crop("warped_fungus", Items.WARPED_FUNGUS, Items.WARPED_FUNGUS, 2, null, FluxType.MOON);
         crop("lily_of_the_valley", Items.LILY_OF_THE_VALLEY, Items.LILY_OF_THE_VALLEY, 3, null, FluxType.MOON);
@@ -609,15 +720,28 @@ public class ModRecipeProvider extends RecipeProvider {
 
     /** A plant into more of itself; a seed (if given) comes back half of the time so seeds are never used up. */
     private void crop(String name, ItemLike plant, ItemLike harvest, int count, @Nullable ItemLike seedBack, FluxType flux) {
+        crop(name, plant, harvest, count, seedBack, flux, List.of());
+    }
+
+    /** A crop with what it gives under a Silk Touch Upgrade instead, such as a whole melon. */
+    private void crop(String name, ItemLike plant, ItemLike harvest, int count, @Nullable ItemLike seedBack, FluxType flux,
+                      List<FluxRecipe.Output> silk) {
         List<FluxRecipe.Output> outputs = seedBack == null
                 ? List.of(out(harvest, count, 1.0F))
                 : List.of(out(harvest, count, 1.0F), out(seedBack, 1, 0.5F));
-        add(MachineType.PLANT_GROWER, name, List.of(in(Ingredient.of(plant), 1)), outputs, STANDARD * 2, 0, flux);
+        addGrower(name, plant, outputs, STANDARD * 2, flux, silk);
     }
 
-    private void tree(String name, ItemLike sapling, ItemLike log) {
-        add(MachineType.PLANT_GROWER, name + "_tree", List.of(in(Ingredient.of(sapling), 1)),
-                List.of(out(log, 3, 1.0F), out(sapling, 1, 0.5F)), STANDARD * 3, 0, FluxType.AERO);
+    /** A tree: logs and, half of the time, its sapling back. With Silk Touch it also keeps some leaves. */
+    private void tree(String name, ItemLike sapling, ItemLike log, ItemLike leaves) {
+        addGrower(name + "_tree", sapling, List.of(out(log, 3, 1.0F), out(sapling, 1, 0.5F)), STANDARD * 3, FluxType.AERO,
+                List.of(out(log, 3, 1.0F), out(leaves, 2, 1.0F), out(sapling, 1, 0.5F)));
+    }
+
+    private void addGrower(String name, ItemLike plant, List<FluxRecipe.Output> outputs, int time, FluxType flux,
+                           List<FluxRecipe.Output> silk) {
+        save(MachineType.PLANT_GROWER, name, new FluxRecipe(MachineType.PLANT_GROWER, List.of(in(Ingredient.of(plant), 1)),
+                outputs, time, 0, flux, 0, silk));
     }
 
     // --- Helpers -----------------------------------------------------------------------------
@@ -646,38 +770,7 @@ public class ModRecipeProvider extends RecipeProvider {
 
     private void purify(String name, TagKey<Item> ore, ItemLike product, int count) {
         addFull(MachineType.PURIFIER, name + "_ore", List.of(in(tag(ore), 1)), List.of(out(product, count, 1.0F)),
-                STANDARD, 0, null, "", PURIFY_WATER);
-    }
-
-    // --- Sifter ------------------------------------------------------------------------------
-
-    /**
-     * A small built-in sieve set so the Sifter works without Ex Deorum or Ex Nihilo. As in those
-     * mods, one block rolls every recipe its mesh allows, so each mesh adds to the ones below it.
-     */
-    private void sifter() {
-        sift("gravel_string", Items.GRAVEL, "string", 0, out(Items.FLINT, 1, 0.25F), out(Items.WHEAT_SEEDS, 1, 0.05F));
-        sift("gravel_flint", Items.GRAVEL, "flint", 0, out(Items.IRON_NUGGET, 1, 0.15F), out(Items.COAL, 1, 0.08F));
-        sift("gravel_iron", Items.GRAVEL, "iron", 0, out(Items.GOLD_NUGGET, 1, 0.1F), out(Items.LAPIS_LAZULI, 1, 0.05F));
-        sift("gravel_diamond", Items.GRAVEL, "diamond", 0, out(Items.DIAMOND, 1, 0.01F), out(Items.EMERALD, 1, 0.01F));
-        sift("dirt_string", Items.DIRT, "string", 0, out(Items.WHEAT_SEEDS, 1, 0.2F), out(Items.BEETROOT_SEEDS, 1, 0.1F),
-                out(Items.PUMPKIN_SEEDS, 1, 0.05F), out(Items.MELON_SEEDS, 1, 0.05F));
-        sift("dirt_flint", Items.DIRT, "flint", 0, out(Items.POTATO, 1, 0.05F), out(Items.CARROT, 1, 0.05F),
-                out(Items.OAK_SAPLING, 1, 0.05F));
-        // Waterlogged: the clay and shards only wash out with water in the tank.
-        sift("sand_flint", Items.SAND, "flint", 50, out(Items.CLAY_BALL, 1, 0.5F), out(Items.GOLD_NUGGET, 1, 0.1F),
-                out(Items.PRISMARINE_SHARD, 1, 0.03F));
-        sift("sand_iron", Items.SAND, "iron", 0, out(Items.QUARTZ, 1, 0.05F), out(Items.CACTUS, 1, 0.05F));
-        sift("soul_sand_iron", Items.SOUL_SAND, "iron", 0, out(Items.QUARTZ, 1, 0.2F), out(Items.GLOWSTONE_DUST, 1, 0.1F),
-                out(Items.NETHER_WART, 1, 0.05F));
-        sift("soul_sand_diamond", Items.SOUL_SAND, "diamond", 0, out(Items.GHAST_TEAR, 1, 0.02F), out(Items.BLAZE_POWDER, 1, 0.05F));
-        sift("soul_soil_netherite", Items.SOUL_SOIL, "netherite", 0, out(Items.NETHERITE_SCRAP, 1, 0.01F),
-                out(Items.GOLD_NUGGET, 3, 0.2F));
-    }
-
-    private void sift(String name, ItemLike input, String mesh, int water, FluxRecipe.Output... outputs) {
-        addFull(MachineType.SIFTER, name, List.of(in(Ingredient.of(input), 1)), List.of(outputs),
-                SifterBlockEntity.SIFT_TICKS, 0, null, mesh, water);
+                STANDARD, 0, null, PURIFY_WATER);
     }
 
     // --- Lamps -------------------------------------------------------------------------------
@@ -709,15 +802,19 @@ public class ModRecipeProvider extends RecipeProvider {
 
     private void add(MachineType machine, String name, List<FluxRecipe.Input> inputs, List<FluxRecipe.Output> outputs,
                      int time, int flux, @Nullable FluxType fluxType) {
-        addFull(machine, name, inputs, outputs, time, flux, fluxType, "", 0);
+        addFull(machine, name, inputs, outputs, time, flux, fluxType, 0);
     }
 
     private void addFull(MachineType machine, String name, List<FluxRecipe.Input> inputs, List<FluxRecipe.Output> outputs,
-                         int time, int flux, @Nullable FluxType fluxType, String mesh, int water) {
-        if (inputs.size() > machine.inputSlots() || outputs.size() > machine.outputSlots()) {
+                         int time, int flux, @Nullable FluxType fluxType, int water) {
+        save(machine, name, new FluxRecipe(machine, inputs, outputs, time, flux, fluxType, water, List.of()));
+    }
+
+    private void save(MachineType machine, String name, FluxRecipe recipe) {
+        if (recipe.inputs().size() > machine.inputSlots() || recipe.outputs().size() > machine.outputSlots()
+                || recipe.silkOutputs().size() > machine.outputSlots()) {
             throw new IllegalStateException("Recipe " + machine.id() + "/" + name + " needs more slots than the machine has");
         }
-        FluxRecipe recipe = new FluxRecipe(machine, inputs, outputs, time, flux, fluxType, mesh, water);
         output.accept(Ids.mod(machine.id() + "/" + name), recipe, null);
     }
 

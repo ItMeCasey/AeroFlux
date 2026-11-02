@@ -2,7 +2,10 @@ package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -13,27 +16,41 @@ import net.minecraftforge.items.ItemStackHandler;
  * one of these next to its inventory and never hands it to pipes or hoppers, so upgrades only go
  * in and out through the screen. The client's menu builds a plain one of the same size to show
  * what the server sends.
+ *
+ * <p>Every machine takes Speed and Capacity Upgrades. The machine-only upgrades go only into the
+ * machines they do something in, so a Fortune Upgrade never sits uselessly in a furnace.
  */
 public class MachineUpgradeSlots extends ItemStackHandler {
+    private final MachineType machine;
     private final Runnable onChange;
 
     /**
-     * @param size     the number of slots, from {@link com.itmecasey.aeroflux.core.machine.MachineUpgrades#slots}
+     * @param size     the number of slots, from {@link MachineUpgrades#slots}
+     * @param machine  the kind of machine, which decides the machine-only upgrades it takes
      * @param onChange called after any slot changed
      */
-    public MachineUpgradeSlots(int size, Runnable onChange) {
+    public MachineUpgradeSlots(int size, MachineType machine, Runnable onChange) {
         super(size);
+        this.machine = machine;
         this.onChange = onChange;
     }
 
     /** Slots for the client's copy of a menu, which has nothing to tell. */
-    public MachineUpgradeSlots(int size) {
-        this(size, () -> { });
+    public MachineUpgradeSlots(int size, MachineType machine) {
+        this(size, machine, () -> { });
     }
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
-        return stack.getItem() instanceof UpgradeItem;
+        return accepts(machine, stack.getItem());
+    }
+
+    /** Whether a machine of this kind takes this item as an upgrade. */
+    public static boolean accepts(MachineType machine, Item item) {
+        if (item instanceof UpgradeItem) {
+            return true;
+        }
+        return item instanceof MachineUpgradeItem upgrade && upgrade.kind().fits(machine);
     }
 
     @Override
@@ -51,6 +68,17 @@ public class MachineUpgradeSlots extends ItemStackHandler {
         int count = 0;
         for (ItemStack stack : stacks) {
             if (stack.getItem() instanceof UpgradeItem upgrade && upgrade.kind() == kind) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    /** How many machine-only upgrades of one kind are installed. */
+    public int count(MachineUpgrades.Special kind) {
+        int count = 0;
+        for (ItemStack stack : stacks) {
+            if (stack.getItem() instanceof MachineUpgradeItem upgrade && upgrade.kind() == kind) {
                 count += stack.getCount();
             }
         }

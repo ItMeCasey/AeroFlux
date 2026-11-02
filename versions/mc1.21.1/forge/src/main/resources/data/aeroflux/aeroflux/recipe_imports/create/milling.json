@@ -1,0 +1,6 @@
+{
+  "machine": "grinder",
+  "recipe_type": "create:milling",
+  "time_key": "processing_time",
+  "time_scale": 2.0
+}

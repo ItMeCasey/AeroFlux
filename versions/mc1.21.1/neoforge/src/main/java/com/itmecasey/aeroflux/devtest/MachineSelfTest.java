@@ -490,7 +490,7 @@ final class MachineSelfTest {
                 restored.sides().equals(original.sides())
                         && restored.sides().mode(SideResource.ITEMS, Face.NORTH) == ConnectionMode.EXPORT
                         && restored.sides().mode(SideResource.FLUID, Face.WEST) == ConnectionMode.BLOCKED);
-        SelfTest.check("persistence: the saved data carries a schema version", persistedTag.getInt("schema_version") == 1);
+        SelfTest.check("persistence: the saved data carries a schema version", persistedTag.getInt("schema_version") == 2);
 
         // A damaged save must not crash the load or leave a broken machine.
         CompoundTag damaged = persistedTag.copy();

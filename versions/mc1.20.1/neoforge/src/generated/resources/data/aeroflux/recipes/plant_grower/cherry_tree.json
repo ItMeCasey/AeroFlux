@@ -18,5 +18,19 @@
       "item": "minecraft:cherry_sapling"
     }
   ],
+  "silk_outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:cherry_log"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:cherry_leaves"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:cherry_sapling"
+    }
+  ],
   "time": 600
 }

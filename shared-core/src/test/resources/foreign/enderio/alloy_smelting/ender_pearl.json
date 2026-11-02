@@ -1,0 +1,14 @@
+{
+  "type": "enderio:alloy_smelting",
+  "energy": 2000,
+  "experience": 0.3,
+  "inputs": [
+    {
+      "count": 9,
+      "ingredient": "#c:dusts/ender_pearl"
+    }
+  ],
+  "output": {
+    "id": "minecraft:ender_pearl"
+  }
+}

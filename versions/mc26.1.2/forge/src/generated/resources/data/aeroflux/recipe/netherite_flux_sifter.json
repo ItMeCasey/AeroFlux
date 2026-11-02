@@ -1,18 +1,38 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "key": {
-    "B": "aeroflux:aerogold_ingot",
-    "P": "aeroflux:diamond_flux_sifter",
-    "S": "aeroflux:aerogold_ingot",
-    "T": "#c:ingots/netherite"
+  "type": "forge:conditional",
+  "forge:condition": {
+    "type": "forge:or",
+    "values": [
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exdeorum"
+      },
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exnihilosequentia"
+      }
+    ]
   },
-  "pattern": [
-    " T ",
-    "SPS",
-    " B "
-  ],
-  "result": {
-    "id": "aeroflux:netherite_flux_sifter"
-  }
+  "recipes": [
+    {
+      "recipe": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "B": "aeroflux:aerogold_ingot",
+          "P": "aeroflux:diamond_flux_sifter",
+          "S": "aeroflux:aerogold_ingot",
+          "T": "#c:ingots/netherite"
+        },
+        "pattern": [
+          " T ",
+          "SPS",
+          " B "
+        ],
+        "result": {
+          "id": "aeroflux:netherite_flux_sifter"
+        }
+      }
+    }
+  ]
 }

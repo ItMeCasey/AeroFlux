@@ -156,6 +156,11 @@ dependencies {
     runtimeOnly fg.deobf("maven.modrinth:guideme:${guideme_version}")
     compileOnly fg.deobf("maven.modrinth:mekanism:${mekanism_version}")
     runtimeOnly fg.deobf("maven.modrinth:mekanism:${mekanism_version}")
+    // Ex Deorum is only here so the self-test can read its real sieve and hammer recipes; AeroFlux
+    // never compiles against it. It stays out of data generation, which needs none of it.
+    if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
+        runtimeOnly fg.deobf("maven.modrinth:ex-deorum:${exdeorum_version}")
+    }
     compileOnly fg.deobf("maven.modrinth:jei:${jei_version}")
     runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
     compileOnly fg.deobf("maven.modrinth:kubejs:${kubejs_version}")

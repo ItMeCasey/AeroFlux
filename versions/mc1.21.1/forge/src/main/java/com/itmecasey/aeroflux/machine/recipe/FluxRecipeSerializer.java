@@ -32,11 +32,11 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
                 Codec.intRange(0, 1_000_000).optionalFieldOf("flux", 0).forGetter(FluxRecipe::flux),
                 Codec.STRING.optionalFieldOf("flux_type").forGetter(recipe ->
                         Optional.ofNullable(recipe.fluxType()).map(type -> type.name().toLowerCase(Locale.ROOT))),
-                Codec.STRING.optionalFieldOf("mesh", "").forGetter(FluxRecipe::mesh),
-                Codec.intRange(0, 1_000_000).optionalFieldOf("water", 0).forGetter(FluxRecipe::water)
-        ).apply(instance, (inputs, outputs, time, flux, fluxType, mesh, water) ->
+                Codec.intRange(0, 1_000_000).optionalFieldOf("water", 0).forGetter(FluxRecipe::water),
+                FluxRecipe.Output.CODEC.listOf().optionalFieldOf("silk_outputs", List.of()).forGetter(FluxRecipe::silkOutputs)
+        ).apply(instance, (inputs, outputs, time, flux, fluxType, water, silkOutputs) ->
                 new FluxRecipe(machine, inputs, outputs, time, flux, fluxType.map(FluxRecipeSerializer::parseFlux).orElse(null),
-                        mesh, water)));
+                        water, silkOutputs)));
 
         this.streamCodec = StreamCodec.of(
                 (buf, recipe) -> write(buf, recipe),
@@ -63,16 +63,30 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
             Ingredient.CONTENTS_STREAM_CODEC.encode(buf, input.ingredient());
             buf.writeVarInt(input.count());
         }
-        buf.writeVarInt(recipe.outputs().size());
-        for (FluxRecipe.Output output : recipe.outputs()) {
-            ItemStack.STREAM_CODEC.encode(buf, output.stack());
-            buf.writeFloat(output.chance());
-        }
+        writeOutputs(buf, recipe.outputs());
         buf.writeVarInt(recipe.time());
         buf.writeVarInt(recipe.flux());
         ByteBufCodecs.VAR_INT.encode(buf, recipe.fluxType() == null ? -1 : recipe.fluxType().ordinal());
-        buf.writeUtf(recipe.mesh());
         buf.writeVarInt(recipe.water());
+        writeOutputs(buf, recipe.silkOutputs());
+    }
+
+    private static void writeOutputs(RegistryFriendlyByteBuf buf, List<FluxRecipe.Output> outputs) {
+        buf.writeVarInt(outputs.size());
+        for (FluxRecipe.Output output : outputs) {
+            ItemStack.STREAM_CODEC.encode(buf, output.stack());
+            buf.writeFloat(output.chance());
+        }
+    }
+
+    private static List<FluxRecipe.Output> readOutputs(RegistryFriendlyByteBuf buf) {
+        int count = buf.readVarInt();
+        List<FluxRecipe.Output> outputs = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            ItemStack stack = ItemStack.STREAM_CODEC.decode(buf);
+            outputs.add(new FluxRecipe.Output(stack, buf.readFloat()));
+        }
+        return outputs;
     }
 
     private static FluxRecipe read(MachineType machine, RegistryFriendlyByteBuf buf) {
@@ -82,18 +96,13 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
             Ingredient ingredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buf);
             inputs.add(new FluxRecipe.Input(ingredient, buf.readVarInt()));
         }
-        int outputCount = buf.readVarInt();
-        List<FluxRecipe.Output> outputs = new ArrayList<>();
-        for (int i = 0; i < outputCount; i++) {
-            ItemStack stack = ItemStack.STREAM_CODEC.decode(buf);
-            outputs.add(new FluxRecipe.Output(stack, buf.readFloat()));
-        }
+        List<FluxRecipe.Output> outputs = readOutputs(buf);
         int time = buf.readVarInt();
         int flux = buf.readVarInt();
         int type = ByteBufCodecs.VAR_INT.decode(buf);
-        String mesh = buf.readUtf();
         int water = buf.readVarInt();
+        List<FluxRecipe.Output> silkOutputs = readOutputs(buf);
         return new FluxRecipe(machine, inputs, outputs, time, flux,
-                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type], mesh, water);
+                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type], water, silkOutputs);
     }
 }

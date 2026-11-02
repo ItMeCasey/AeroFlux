@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_moon_crystal": {
+    "has_flux_dust": {
       "conditions": {
         "items": [
           {
             "items": [
-              "aeroflux:moon_crystal"
+              "aeroflux:flux_dust"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_moon_crystal",
+      "has_flux_dust",
       "has_the_recipe"
     ]
   ],

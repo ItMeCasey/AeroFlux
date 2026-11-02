@@ -1,10 +1,11 @@
 package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModRecipes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
@@ -47,13 +48,28 @@ public final class MachineInputs {
             case CRAFTER, MAGNET -> true;
             case BLENDER -> stack.is(Items.BUCKET);
             case SKY_CONTROLLER -> false;
-            // Imported sieve recipes are only known to the server, so any block may go in.
-            case SIFTER -> stack.getItem() instanceof BlockItem || usedByARecipe(machine, level, stack);
+            case SIFTER -> sifts(level, slot, stack);
+            // Any crop or sapling grows, recipe or not (see PlantGrowth).
+            case PLANT_GROWER -> PlantGrowth.grows(stack) || usedByARecipe(machine, level, stack);
             case BREEDER -> isBreedingFood(stack);
             case REPAIRER -> slot == 0 ? stack.isDamageableItem() : stack.is(Items.EXPERIENCE_BOTTLE);
             case SPAWNER -> slot == 0 ? stack.getItem() instanceof SpawnEggItem : stack.isDamageableItem();
             default -> usedByARecipe(machine, level, stack);
         };
+    }
+
+    /**
+     * The Sifter's two slots: the block to sift and the mesh. The server knows every imported sieve
+     * recipe and answers from them. The client has none, so it goes by the name: both sieve mods
+     * call their meshes {@code something_mesh}, and anything else is a block to sift. The server's
+     * answer is the one that counts; the client only keeps its picture close to it.
+     */
+    private static boolean sifts(Level level, int slot, ItemStack stack) {
+        if (level instanceof ServerLevel server) {
+            return slot == SieveMesh.MESH_SLOT ? SieveImports.isMesh(server, stack) : SieveImports.isMaterial(server, stack);
+        }
+        boolean looksLikeMesh = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().endsWith("_mesh");
+        return slot == SieveMesh.MESH_SLOT ? looksLikeMesh : !looksLikeMesh;
     }
 
     /**
@@ -80,6 +96,12 @@ public final class MachineInputs {
         return level.recipeAccess().propertySet(RecipePropertySet.FURNACE_INPUT).test(stack);
     }
 
+    /**
+     * Whether a machine has a recipe for the stack: one of its own or one imported from another mod
+     * (see {@link RecipeImports}). Only the server knows the import rules, so the client also lets
+     * through what it cannot judge, and the server's answer, which comes right back, is the one
+     * that counts.
+     */
     private static boolean usedByARecipe(MachineType machine, Level level, ItemStack stack) {
         if (!(level instanceof ServerLevel server)) {
             return true;
@@ -90,6 +112,6 @@ public final class MachineInputs {
                 return true;
             }
         }
-        return false;
+        return RecipeImports.uses(server, machine, stack);
     }
 }

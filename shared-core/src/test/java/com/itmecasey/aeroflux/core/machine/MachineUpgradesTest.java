@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.core.machine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.itmecasey.aeroflux.core.Tier;
@@ -50,6 +51,63 @@ class MachineUpgradesTest {
         assertEquals(2_000, MachineUpgrades.inputCapacity(Tier.COPPER, 1));
         assertEquals(5_000, MachineUpgrades.inputCapacity(Tier.COPPER, 4));
         assertEquals(160_000, MachineUpgrades.inputCapacity(Tier.FLUXIUM, 4));
+    }
+
+    @Test
+    void efficiencyCutsTheRunningCost() {
+        // Netherite burns 6 mB a tick: 80% is 4.8, rounded up to 5; half is 3.
+        assertEquals(6, MachineUpgrades.fluxPerTick(Tier.NETHERITE, 0, 0));
+        assertEquals(5, MachineUpgrades.fluxPerTick(Tier.NETHERITE, 0, 1));
+        assertEquals(3, MachineUpgrades.fluxPerTick(Tier.NETHERITE, 0, 4));
+        // With speed: 6 x 4.0 = 24, then half of that is 12.
+        assertEquals(12, MachineUpgrades.fluxPerTick(Tier.NETHERITE, 4, 4));
+        // No upgrades of either kind keeps the old two-argument answer.
+        for (Tier tier : Tier.values()) {
+            for (int speed = 0; speed <= 4; speed++) {
+                assertEquals(MachineUpgrades.fluxPerTick(tier, speed), MachineUpgrades.fluxPerTick(tier, speed, 0));
+            }
+        }
+        // A working machine never burns nothing.
+        assertEquals(1, MachineUpgrades.fluxPerTick(Tier.COPPER, 0, 4));
+    }
+
+    @Test
+    void bonusItemsRollOncePerUpgrade() {
+        double[] low = {0.1, 0.1, 0.1, 0.1};
+        int[] next = {0};
+        assertEquals(4, MachineUpgrades.bonusItems(4, MachineUpgrades.FORTUNE_CHANCE, () -> low[next[0]++]));
+        assertEquals(4, next[0]);
+        // A roll exactly at the chance misses; only rolls below it count.
+        assertEquals(0, MachineUpgrades.bonusItems(2, MachineUpgrades.FORTUNE_CHANCE, () -> 0.30));
+        assertEquals(0, MachineUpgrades.bonusItems(0, MachineUpgrades.PURITY_CHANCE, () -> 0.0));
+        // More than four count as four.
+        int[] taken = {0};
+        MachineUpgrades.bonusItems(9, MachineUpgrades.PURITY_CHANCE, () -> {
+            taken[0]++;
+            return 0.9;
+        });
+        assertEquals(4, taken[0]);
+    }
+
+    @Test
+    void sifterFortuneRaisesChancesUpToCertain() {
+        assertEquals(0.25, MachineUpgrades.sifterChance(0.05, 2), 1e-9);
+        assertEquals(1.0, MachineUpgrades.sifterChance(0.8, 4), 1e-9);
+        assertEquals(0.05, MachineUpgrades.sifterChance(0.05, 0), 1e-9);
+    }
+
+    @Test
+    void specialUpgradesFitOnlyWhereTheyDoSomething() {
+        for (MachineType machine : MachineType.values()) {
+            assertTrue(MachineUpgrades.Special.EFFICIENCY.fits(machine));
+        }
+        assertTrue(MachineUpgrades.Special.FORTUNE.fits(MachineType.GRINDER));
+        assertTrue(MachineUpgrades.Special.FORTUNE.fits(MachineType.SIFTER));
+        assertFalse(MachineUpgrades.Special.FORTUNE.fits(MachineType.FURNACE));
+        assertTrue(MachineUpgrades.Special.SILK_TOUCH.fits(MachineType.PLANT_GROWER));
+        assertFalse(MachineUpgrades.Special.SILK_TOUCH.fits(MachineType.GRINDER));
+        assertTrue(MachineUpgrades.Special.PURITY.fits(MachineType.PURIFIER));
+        assertFalse(MachineUpgrades.Special.PURITY.fits(MachineType.SIFTER));
     }
 
     @Test

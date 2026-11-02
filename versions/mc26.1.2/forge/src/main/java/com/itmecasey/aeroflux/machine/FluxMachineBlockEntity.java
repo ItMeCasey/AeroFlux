@@ -18,6 +18,7 @@ import com.itmecasey.aeroflux.core.machine.RedstoneControl;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfigs;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
@@ -81,8 +82,8 @@ import org.jetbrains.annotations.Nullable;
  * machine keeps its progress, burns nothing and stays unlit.
  */
 public abstract class FluxMachineBlockEntity extends BlockEntity implements MenuProvider {
-    /** Version of the saved layout, so a later change can still read today's worlds. */
-    private static final int SCHEMA_VERSION = 1;
+    /** Version of the saved layout, so a later change can still read today's worlds. 2: the Sifter has a mesh slot. */
+    private static final int SCHEMA_VERSION = 2;
     private static final String TAG_SCHEMA = "schema_version";
     private static final String TAG_FLUX = "flux";
     private static final String TAG_ITEMS = "items";
@@ -206,7 +207,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             });
         }
         this.inventory = new MachineInventory(machine.inputSlots() + machine.outputSlots());
-        this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), this::upgradesChanged);
+        this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), machine, this::upgradesChanged);
     }
 
     // --- What a subclass provides ------------------------------------------------------------
@@ -242,6 +243,11 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     /** A setting only this kind of machine has, synced to its screen, such as the Magnet's whitelist. */
     public int machineMode() {
         return 0;
+    }
+
+    /** The most an input slot holds; a full stack unless a machine says less, like the Sifter's single mesh. */
+    protected int inputLimit(int slot) {
+        return Integer.MAX_VALUE;
     }
 
     // --- Parts -------------------------------------------------------------------------------
@@ -476,9 +482,9 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return timer.total();
     }
 
-    /** Flux burned per tick while working, in mB, with Speed upgrades counted. */
+    /** Flux burned per tick while working, in mB, with Speed and Efficiency upgrades counted. */
     public int fluxPerTick() {
-        return MachineUpgrades.fluxPerTick(tier, speedUpgrades());
+        return MachineUpgrades.fluxPerTick(tier, speedUpgrades(), upgrades(MachineUpgrades.Special.EFFICIENCY));
     }
 
     /** The size of the Flux tank in mB, with Capacity upgrades counted. */
@@ -499,6 +505,11 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     public int capacityUpgrades() {
         return upgrades.count(PipeUpgrades.Kind.CAPACITY);
+    }
+
+    /** How many machine-only upgrades of one kind are installed. */
+    public int upgrades(MachineUpgrades.Special kind) {
+        return upgrades.count(kind);
     }
 
     /**
@@ -983,7 +994,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        // Version 1 is the only layout so far; later versions will branch on TAG_SCHEMA here.
+        // Version 2 gave the Sifter its mesh slot; its inventory handles older saves.
         // The upgrades and the redstone settings came later in version 1 and are simply missing
         // from older saves, which leaves an unupgraded machine that ignores redstone.
         fluxTank.readFrom(input.childOrEmpty(TAG_FLUX));
@@ -1000,7 +1011,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         autoInsert = input.getBooleanOr(TAG_AUTO_INSERT, false);
         autoImport = input.getBooleanOr(TAG_AUTO_IMPORT, false);
         autoExport = input.getBooleanOr(TAG_AUTO_EXPORT, false);
-        inventory.load(input.childOrEmpty(TAG_ITEMS));
+        inventory.load(input.childOrEmpty(TAG_ITEMS), input.getIntOr(TAG_SCHEMA, 1));
         timer.restore(input.getIntOr(TAG_PROGRESS, 0), input.getIntOr(TAG_TOTAL, 0));
         ValueInput sideInput = input.childOrEmpty(TAG_SIDES);
         for (SideResource resource : sides.used()) {
@@ -1026,14 +1037,29 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             return isInputSlot(slot) && isInputValid(slot, stack);
         }
 
+        @Override
+        public int getSlotLimit(int slot) {
+            return isInputSlot(slot) ? Math.min(super.getSlotLimit(slot), inputLimit(slot)) : super.getSlotLimit(slot);
+        }
+
         void save(ValueOutput output) {
             ContainerHelper.saveAllItems(output, stacks);
         }
 
-        /** Starts from empty slots at the size this machine needs, so a save from a build with another slot count still loads. */
-        void load(ValueInput input) {
+        /**
+         * Starts from empty slots at the size this machine needs, so a save from a build with another
+         * slot count still loads. A Sifter saved before it had a mesh slot (layout 1) had its outputs
+         * from slot 1 on; they move up one so the new mesh slot starts empty.
+         */
+        void load(ValueInput input, int schema) {
             setSize(machine.inputSlots() + machine.outputSlots());
             ContainerHelper.loadAllItems(input, stacks);
+            if (schema < 2 && machine == MachineType.SIFTER) {
+                for (int slot = stacks.size() - 1; slot > SieveMesh.MESH_SLOT; slot--) {
+                    stacks.set(slot, stacks.get(slot - 1));
+                }
+                stacks.set(SieveMesh.MESH_SLOT, ItemStack.EMPTY);
+            }
         }
     }
 }

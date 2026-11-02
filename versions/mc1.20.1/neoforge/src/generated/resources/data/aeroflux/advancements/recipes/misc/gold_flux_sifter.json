@@ -1,5 +1,20 @@
 {
   "parent": "minecraft:recipes/root",
+  "conditions": [
+    {
+      "type": "forge:or",
+      "values": [
+        {
+          "type": "forge:mod_loaded",
+          "modid": "exdeorum"
+        },
+        {
+          "type": "forge:mod_loaded",
+          "modid": "exnihilosequentia"
+        }
+      ]
+    }
+  ],
   "criteria": {
     "has_iron_flux_sifter": {
       "conditions": {

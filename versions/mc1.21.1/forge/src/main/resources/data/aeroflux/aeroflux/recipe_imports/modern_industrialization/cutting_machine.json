@@ -1,0 +1,6 @@
+{
+  "machine": "sawmill",
+  "recipe_type": "modern_industrialization:cutting_machine",
+  "time_key": "duration",
+  "time_scale": 2.0
+}

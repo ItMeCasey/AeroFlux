@@ -162,6 +162,13 @@ dependencies {
     modLocalRuntime "maven.modrinth:guideme:${guideme_version}"
     modCompileOnly "maven.modrinth:mekanism:${mekanism_version}"
     modLocalRuntime "maven.modrinth:mekanism:${mekanism_version}"
+    // The sieve mods are only here so the self-test can read their real sieve and hammer recipes;
+    // AeroFlux never compiles against them. They stay out of data generation, which needs none of them.
+    if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
+        modLocalRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
+        modLocalRuntime "maven.modrinth:exnihilosequentia:${exnihilo_version}"
+        modLocalRuntime "maven.modrinth:novacore:${novacore_version}"
+    }
     modCompileOnly "maven.modrinth:jei:${jei_version}"
     modLocalRuntime "maven.modrinth:jei:${jei_version}"
     modCompileOnly "maven.modrinth:kubejs:${kubejs_version}"

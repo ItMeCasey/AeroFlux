@@ -1,29 +1,25 @@
 package com.itmecasey.aeroflux.machine;
 
-import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.ExtraTank;
-import com.itmecasey.aeroflux.core.machine.OutputChance;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.SieveMesh;
-import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
-import com.itmecasey.aeroflux.registry.ModRecipes;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Flux Sifter, a powered sieve whose tier is its mesh (see {@link SieveMesh}). Like the sieves
- * of Ex Deorum and Ex Nihilo, one block of input rolls every sieve recipe for that block at once,
- * each product on its own chance. A recipe only counts when the sifter's mesh is good enough for
- * it. Its recipes are its own {@code aeroflux:sifting} ones plus those of Ex Deorum and Ex Nihilo
- * Sequentia when they are installed (see {@link SieveImports}). Waterlogged recipes take water
- * from its tank. The fluxium sifter runs every mesh, twice as fast and with better odds.
+ * The Flux Sifter, a powered sieve for the recipes of Ex Deorum and Ex Nihilo Sequentia (see
+ * {@link SieveImports}); it has no recipes of its own. The player puts the block to sift in one
+ * slot and a mesh from either mod in the other. Like those mods' sieves, one block rolls every drop
+ * its recipes give for that mesh, each on its own; the mesh is never used up. Waterlogged recipes
+ * take water from the tank. The tier sets only the speed, as it does for every machine, and
+ * Fortune Upgrades raise the drop chances.
  */
 public class SifterBlockEntity extends FluxMachineBlockEntity {
     /** One block takes five seconds at copper; tier speed and Speed upgrades shorten it. */
@@ -33,22 +29,24 @@ public class SifterBlockEntity extends FluxMachineBlockEntity {
         super(pos, state);
     }
 
+    /** The block slot takes what some sieve recipe sifts, the mesh slot what some recipe uses as a mesh. */
     @Override
     protected boolean isInputValid(int slot, ItemStack stack) {
         return level != null && MachineInputs.accepts(machine(), level, slot, stack);
     }
 
-    /** Every sifting recipe for this block that this sifter's mesh runs. */
-    private List<FluxRecipe> recipesFor(ServerLevel server, ItemStack input) {
-        List<FluxRecipe> found = new ArrayList<>();
-        List<RecipeHolder<FluxRecipe>> all = new ArrayList<>(
-                ModRecipes.all(server, ModRecipes.type(MachineType.SIFTER).get()));
-        all.addAll(SieveImports.of(server));
-        for (RecipeHolder<FluxRecipe> holder : all) {
-            FluxRecipe recipe = holder.value();
-            if (!recipe.inputs().isEmpty() && recipe.inputs().getFirst().ingredient().test(input)
-                    && SieveMesh.runs(tier(), recipe.mesh())) {
-                found.add(recipe);
+    /** The mesh slot holds a single mesh. */
+    @Override
+    protected int inputLimit(int slot) {
+        return slot == SieveMesh.MESH_SLOT ? 1 : super.inputLimit(slot);
+    }
+
+    /** Every drop of sifting this block through this mesh. */
+    private List<SieveRoll> rollsFor(ServerLevel server, ItemStack material, ItemStack mesh) {
+        List<SieveRoll> found = new ArrayList<>();
+        for (SieveRoll roll : SieveImports.of(server)) {
+            if (roll.runs(material, mesh)) {
+                found.add(roll);
             }
         }
         return found;
@@ -56,50 +54,55 @@ public class SifterBlockEntity extends FluxMachineBlockEntity {
 
     @Override
     protected @Nullable Job findJob() {
-        ItemStack input = stackIn(0);
-        if (input.isEmpty() || !(level instanceof ServerLevel server)) {
+        ItemStack material = stackIn(SieveMesh.MATERIAL_SLOT);
+        ItemStack mesh = stackIn(SieveMesh.MESH_SLOT);
+        if (material.isEmpty() || mesh.isEmpty() || !(level instanceof ServerLevel server)) {
             return null;
         }
-        List<FluxRecipe> recipes = recipesFor(server, input);
+        List<SieveRoll> rolls = rollsFor(server, material, mesh);
         int water = 0;
-        for (FluxRecipe recipe : recipes) {
-            water = Math.max(water, recipe.water());
+        for (SieveRoll roll : rolls) {
+            water = Math.max(water, roll.water());
         }
         int waterTank = extraTankIndex(ExtraTank.WATER);
-        if (recipes.isEmpty() || (water > 0 && extraAmount(waterTank) < water)) {
+        if (rolls.isEmpty() || (water > 0 && extraAmount(waterTank) < water)) {
             return null;
         }
         int neededWater = water;
+        // The job is the pair: swapping either the block or the mesh starts the run over.
+        Item materialItem = material.getItem();
+        Item meshItem = mesh.getItem();
         return new Job() {
             @Override
             public Object key() {
-                return input.getItem();
+                return List.of(materialItem, meshItem);
             }
 
             @Override
             public int baseTicks() {
-                return tier() == Tier.FLUXIUM ? SIFT_TICKS / 2 : SIFT_TICKS;
+                return SIFT_TICKS;
             }
 
-            /** Sieve products are all chance rolls, so one free slot is enough to go on. */
+            /** Sieve drops are all rolls, so one free slot is enough to go on. */
             @Override
             public boolean outputFits() {
-                return canFitOutputs(List.of(recipes.getFirst().outputs().getFirst().stack().copyWithCount(1)));
+                return canFitOutputs(List.of(rolls.getFirst().product().create().copyWithCount(1)));
             }
 
             @Override
             public void complete() {
-                consumeInput(0, 1);
+                consumeInput(SieveMesh.MATERIAL_SLOT, 1);
                 if (neededWater > 0) {
                     drainExtra(waterTank, neededWater, false);
                 }
-                RandomSource rolls = level.getRandom();
+                RandomSource random = level.getRandom();
+                int fortune = upgrades(MachineUpgrades.Special.FORTUNE);
                 List<ItemStack> products = new ArrayList<>();
-                for (FluxRecipe recipe : recipes) {
-                    for (FluxRecipe.Output output : recipe.outputs()) {
-                        if (OutputChance.drops((float) SieveMesh.chance(tier(), output.chance()), rolls.nextDouble())) {
-                            products.add(output.stack());
-                        }
+                for (SieveRoll roll : rolls) {
+                    int count = roll.amount().withFortune(fortune).roll(random::nextDouble);
+                    if (count > 0) {
+                        ItemStack product = roll.product().create();
+                        products.add(product.copyWithCount(count * product.getCount()));
                     }
                 }
                 putOutputs(products);

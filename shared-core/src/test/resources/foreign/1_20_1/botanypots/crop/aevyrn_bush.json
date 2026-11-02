@@ -1,0 +1,1 @@
+{"bookshelf:load_conditions":[{"type":"bookshelf:item_exists","values":["aether_redux:aevyrn_bush"]}],"type":"botanypots:crop","seed":{"item":"aether_redux:aevyrn_bush"},"categories":["dirt"],"growthTicks":1800,"display":{"block":"aether_redux:aevyrn_bush"},"drops":[{"chance":1,"output":{"item":"aether_redux:aevyrn_bush"}}]}

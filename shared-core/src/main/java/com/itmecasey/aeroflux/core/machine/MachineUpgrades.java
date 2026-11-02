@@ -1,16 +1,21 @@
 package com.itmecasey.aeroflux.core.machine;
 
 import com.itmecasey.aeroflux.core.Tier;
+import java.util.function.DoubleSupplier;
 
 /**
  * What upgrades do to a machine, and how many it can hold. Machines take the same Speed and
- * Capacity upgrade items as pipes, but the numbers are their own.
+ * Capacity upgrade items as pipes, but the numbers are their own, and four more upgrades that only
+ * machines take (see {@link Special}).
  *
  * <ul>
  *   <li><b>Speed</b> makes every job shorter and burns more Flux each tick while working. The
  *       Flux per tick grows faster than the speed does, so a sped-up machine costs a little more
  *       per item, the usual Mekanism-style trade of Flux for time.</li>
  *   <li><b>Capacity</b> adds the tier's whole tank size again for each upgrade.</li>
+ *   <li><b>Efficiency</b> cuts the Flux burned per tick, with less gained from each one after the first.</li>
+ *   <li><b>Fortune</b> (Grinder, Sifter) and <b>Purity</b> (Purifier) give a chance of more product.</li>
+ *   <li><b>Silk Touch</b> (Plant Grower) harvests whole blocks where a recipe says how.</li>
  * </ul>
  *
  * <p>With no upgrades every number here is exactly the one {@link MachineMath} gives, so an
@@ -25,6 +30,44 @@ public final class MachineUpgrades {
     private static final int[] SPEED_PERCENT = {100, 150, 200, 250, 300};
     /** Flux burned per tick in percent, by number of Speed upgrades from 0 to 4. */
     private static final int[] FLUX_PERCENT = {100, 160, 230, 310, 400};
+    /** What is left of the Flux per tick in percent, by number of Efficiency upgrades from 0 to 4. */
+    private static final int[] EFFICIENCY_PERCENT = {100, 80, 65, 55, 50};
+    /** The chance, in percent, that each Fortune upgrade adds one more of the main product. */
+    public static final int FORTUNE_CHANCE = 30;
+    /** The chance, in percent, that each Purity upgrade adds one more of the main product. */
+    public static final int PURITY_CHANCE = 50;
+    /** How much each Fortune upgrade raises a Sifter product's chance, in percentage points. */
+    public static final int SIFTER_FORTUNE_POINTS = 10;
+
+    /** The upgrades only machines take, each fitting only the machines it does something in. */
+    public enum Special {
+        EFFICIENCY("efficiency"),
+        FORTUNE("fortune"),
+        SILK_TOUCH("silk_touch"),
+        PURITY("purity");
+
+        private final String id;
+
+        Special(String id) {
+            this.id = id;
+        }
+
+        /** The name used in item ids and translation keys, such as {@code silk_touch}. */
+        public String id() {
+            return id;
+        }
+
+        /** Whether this upgrade does anything in that machine, and so whether its slots take it. */
+        public boolean fits(MachineType machine) {
+            return switch (this) {
+                case EFFICIENCY -> true;
+                case FORTUNE -> machine == MachineType.GRINDER || machine == MachineType.SIFTER;
+                case SILK_TOUCH -> machine == MachineType.PLANT_GROWER;
+                case PURITY -> machine == MachineType.PURIFIER;
+            };
+        }
+    }
+
     private static final int PERCENT = 100;
 
     private MachineUpgrades() {
@@ -58,7 +101,45 @@ public final class MachineUpgrades {
 
     /** Flux burned each working tick, in mB, rounded up. With no upgrades this is {@link MachineMath#fluxPerTick}. */
     public static int fluxPerTick(Tier tier, int speedUpgrades) {
-        return (MachineMath.fluxPerTick(tier) * fluxPercent(speedUpgrades) + PERCENT - 1) / PERCENT;
+        return fluxPerTick(tier, speedUpgrades, 0);
+    }
+
+    /** What is left of the Flux per tick with Efficiency upgrades, in percent. */
+    public static int efficiencyPercent(int efficiencyUpgrades) {
+        return EFFICIENCY_PERCENT[clamp(efficiencyUpgrades)];
+    }
+
+    /**
+     * Flux burned each working tick with Speed and Efficiency upgrades, in mB, rounded up. A
+     * working machine always burns at least 1 mB a tick.
+     */
+    public static int fluxPerTick(Tier tier, int speedUpgrades, int efficiencyUpgrades) {
+        long scaled = (long) MachineMath.fluxPerTick(tier) * fluxPercent(speedUpgrades) * efficiencyPercent(efficiencyUpgrades);
+        long whole = PERCENT * PERCENT;
+        return (int) Math.max(1L, (scaled + whole - 1) / whole);
+    }
+
+    /**
+     * How many more of the main product Fortune or Purity upgrades add to one finished job: each
+     * upgrade adds one with its own chance.
+     *
+     * @param upgrades      how many of the upgrade are installed
+     * @param chancePercent the chance each one has, such as {@link #FORTUNE_CHANCE}
+     * @param rolls         random numbers from 0 (inclusive) to 1 (exclusive), one taken per upgrade
+     */
+    public static int bonusItems(int upgrades, int chancePercent, DoubleSupplier rolls) {
+        int bonus = 0;
+        for (int i = 0; i < clamp(upgrades); i++) {
+            if (rolls.getAsDouble() * PERCENT < chancePercent) {
+                bonus++;
+            }
+        }
+        return bonus;
+    }
+
+    /** A Sifter product's chance with Fortune upgrades: raised by {@link #SIFTER_FORTUNE_POINTS} points each, up to certain. */
+    public static double sifterChance(double chance, int fortuneUpgrades) {
+        return Math.min(1.0, chance + clamp(fortuneUpgrades) * SIFTER_FORTUNE_POINTS / (double) PERCENT);
     }
 
     /** All the Flux one uninterrupted job costs, in mB. */

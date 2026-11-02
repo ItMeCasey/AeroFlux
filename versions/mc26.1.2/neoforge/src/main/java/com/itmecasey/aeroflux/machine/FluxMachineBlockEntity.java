@@ -77,8 +77,8 @@ import org.jspecify.annotations.Nullable;
  * machine keeps its progress, burns nothing and stays unlit.
  */
 public abstract class FluxMachineBlockEntity extends BlockEntity implements MenuProvider {
-    /** Version of the saved layout, so a later change can still read today's worlds. */
-    private static final int SCHEMA_VERSION = 1;
+    /** Version of the saved layout, so a later change can still read today's worlds. 2: the Sifter has a mesh slot. */
+    private static final int SCHEMA_VERSION = 2;
     private static final String TAG_SCHEMA = "schema_version";
     private static final String TAG_FLUX = "flux";
     private static final String TAG_ITEMS = "items";
@@ -189,7 +189,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             extraTanks.add(new ExtraTankHandler(spec));
         }
         this.inventory = new MachineInventory(machine.inputSlots() + machine.outputSlots());
-        this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), this::upgradesChanged);
+        this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), machine, this::upgradesChanged);
     }
 
     /** An extra tank: one fluid only, as big as the Flux tank, and reporting itself full when overfull. */
@@ -235,6 +235,12 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         }
 
         @Override
+        protected int getCapacity(int slot, ItemResource resource) {
+            int capacity = super.getCapacity(slot, resource);
+            return isInputSlot(slot) ? Math.min(capacity, inputLimit(slot)) : capacity;
+        }
+
+        @Override
         protected void onContentsChanged(int slot, ItemStack previousContents) {
             setChanged();
             sleeping = false;
@@ -245,10 +251,16 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             super.deserialize(input);
             int wanted = machine.inputSlots() + machine.outputSlots();
             if (size() != wanted) {
-                // A save from a build with a different slot count: keep the size this machine needs.
+                // A save from a build with a different number of input slots (the Sifter gained
+                // its mesh slot): the inputs keep their places, and so do the outputs, counted
+                // from the first output slot, so nothing lands in the wrong kind of slot.
+                int savedInputs = Math.max(0, size() - machine.outputSlots());
                 NonNullList<ItemStack> resized = NonNullList.withSize(wanted, ItemStack.EMPTY);
-                for (int i = 0; i < Math.min(wanted, size()); i++) {
+                for (int i = 0; i < Math.min(savedInputs, machine.inputSlots()); i++) {
                     resized.set(i, stacks.get(i));
+                }
+                for (int i = 0; i < Math.min(size() - savedInputs, machine.outputSlots()); i++) {
+                    resized.set(machine.inputSlots() + i, stacks.get(savedInputs + i));
                 }
                 setStacks(resized);
             }
@@ -262,6 +274,11 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     /** Whether a stack may be put into an input slot, such as "has a smelting recipe". Called for players and for pipes alike. */
     protected abstract boolean isInputValid(int slot, ItemStack stack);
+
+    /** The most an input slot holds; a full stack unless a machine says less, like the Sifter's single mesh. */
+    protected int inputLimit(int slot) {
+        return Integer.MAX_VALUE;
+    }
 
     // --- Parts -------------------------------------------------------------------------------
 
@@ -513,9 +530,9 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return timer.total();
     }
 
-    /** Flux burned per tick while working, in mB, with Speed upgrades counted. */
+    /** Flux burned per tick while working, in mB, with Speed and Efficiency upgrades counted. */
     public int fluxPerTick() {
-        return MachineUpgrades.fluxPerTick(tier, speedUpgrades());
+        return MachineUpgrades.fluxPerTick(tier, speedUpgrades(), upgrades(MachineUpgrades.Special.EFFICIENCY));
     }
 
     /** The size of the Flux tank in mB, with Capacity upgrades counted. */
@@ -536,6 +553,11 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     public int capacityUpgrades() {
         return upgrades.count(PipeUpgrades.Kind.CAPACITY);
+    }
+
+    /** How many machine-only upgrades of one kind are installed. */
+    public int upgrades(MachineUpgrades.Special kind) {
+        return upgrades.count(kind);
     }
 
     /**
@@ -968,7 +990,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        // Version 1 is the only layout so far; later versions will branch on TAG_SCHEMA here.
+        // Version 2 gave the Sifter its mesh slot; its inventory handles older saves.
         // The upgrades and the redstone settings came later in version 1 and are simply missing
         // from older saves, which leaves an unupgraded machine that ignores redstone.
         input.child(TAG_FLUX).ifPresent(fluxTank::deserialize);

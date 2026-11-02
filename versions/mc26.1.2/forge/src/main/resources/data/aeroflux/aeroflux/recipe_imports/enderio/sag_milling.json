@@ -1,0 +1,6 @@
+{
+  "machine": "grinder",
+  "recipe_type": "enderio:sag_milling",
+  "time_key": "energy",
+  "time_scale": 0.05
+}

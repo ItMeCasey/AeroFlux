@@ -12,6 +12,7 @@ import com.itmecasey.aeroflux.core.conduit.ToolMode;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideResource;
 import java.util.Locale;
@@ -69,6 +70,7 @@ public class ModLanguageProvider extends LanguageProvider {
             }
         }
         add("tooltip." + AeroFlux.MODID + ".upgrade_card", "Upgrades a %s machine, collector, tank or converter to %s: sneak and use it on the block");
+        add("tooltip." + AeroFlux.MODID + ".sifter", "Runs the sieve recipes of Ex Deorum and Ex Nihilo Sequentia: put a mesh from either in its mesh slot");
         String holds = "tooltip." + AeroFlux.MODID + ".holds.";
         add(holds + "tank", "Holds %s");
         add(holds + "collector", "Stores up to %s");
@@ -111,7 +113,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("advancements." + AeroFlux.MODID + ".chunk_loader.description", "Build a Flux Chunk Loader");
         addItem(ModItems.GUIDEBOOK, "AeroFlux Guide");
         add("guide." + AeroFlux.MODID + ".start.title", "Welcome to AeroFlux");
-        add("guide." + AeroFlux.MODID + ".start.body", "AeroFlux gathers Flux from the sky: Aero Flux from the sun by day and Moon Flux from the moon by night. Both are fluids that power every AeroFlux machine.\nStart with Flux Dust (glowstone, quartz and redstone), then build a Flux Collector, a Flux Tank and a Flux Furnace.");
+        add("guide." + AeroFlux.MODID + ".start.body", "AeroFlux gathers Flux from the sky: Aero Flux from the sun by day and Moon Flux from the moon by night. Both are fluids that power every AeroFlux machine.\nChopping trees shakes loose Sawdust now and then; two make a Flux Dust. Then build a Flux Collector, a Flux Tank and a Flux Furnace.");
         add("guide." + AeroFlux.MODID + ".flux.title", "Aero and Moon Flux");
         add("guide." + AeroFlux.MODID + ".flux.body", "A collector makes Aero Flux in daylight and Moon Flux at night, faster in clear weather and, for Moon Flux, on brighter moon phases. A collector holds one kind at a time.\nMost machines take either kind; a few recipes need Moon Flux.");
         add("guide." + AeroFlux.MODID + ".collectors.title", "Collectors and Tanks");
@@ -150,7 +152,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui." + AeroFlux.MODID + ".sky.weather", "Clear / Rain");
         add("gui." + AeroFlux.MODID + ".sky.weather.tooltip", "Stops the rain, or starts it. Costs Aero Flux.");
         add("guide." + AeroFlux.MODID + ".more_machines.title", "More Machines");
-        add("guide." + AeroFlux.MODID + ".more_machines.body", "Crafter: lay a recipe in its grid; it keeps one item in each slot and crafts with the rest. Purifier: ore and water into three times the raw metal. Sifter: its tier is its mesh. Blender: Aero and Moon Flux into Twilight Flux.\nSky Controller: day, night and rain at a button. Magnet: pulls dropped items in. Breeder, Repairer and Moon Spawner do what their names say. Sun and Moon Lamps keep monsters away and help plants grow.");
+        add("guide." + AeroFlux.MODID + ".more_machines.body", "Crafter: lay a recipe in its grid; it keeps one item in each slot and crafts with the rest. Purifier: ore and water into three times the raw metal. Sifter: a block and a mesh from Ex Deorum or Ex Nihilo Sequentia; the mesh decides the drops. Blender: Aero and Moon Flux into Twilight Flux.\nSky Controller: day, night and rain at a button. Magnet: pulls dropped items in. Breeder, Repairer and Moon Spawner do what their names say. Sun and Moon Lamps keep monsters away and help plants grow.");
         add("screen." + AeroFlux.MODID + ".side_config.auto_import", "Auto Import");
         add("screen." + AeroFlux.MODID + ".side_config.auto_import.tooltip",
                 "Pulls items and Flux from the blocks next to every Import or Both face, no pipe needed.");
@@ -274,7 +276,22 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui.aeroflux.upgrades.title", "Upgrades (%s of %s)");
         add("gui.aeroflux.upgrades.speed", "Speed: %s, working at %s%%, %s mB/t");
         add("gui.aeroflux.upgrades.capacity", "Capacity: %s, tank holds %s mB");
-        add("gui.aeroflux.upgrades.hint", "Takes Speed and Capacity Upgrades, one per slot.");
+        add("gui.aeroflux.upgrades.hint", "Takes %s Upgrades, one per slot.");
+        add("gui.aeroflux.upgrades.efficiency", "Efficiency: %s, burning %s%% of the Flux");
+        add("gui.aeroflux.upgrades.fortune", "Fortune: %s, each a %s%% chance of one more");
+        add("gui.aeroflux.upgrades.fortune.sifter", "Fortune: %s, every drop chance up %s points");
+        add("gui.aeroflux.upgrades.silk_touch.on", "Silk Touch: harvesting whole blocks");
+        add("gui.aeroflux.upgrades.silk_touch.off", "Silk Touch: none");
+        add("gui.aeroflux.upgrades.purity", "Purity: %s, each a %s%% chance of one more");
+        String upgrade = "tooltip." + AeroFlux.MODID + ".machine_upgrade.";
+        add(upgrade + "efficiency", "Machines burn less Flux while working");
+        add(upgrade + "efficiency.fits", "Fits every machine");
+        add(upgrade + "fortune", "Grinder: a chance of one more of the main product. Sifter: better drop chances");
+        add(upgrade + "fortune.fits", "Fits the Grinder and the Sifter");
+        add(upgrade + "silk_touch", "Plant Grower: harvests whole blocks, such as leaves, melons and mushroom blocks");
+        add(upgrade + "silk_touch.fits", "Fits the Plant Grower");
+        add(upgrade + "purity", "Purifier: a chance of one more of the main product");
+        add(upgrade + "purity.fits", "Fits the Purifier");
     }
 
     /** Names for the conduit bundle, the pipes, and the wrench's messages. */
@@ -296,6 +313,16 @@ public class ModLanguageProvider extends LanguageProvider {
 
         addItem(ModItems.SPEED_UPGRADE, "Speed Upgrade");
         addItem(ModItems.CAPACITY_UPGRADE, "Capacity Upgrade");
+        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+            String name = switch (kind) {
+                case EFFICIENCY -> "Efficiency";
+                case FORTUNE -> "Fortune";
+                case SILK_TOUCH -> "Silk Touch";
+                case PURITY -> "Purity";
+            };
+            addItem(ModItems.machineUpgrade(kind), name + " Upgrade");
+            add("upgrade." + AeroFlux.MODID + "." + kind.id(), name);
+        }
         for (PipeUpgrades.Kind kind : PipeUpgrades.Kind.values()) {
             add("upgrade." + AeroFlux.MODID + "." + kind.name().toLowerCase(Locale.ROOT), capitalize(kind.name()));
         }

@@ -2,12 +2,10 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    "#c:dusts/glowstone",
-    "#c:gems/quartz",
-    "#c:dusts/redstone"
+    "aeroflux:sawdust",
+    "aeroflux:sawdust"
   ],
   "result": {
-    "count": 2,
     "id": "aeroflux:flux_dust"
   }
 }

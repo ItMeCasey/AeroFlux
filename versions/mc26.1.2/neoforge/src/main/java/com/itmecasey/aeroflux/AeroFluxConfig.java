@@ -27,6 +27,10 @@ public final class AeroFluxConfig {
             .comment("Log extra detail about collectors, networks and chunk loaders.")
             .define("debugLogging", false);
 
+    private static final ModConfigSpec.DoubleValue SAWDUST_CHANCE = BUILDER
+            .comment("Chance that chopping a log by hand also drops a piece of Sawdust, which Flux Dust is made from. 0 turns it off.")
+            .defineInRange("sawdustFromLogsChance", 0.5, 0.0, 1.0);
+
     private static final Map<Tier, TierValues> TIER_VALUES = new EnumMap<>(Tier.class);
 
     /**
@@ -136,6 +140,11 @@ public final class AeroFluxConfig {
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private AeroFluxConfig() {
+    }
+
+    /** The chance that chopping a log by hand also drops a piece of Sawdust. */
+    public static double sawdustFromLogsChance() {
+        return SAWDUST_CHANCE.get();
     }
 
     /** Whether extra diagnostic logging is enabled. */

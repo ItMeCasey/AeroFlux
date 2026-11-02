@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "aeroflux:aero_crystal"
+    },
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "F": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "M": {
+      "item": "aeroflux:moon_crystal"
+    }
+  },
+  "pattern": [
+    "CMC",
+    "FAF",
+    "CMC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:efficiency_upgrade"
+  }
+}

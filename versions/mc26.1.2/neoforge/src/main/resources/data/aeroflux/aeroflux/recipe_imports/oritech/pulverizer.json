@@ -1,0 +1,6 @@
+{
+  "machine": "grinder",
+  "recipe_type": "oritech:pulverizer",
+  "time_key": "time",
+  "time_scale": 2.0
+}

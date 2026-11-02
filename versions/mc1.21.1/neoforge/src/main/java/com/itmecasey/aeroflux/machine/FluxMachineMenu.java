@@ -1,7 +1,6 @@
 package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.StorageSizes;
-import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
@@ -13,6 +12,7 @@ import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfig;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.itmecasey.aeroflux.core.machine.SplitInt;
 import com.itmecasey.aeroflux.core.machine.UpgradeStripLayout;
 import java.util.Set;
@@ -64,7 +64,10 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
     private static final int MAX_EXTRA_TANKS = 2;
     /** A setting only this kind of machine has; see {@link FluxMachineBlockEntity#machineMode}. */
     private static final int DATA_MODE = DATA_EXTRA + 2 * MAX_EXTRA_TANKS;
-    private static final int DATA_COUNT = DATA_MODE + 1;
+    /** The machine-only upgrade counts, three bits each in {@link MachineUpgrades.Special} order. */
+    private static final int DATA_SPECIAL_UPGRADES = DATA_MODE + 1;
+    private static final int SPECIAL_BITS = 3;
+    private static final int DATA_COUNT = DATA_SPECIAL_UPGRADES + 1;
 
     /** How far from the machine a player may be and keep the screen open, like a chest. */
     private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
@@ -99,7 +102,7 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         this.strip = new UpgradeStripLayout(MachineUpgrades.slots(tier));
         this.items = entity == null
                 ? new ItemStackHandler(machine.inputSlots() + machine.outputSlots()) : entity.inventory();
-        this.upgrades = entity == null ? new MachineUpgradeSlots(strip.slotCount()) : entity.upgrades();
+        this.upgrades = entity == null ? new MachineUpgradeSlots(strip.slotCount(), machine) : entity.upgrades();
         this.data = entity == null ? new SimpleContainerData(DATA_COUNT) : new MachineData(entity);
         addDataSlots(data);
 
@@ -260,9 +263,14 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         return MachineStatus.byIndex(data.get(DATA_STATUS));
     }
 
-    /** Flux burned per tick while working, in mB, with Speed upgrades counted. */
+    /** Flux burned per tick while working, in mB, with Speed and Efficiency upgrades counted. */
     public int fluxPerTick() {
-        return MachineUpgrades.fluxPerTick(tier, speedUpgrades());
+        return MachineUpgrades.fluxPerTick(tier, speedUpgrades(), upgrades(MachineUpgrades.Special.EFFICIENCY));
+    }
+
+    /** How many machine-only upgrades of one kind are installed, as last synced. */
+    public int upgrades(MachineUpgrades.Special kind) {
+        return (data.get(DATA_SPECIAL_UPGRADES) >> (SPECIAL_BITS * kind.ordinal())) & ((1 << SPECIAL_BITS) - 1);
     }
 
     /** The mode of a face for a resource, as last synced. */
@@ -298,7 +306,7 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         boolean moved;
         if (index < machineSlots) {
             moved = moveItemStackTo(stack, machineSlots, slots.size(), true);
-        } else if (stack.getItem() instanceof UpgradeItem) {
+        } else if (MachineUpgradeSlots.accepts(machine, stack.getItem())) {
             // An upgrade never counts as an input, so it only looks for a free upgrade slot.
             moved = moveItemStackTo(stack, upgradeStart, machineSlots, false);
         } else {
@@ -343,6 +351,16 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         public boolean mayPlace(ItemStack stack) {
             return !stack.isEmpty() && acceptsInput(inputIndex, stack);
         }
+
+        @Override
+        public int getMaxStackSize() {
+            return machine == MachineType.SIFTER && inputIndex == SieveMesh.MESH_SLOT ? 1 : super.getMaxStackSize();
+        }
+
+        @Override
+        public int getMaxStackSize(ItemStack stack) {
+            return Math.min(getMaxStackSize(), super.getMaxStackSize(stack));
+        }
     }
 
     /** An output slot: the player can take products out but never put anything in. */
@@ -383,6 +401,14 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
                     }
                     if (index == DATA_MODE) {
                         yield machine.machineMode();
+                    }
+                    if (index == DATA_SPECIAL_UPGRADES) {
+                        int packed = 0;
+                        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+                            int count = Math.min(machine.upgrades(kind), (1 << SPECIAL_BITS) - 1);
+                            packed |= count << (SPECIAL_BITS * kind.ordinal());
+                        }
+                        yield packed;
                     }
                     if (index >= DATA_EXTRA && index < DATA_MODE) {
                         int tank = (index - DATA_EXTRA) / 2;

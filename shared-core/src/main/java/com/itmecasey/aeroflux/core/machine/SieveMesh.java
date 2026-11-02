@@ -1,70 +1,110 @@
 package com.itmecasey.aeroflux.core.machine;
 
-import com.itmecasey.aeroflux.core.Tier;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.DoubleSupplier;
 
 /**
- * The Flux Sifter's mesh. The sifter's tier is its mesh, and it runs every sieve recipe whose mesh
- * is at or below its own on the ranking: string, flint, iron, emerald, diamond, netherite. A mesh
- * name the ranking does not know (from another mod) counts as the strongest, so only a fluxium
- * sifter runs it. The fluxium sifter runs everything, a little faster and luckier.
+ * The rules of the Flux Sifter, which runs the sieve recipes of Ex Deorum and Ex Nihilo
+ * Sequentia. The player puts a mesh from either mod in its mesh slot; the mesh decides which
+ * recipes run, exactly as it does in those mods' own sieves, and the sifter's tier only sets its
+ * speed. The mesh is never used up.
  */
 public final class SieveMesh {
-    /** The meshes from weakest to strongest, as recipes name them. */
-    public static final List<String> RANKING = List.of("string", "flint", "iron", "emerald", "diamond", "netherite");
-
-    /** The extra chance a fluxium sifter adds to every roll, as a fraction of the roll's own chance. */
-    public static final double FLUXIUM_CHANCE_BONUS = 0.25;
+    /** The slot that holds the block being sifted. */
+    public static final int MATERIAL_SLOT = 0;
+    /** The slot that holds the mesh. It takes one mesh. */
+    public static final int MESH_SLOT = 1;
 
     private SieveMesh() {
     }
 
     /**
-     * The plain mesh name in a recipe's mesh field: {@code "exdeorum:iron_mesh"} and
-     * {@code "IRON"} both become {@code "iron"}. An empty name means "any mesh" and stays empty.
+     * The item id of an Ex Nihilo Sequentia mesh. Its recipes name a mesh by its kind, such as
+     * {@code "flint"} or {@code "FLINT"}, and the mod's mesh items are named after the kind.
      */
-    public static String normalize(String mesh) {
-        String name = mesh.toLowerCase(Locale.ROOT).trim();
-        int colon = name.indexOf(':');
-        if (colon >= 0) {
-            name = name.substring(colon + 1);
+    public static String nihiloMeshItem(String kind) {
+        return "exnihilosequentia:" + kind.toLowerCase(Locale.ROOT).trim() + "_mesh";
+    }
+
+    /**
+     * How many of a product one sieve run gives. Ex Deorum writes this as a vanilla number provider
+     * (a constant, a uniform range, a binomial roll, or a sum of these); an Ex Nihilo Sequentia roll
+     * is one item at its chance, a binomial of one try.
+     */
+    public sealed interface Amount {
+        /** How many this run gives, from random numbers between 0 (inclusive) and 1 (exclusive). */
+        int roll(DoubleSupplier random);
+
+        /** The same amount with Fortune Upgrades: each one raises a binomial's chance a little. */
+        Amount withFortune(int fortuneUpgrades);
+    }
+
+    /** Always the same number. */
+    public record Constant(int count) implements Amount {
+        @Override
+        public int roll(DoubleSupplier random) {
+            return Math.max(0, count);
         }
-        if (name.endsWith("_mesh")) {
-            name = name.substring(0, name.length() - "_mesh".length());
+
+        @Override
+        public Amount withFortune(int fortuneUpgrades) {
+            return this;
         }
-        return name;
     }
 
-    /** Where a mesh ranks, 0 for string; an unknown mesh ranks above every known one. */
-    public static int rank(String mesh) {
-        String name = normalize(mesh);
-        if (name.isEmpty()) {
-            return 0;
+    /** Anything from {@code min} to {@code max}, each as likely. */
+    public record Uniform(int min, int max) implements Amount {
+        @Override
+        public int roll(DoubleSupplier random) {
+            int low = Math.max(0, Math.min(min, max));
+            int high = Math.max(0, Math.max(min, max));
+            return low + Math.min(high - low, (int) (random.getAsDouble() * (high - low + 1)));
         }
-        int index = RANKING.indexOf(name);
-        return index >= 0 ? index : RANKING.size();
+
+        @Override
+        public Amount withFortune(int fortuneUpgrades) {
+            return this;
+        }
     }
 
-    /** The mesh a sifter of this tier has: string, flint, iron, diamond, netherite, then fluxium above all. */
-    public static int tierRank(Tier tier) {
-        return switch (tier) {
-            case COPPER -> RANKING.indexOf("string");
-            case IRON -> RANKING.indexOf("flint");
-            case GOLD -> RANKING.indexOf("iron");
-            case DIAMOND -> RANKING.indexOf("diamond");
-            case NETHERITE -> RANKING.indexOf("netherite");
-            case FLUXIUM -> Integer.MAX_VALUE;
-        };
+    /** {@code tries} rolls, each giving one item with chance {@code chance}. */
+    public record Binomial(int tries, double chance) implements Amount {
+        @Override
+        public int roll(DoubleSupplier random) {
+            int count = 0;
+            for (int i = 0; i < tries; i++) {
+                if (random.getAsDouble() < chance) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        @Override
+        public Amount withFortune(int fortuneUpgrades) {
+            return new Binomial(tries, MachineUpgrades.sifterChance(chance, fortuneUpgrades));
+        }
     }
 
-    /** Whether a sifter of this tier runs a recipe for this mesh. */
-    public static boolean runs(Tier tier, String mesh) {
-        return rank(mesh) <= tierRank(tier);
-    }
+    /** Several amounts added together. */
+    public record Sum(List<Amount> parts) implements Amount {
+        public Sum {
+            parts = List.copyOf(parts);
+        }
 
-    /** A roll's chance in a sifter of this tier: fluxium adds its bonus, never past certain. */
-    public static double chance(Tier tier, double chance) {
-        return tier == Tier.FLUXIUM ? Math.min(1.0, chance * (1.0 + FLUXIUM_CHANCE_BONUS)) : chance;
+        @Override
+        public int roll(DoubleSupplier random) {
+            int count = 0;
+            for (Amount part : parts) {
+                count += part.roll(random);
+            }
+            return count;
+        }
+
+        @Override
+        public Amount withFortune(int fortuneUpgrades) {
+            return new Sum(parts.stream().map(part -> part.withFortune(fortuneUpgrades)).toList());
+        }
     }
 }

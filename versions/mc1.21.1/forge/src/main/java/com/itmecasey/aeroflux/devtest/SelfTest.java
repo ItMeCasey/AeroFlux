@@ -81,6 +81,7 @@ public final class SelfTest {
         MachineSelfTest.setUp(level);
         MoreMachinesSelfTest.setUp(level);
         StorageSelfTest.run(level);
+        MachineExtrasSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -106,11 +107,13 @@ public final class SelfTest {
             MachineSelfTest.tick();
             // The second wave of machines builds in a layer of its own.
             MoreMachinesSelfTest.tick();
+            // The upgrades and imported recipes build in a layer of their own too.
+            MachineExtrasSelfTest.tick();
         }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer and tool checks to finish too.
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
-                    && MachineSelfTest.finished() && MoreMachinesSelfTest.finished()) {
+                    && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()) {
                 finish();
             }
             return;

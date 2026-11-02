@@ -2,10 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": "aeroflux:moon_crystal",
+    "A": "#c:gems/amethyst",
     "C": "#c:ingots/copper",
     "D": "aeroflux:flux_dust",
-    "M": "minecraft:brewing_stand",
+    "M": "minecraft:cauldron",
     "S": "#c:ingots/copper"
   },
   "pattern": [

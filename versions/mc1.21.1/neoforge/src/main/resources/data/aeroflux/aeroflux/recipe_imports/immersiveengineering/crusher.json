@@ -1,0 +1,6 @@
+{
+  "machine": "grinder",
+  "recipe_type": "immersiveengineering:crusher",
+  "time_key": "energy",
+  "time_scale": 0.1
+}

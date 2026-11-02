@@ -1,0 +1,13 @@
+{
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "#c:ingots/iron",
+    "#c:dusts/coal"
+  ],
+  "itemResults": [
+    {
+      "id": "oritech:steel_ingot"
+    }
+  ],
+  "time": 26
+}

@@ -10,13 +10,10 @@
     },
     "G": {
       "tag": "forge:glass/colorless"
-    },
-    "S": {
-      "item": "minecraft:daylight_detector"
     }
   },
   "pattern": [
-    "GSG",
+    "GGG",
     "CDC",
     "CCC"
   ],

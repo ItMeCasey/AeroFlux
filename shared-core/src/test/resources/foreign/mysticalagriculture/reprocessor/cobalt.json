@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mysticalagriculture:crop_enabled",
+      "crop": "mysticalagriculture:cobalt"
+    }
+  ],
+  "type": "mysticalagriculture:reprocessor",
+  "input": "mysticalagriculture:cobalt_seeds",
+  "result": {
+    "count": 2,
+    "id": "mysticalagriculture:cobalt_essence"
+  }
+}

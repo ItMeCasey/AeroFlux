@@ -149,6 +149,12 @@ dependencies {
     // JEI, to show the machine recipes. Optional too.
     compileOnly "maven.modrinth:jei:${jei_version}"
     localRuntime "maven.modrinth:jei:${jei_version}"
+    // Ex Deorum is only here so the self-test can read its real sieve and hammer recipes; AeroFlux
+    // never compiles against it. It stays out of data generation, where it and AE2 both register
+    // AE2's certus quartz crystal and the run stops.
+    if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
+        localRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
+    }
 
     // KubeJS, so modpacks can add and change machine recipes from scripts. Optional.
     compileOnly "maven.modrinth:kubejs:${kubejs_version}"

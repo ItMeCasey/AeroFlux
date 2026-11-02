@@ -1,0 +1,18 @@
+{
+  "type": "enderio:alloy_smelting",
+  "energy": 3200,
+  "experience": 0.3,
+  "inputs": [
+    {
+      "count": 1,
+      "ingredient": "enderio:fused_quartz"
+    },
+    {
+      "count": 4,
+      "ingredient": "#c:gems/amethyst"
+    }
+  ],
+  "output": {
+    "id": "enderio:fused_quartz_d"
+  }
+}

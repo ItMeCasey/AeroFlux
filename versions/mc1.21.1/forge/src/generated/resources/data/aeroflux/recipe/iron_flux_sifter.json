@@ -1,27 +1,47 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "key": {
-    "B": {
-      "tag": "c:ingots/iron"
-    },
-    "P": {
-      "item": "aeroflux:flux_sifter"
-    },
-    "S": {
-      "tag": "c:ingots/iron"
-    },
-    "T": {
-      "tag": "c:ingots/iron"
-    }
+  "type": "forge:conditional",
+  "forge:condition": {
+    "type": "forge:or",
+    "values": [
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exdeorum"
+      },
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exnihilosequentia"
+      }
+    ]
   },
-  "pattern": [
-    " T ",
-    "SPS",
-    " B "
-  ],
-  "result": {
-    "count": 1,
-    "id": "aeroflux:iron_flux_sifter"
-  }
+  "recipes": [
+    {
+      "recipe": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "B": {
+            "tag": "c:ingots/iron"
+          },
+          "P": {
+            "item": "aeroflux:flux_sifter"
+          },
+          "S": {
+            "tag": "c:ingots/iron"
+          },
+          "T": {
+            "tag": "c:ingots/iron"
+          }
+        },
+        "pattern": [
+          " T ",
+          "SPS",
+          " B "
+        ],
+        "result": {
+          "count": 1,
+          "id": "aeroflux:iron_flux_sifter"
+        }
+      }
+    }
+  ]
 }

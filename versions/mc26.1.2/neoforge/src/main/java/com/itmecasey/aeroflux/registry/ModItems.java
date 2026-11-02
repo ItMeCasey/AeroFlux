@@ -13,9 +13,11 @@ import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.item.UpgradeCardItem;
 import com.itmecasey.aeroflux.lamp.LampKind;
+import com.itmecasey.aeroflux.machine.MachineUpgradeItem;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
@@ -74,6 +76,17 @@ public final class ModItems {
     /** Installs into the pipe nearest the crosshair; makes it move more at a time. */
     public static final DeferredItem<UpgradeItem> CAPACITY_UPGRADE = ITEMS.registerItem("capacity_upgrade",
             properties -> new UpgradeItem(PipeUpgrades.Kind.CAPACITY, properties));
+
+    /** The upgrades only machines take, one item each; see {@link MachineUpgradeItem}. */
+    private static final Map<MachineUpgrades.Special, DeferredItem<MachineUpgradeItem>> MACHINE_UPGRADES =
+            new EnumMap<>(MachineUpgrades.Special.class);
+
+    static {
+        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+            MACHINE_UPGRADES.put(kind, ITEMS.registerItem(kind.id() + "_upgrade",
+                    properties -> new MachineUpgradeItem(kind, properties)));
+        }
+    }
 
     /** Installs into one pipe at one face; only lets chosen items or fluids through that face. */
     public static final DeferredItem<EndpointUpgradeItem> FILTER_UPGRADE = ITEMS.registerItem("filter_upgrade",
@@ -138,6 +151,11 @@ public final class ModItems {
     public static DeferredItem<PipeItem> pipe(PipeType type, Tier tier) {
         Map<Tier, DeferredItem<PipeItem>> byTier = PIPES.get(type);
         return PipeTiers.isTiered(type) ? byTier.get(tier) : byTier.get(Tier.COPPER);
+    }
+
+    /** The item of a machine-only upgrade. */
+    public static DeferredItem<MachineUpgradeItem> machineUpgrade(MachineUpgrades.Special kind) {
+        return MACHINE_UPGRADES.get(kind);
     }
 
     /** The upgrade card that raises a block to {@code tier}; there is none for copper. */

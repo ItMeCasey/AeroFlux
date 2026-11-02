@@ -18,5 +18,19 @@
       "item": "minecraft:dark_oak_sapling"
     }
   ],
+  "silk_outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:dark_oak_log"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:dark_oak_leaves"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:dark_oak_sapling"
+    }
+  ],
   "time": 600
 }

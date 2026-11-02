@@ -1,6 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
+  "conditions": [
+    {
+      "type": "forge:or",
+      "values": [
+        {
+          "type": "forge:mod_loaded",
+          "modid": "exdeorum"
+        },
+        {
+          "type": "forge:mod_loaded",
+          "modid": "exnihilosequentia"
+        }
+      ]
+    }
+  ],
   "key": {
     "B": {
       "tag": "forge:ingots/iron"

@@ -1,0 +1,10 @@
+{
+  "machine": "infuser",
+  "recipe_type": "ars_nouveau:imbuement",
+  "time": 200,
+  "flux_type": "moon",
+  "inputs": [
+    "input",
+    "pedestalItems[]"
+  ]
+}

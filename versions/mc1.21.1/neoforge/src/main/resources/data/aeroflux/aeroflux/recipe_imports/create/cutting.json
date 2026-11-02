@@ -1,0 +1,6 @@
+{
+  "machine": "sawmill",
+  "recipe_type": "create:cutting",
+  "time_key": "processing_time",
+  "time_scale": 1.0
+}

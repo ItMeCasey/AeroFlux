@@ -1,27 +1,47 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "key": {
-    "B": {
-      "tag": "c:gems/diamond"
-    },
-    "P": {
-      "item": "aeroflux:gold_flux_sifter"
-    },
-    "S": {
-      "item": "aeroflux:fluxsteel_ingot"
-    },
-    "T": {
-      "tag": "c:gems/diamond"
-    }
+  "type": "forge:conditional",
+  "forge:condition": {
+    "type": "forge:or",
+    "values": [
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exdeorum"
+      },
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exnihilosequentia"
+      }
+    ]
   },
-  "pattern": [
-    " T ",
-    "SPS",
-    " B "
-  ],
-  "result": {
-    "count": 1,
-    "id": "aeroflux:diamond_flux_sifter"
-  }
+  "recipes": [
+    {
+      "recipe": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "B": {
+            "tag": "c:gems/diamond"
+          },
+          "P": {
+            "item": "aeroflux:gold_flux_sifter"
+          },
+          "S": {
+            "item": "aeroflux:fluxsteel_ingot"
+          },
+          "T": {
+            "tag": "c:gems/diamond"
+          }
+        },
+        "pattern": [
+          " T ",
+          "SPS",
+          " B "
+        ],
+        "result": {
+          "count": 1,
+          "id": "aeroflux:diamond_flux_sifter"
+        }
+      }
+    }
+  ]
 }

@@ -14,5 +14,13 @@
       "item": "minecraft:red_mushroom"
     }
   ],
+  "silk_outputs": [
+    {
+      "item": "minecraft:red_mushroom_block"
+    },
+    {
+      "item": "minecraft:red_mushroom"
+    }
+  ],
   "time": 400
 }

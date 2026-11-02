@@ -3,6 +3,7 @@ package com.itmecasey.aeroflux.client.screen.widget;
 import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineLayout;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.UpgradeStripLayout;
 import java.text.NumberFormat;
@@ -14,6 +15,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -31,6 +34,12 @@ public class UpgradeSlots extends AbstractWidget implements HoverInfo {
         int speedUpgrades();
 
         int capacityUpgrades();
+
+        /** The kind of machine, which decides the machine-only upgrades it takes. */
+        MachineType machine();
+
+        /** How many machine-only upgrades of one kind are installed. */
+        int upgrades(MachineUpgrades.Special kind);
     }
 
     /** Laid over a ghost item so it reads as a hint, the way vanilla's recipe ghosts do. */
@@ -106,15 +115,44 @@ public class UpgradeSlots extends AbstractWidget implements HoverInfo {
         }
         int speed = model.speedUpgrades();
         int capacity = model.capacityUpgrades();
+        int efficiency = model.upgrades(MachineUpgrades.Special.EFFICIENCY);
+        int installed = speed + capacity;
+        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+            installed += model.upgrades(kind);
+        }
         NumberFormat numbers = NumberFormat.getIntegerInstance(Locale.US);
         List<Component> lines = new ArrayList<>();
-        lines.add(Component.translatable("gui.aeroflux.upgrades.title", speed + capacity, strip.slotCount()));
+        lines.add(Component.translatable("gui.aeroflux.upgrades.title", installed, strip.slotCount()));
         lines.add(Component.translatable("gui.aeroflux.upgrades.speed", speed, MachineUpgrades.speedPercent(speed),
-                MachineUpgrades.fluxPerTick(tier, speed)).withStyle(ChatFormatting.GRAY));
+                MachineUpgrades.fluxPerTick(tier, speed, efficiency)).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("gui.aeroflux.upgrades.capacity", capacity,
                 numbers.format(StorageSizes.machine(tier, capacity))).withStyle(ChatFormatting.GRAY));
-        lines.add(Component.translatable("gui.aeroflux.upgrades.hint").withStyle(ChatFormatting.DARK_GRAY));
+        MachineType machine = model.machine();
+        List<Component> takes = new ArrayList<>();
+        takes.add(Component.translatable("upgrade.aeroflux.speed"));
+        takes.add(Component.translatable("upgrade.aeroflux.capacity"));
+        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+            if (kind.fits(machine)) {
+                lines.add(specialLine(kind, machine, model.upgrades(kind)).withStyle(ChatFormatting.GRAY));
+                takes.add(Component.translatable("upgrade.aeroflux." + kind.id()));
+            }
+        }
+        lines.add(Component.translatable("gui.aeroflux.upgrades.hint", ComponentUtils.formatList(takes, Component.literal(", ")))
+                .withStyle(ChatFormatting.DARK_GRAY));
         return lines;
+    }
+
+    /** The tooltip line for a machine-only upgrade: how many are in and what they add up to. */
+    private static MutableComponent specialLine(MachineUpgrades.Special kind, MachineType machine, int count) {
+        String key = "gui.aeroflux.upgrades." + kind.id();
+        return switch (kind) {
+            case EFFICIENCY -> Component.translatable(key, count, MachineUpgrades.efficiencyPercent(count));
+            case FORTUNE -> machine == MachineType.SIFTER
+                    ? Component.translatable(key + ".sifter", count, count * MachineUpgrades.SIFTER_FORTUNE_POINTS)
+                    : Component.translatable(key, count, MachineUpgrades.FORTUNE_CHANCE);
+            case SILK_TOUCH -> Component.translatable(count > 0 ? key + ".on" : key + ".off");
+            case PURITY -> Component.translatable(key, count, MachineUpgrades.PURITY_CHANCE);
+        };
     }
 
     @Override

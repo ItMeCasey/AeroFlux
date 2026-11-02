@@ -1,0 +1,10 @@
+{
+	"type": "crossroads:mill",
+	"input": {
+		"tag": "forge:storage_blocks/quartz"
+	},
+	"output": {
+		"item": "quartz",
+		"count": 4
+	}
+}

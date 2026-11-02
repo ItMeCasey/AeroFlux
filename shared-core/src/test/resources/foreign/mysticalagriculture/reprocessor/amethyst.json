@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mysticalagriculture:crop_enabled",
+      "crop": "mysticalagriculture:amethyst"
+    }
+  ],
+  "type": "mysticalagriculture:reprocessor",
+  "input": "mysticalagriculture:amethyst_seeds",
+  "result": {
+    "count": 2,
+    "id": "mysticalagriculture:amethyst_essence"
+  }
+}

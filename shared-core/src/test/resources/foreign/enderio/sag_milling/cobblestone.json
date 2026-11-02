@@ -1,0 +1,31 @@
+{
+  "type": "enderio:sag_milling",
+  "energy": 2400,
+  "input": "#c:cobblestones/normal",
+  "outputs": [
+    {
+      "chance": 0.7,
+      "item": {
+        "id": "minecraft:gravel"
+      }
+    },
+    {
+      "chance": 0.3,
+      "item": {
+        "id": "minecraft:gravel"
+      }
+    },
+    {
+      "chance": 0.1,
+      "item": {
+        "id": "minecraft:sand"
+      }
+    },
+    {
+      "chance": 0.05,
+      "item": {
+        "id": "minecraft:flint"
+      }
+    }
+  ]
+}

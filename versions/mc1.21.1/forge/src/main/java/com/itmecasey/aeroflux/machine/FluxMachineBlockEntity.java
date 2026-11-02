@@ -18,6 +18,7 @@ import com.itmecasey.aeroflux.core.machine.RedstoneControl;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfigs;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
@@ -80,8 +81,8 @@ import org.jetbrains.annotations.Nullable;
  * machine keeps its progress, burns nothing and stays unlit.
  */
 public abstract class FluxMachineBlockEntity extends BlockEntity implements MenuProvider {
-    /** Version of the saved layout, so a later change can still read today's worlds. */
-    private static final int SCHEMA_VERSION = 1;
+    /** Version of the saved layout, so a later change can still read today's worlds. 2: the Sifter has a mesh slot. */
+    private static final int SCHEMA_VERSION = 2;
     private static final String TAG_SCHEMA = "schema_version";
     private static final String TAG_FLUX = "flux";
     private static final String TAG_ITEMS = "items";
@@ -215,8 +216,13 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             public boolean isItemValid(int slot, ItemStack stack) {
                 return isInputSlot(slot) && isInputValid(slot, stack);
             }
+
+            @Override
+            public int getSlotLimit(int slot) {
+                return isInputSlot(slot) ? Math.min(super.getSlotLimit(slot), inputLimit(slot)) : super.getSlotLimit(slot);
+            }
         };
-        this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), this::upgradesChanged);
+        this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), machine, this::upgradesChanged);
     }
 
     // --- What a subclass provides ------------------------------------------------------------
@@ -227,6 +233,11 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     /** Whether a stack may be put into an input slot, such as "has a smelting recipe". Called for players and for pipes alike. */
     protected abstract boolean isInputValid(int slot, ItemStack stack);
+
+    /** The most an input slot holds; a full stack unless a machine says less, like the Sifter's single mesh. */
+    protected int inputLimit(int slot) {
+        return Integer.MAX_VALUE;
+    }
 
     /**
      * Whether a pipe or a neighbor may put this stack into an input slot. The menu does not ask, so
@@ -486,9 +497,9 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return timer.total();
     }
 
-    /** Flux burned per tick while working, in mB, with Speed upgrades counted. */
+    /** Flux burned per tick while working, in mB, with Speed and Efficiency upgrades counted. */
     public int fluxPerTick() {
-        return MachineUpgrades.fluxPerTick(tier, speedUpgrades());
+        return MachineUpgrades.fluxPerTick(tier, speedUpgrades(), upgrades(MachineUpgrades.Special.EFFICIENCY));
     }
 
     /** The size of the Flux tank in mB, with Capacity upgrades counted. */
@@ -509,6 +520,11 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     public int capacityUpgrades() {
         return upgrades.count(PipeUpgrades.Kind.CAPACITY);
+    }
+
+    /** How many machine-only upgrades of one kind are installed. */
+    public int upgrades(MachineUpgrades.Special kind) {
+        return upgrades.count(kind);
     }
 
     /**
@@ -993,7 +1009,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        // Version 1 is the only layout so far; later versions will branch on TAG_SCHEMA here.
+        // Version 2 gave the Sifter its mesh slot; fitInventory handles older saves.
         // The upgrades and the redstone settings came later in version 1 and are simply missing
         // from older saves, which leaves an unupgraded machine that ignores redstone.
         fluxTank.readFromNBT(tag.getCompound(TAG_FLUX));
@@ -1015,11 +1031,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         autoImport = tag.getBoolean(TAG_AUTO_IMPORT);
         autoExport = tag.getBoolean(TAG_AUTO_EXPORT);
         inventory.deserializeNBT(registries, tag.getCompound(TAG_ITEMS));
-        int wanted = machine.inputSlots() + machine.outputSlots();
-        if (inventory.getSlots() != wanted) {
-            // A save from a build with a different slot count: keep the size this machine needs.
-            inventory.setSize(wanted);
-        }
+        fitInventory(tag.getInt(TAG_SCHEMA));
         timer.restore(tag.getInt(TAG_PROGRESS), tag.getInt(TAG_TOTAL));
         CompoundTag sideTag = tag.getCompound(TAG_SIDES);
         for (SideResource resource : sides.used()) {
@@ -1028,5 +1040,38 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             }
         }
         sleeping = false;
+    }
+
+    /**
+     * Brings the loaded slots to the number this machine needs while keeping what they hold. A save
+     * from a build with a different number of input slots (the Sifter gained its mesh slot) keeps
+     * its inputs in place and its outputs counted from the first output slot, so nothing lands in
+     * the wrong kind of slot. Where the slot count is not saved, a Sifter saved before its mesh
+     * slot (layout 1) is known by the layout instead, and its outputs move up one the same way.
+     */
+    private void fitInventory(int schema) {
+        int wanted = machine.inputSlots() + machine.outputSlots();
+        int saved = inventory.getSlots();
+        if (saved == wanted) {
+            if (schema < 2 && machine == MachineType.SIFTER && inventory.getStackInSlot(wanted - 1).isEmpty()) {
+                for (int slot = wanted - 1; slot > SieveMesh.MESH_SLOT; slot--) {
+                    inventory.setStackInSlot(slot, inventory.getStackInSlot(slot - 1));
+                }
+                inventory.setStackInSlot(SieveMesh.MESH_SLOT, ItemStack.EMPTY);
+            }
+            return;
+        }
+        ItemStack[] stacks = new ItemStack[saved];
+        for (int slot = 0; slot < saved; slot++) {
+            stacks[slot] = inventory.getStackInSlot(slot);
+        }
+        int savedInputs = Math.max(0, saved - machine.outputSlots());
+        inventory.setSize(wanted);
+        for (int slot = 0; slot < Math.min(savedInputs, machine.inputSlots()); slot++) {
+            inventory.setStackInSlot(slot, stacks[slot]);
+        }
+        for (int slot = 0; slot < Math.min(saved - savedInputs, machine.outputSlots()); slot++) {
+            inventory.setStackInSlot(machine.inputSlots() + slot, stacks[savedInputs + slot]);
+        }
     }
 }

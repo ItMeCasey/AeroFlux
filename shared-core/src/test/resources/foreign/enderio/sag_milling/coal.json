@@ -1,0 +1,26 @@
+{
+  "type": "enderio:sag_milling",
+  "energy": 2400,
+  "input": "#minecraft:coals",
+  "outputs": [
+    {
+      "item": {
+        "id": "enderio:powdered_coal"
+      }
+    },
+    {
+      "chance": 0.1,
+      "item": {
+        "id": "enderio:powdered_coal"
+      }
+    },
+    {
+      "chance": 0.1,
+      "item": {
+        "count": 1,
+        "tag": "c:dusts/sulfur"
+      },
+      "optional": true
+    }
+  ]
+}

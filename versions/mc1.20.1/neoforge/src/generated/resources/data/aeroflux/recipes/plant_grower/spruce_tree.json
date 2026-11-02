@@ -18,5 +18,19 @@
       "item": "minecraft:spruce_sapling"
     }
   ],
+  "silk_outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:spruce_log"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:spruce_leaves"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:spruce_sapling"
+    }
+  ],
   "time": 600
 }

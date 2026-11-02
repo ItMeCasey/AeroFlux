@@ -1,0 +1,14 @@
+{
+  "type": "actuallyadditions:crushing",
+  "ingredient": {
+    "item": "minecraft:bone"
+  },
+  "result": [
+    {
+      "result": {
+        "count": 6,
+        "id": "minecraft:bone_meal"
+      }
+    }
+  ]
+}

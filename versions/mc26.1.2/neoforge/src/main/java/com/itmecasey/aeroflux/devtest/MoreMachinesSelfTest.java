@@ -1,9 +1,12 @@
 package com.itmecasey.aeroflux.devtest;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import com.itmecasey.aeroflux.lamp.FluxLampBlockEntity;
 import com.itmecasey.aeroflux.lamp.LampField;
@@ -11,6 +14,8 @@ import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.machine.CrafterBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
+import com.itmecasey.aeroflux.machine.SieveImports;
+import com.itmecasey.aeroflux.machine.SieveRoll;
 import com.itmecasey.aeroflux.machine.SkyControllerBlockEntity;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
@@ -19,8 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.clock.ClockTimeMarkers;
 import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -36,14 +45,19 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /**
  * Checks the second wave of machines in a world: the Crafter crafts from its pattern and keeps it,
- * the Purifier waits for water, the Sifter only runs what its mesh allows, the Blender makes
+ * the Purifier waits for water, the Sifter runs sieve recipes for the mesh in its slot, the Blender makes
  * Twilight Flux and bottles it, the Sky Controller moves the clock and then cools down, the Magnet
  * follows its filter, the Breeder makes animals fall in love, the Repairer mends with experience,
  * the Moon Spawner rolls loot without a mob, and a lit Sun Lamp keeps monsters out of its light.
@@ -68,8 +82,9 @@ final class MoreMachinesSelfTest {
     private static BlockPos crafter;
     private static BlockPos purifier;
     private static BlockPos dryPurifier;
-    private static BlockPos sifter;
-    private static BlockPos sandSifter;
+    private static BlockPos stringSifter;
+    private static BlockPos flintSifter;
+    private static BlockPos meshlessSifter;
     private static BlockPos blender;
     private static BlockPos sky;
     private static BlockPos magnet;
@@ -147,11 +162,19 @@ final class MoreMachinesSelfTest {
         dryPurifier = machine(MachineType.PURIFIER, 5, 1, 8_000);
         machine(dryPurifier).setStackIn(0, new ItemStack(Items.IRON_ORE));
 
-        // Sifter: a copper (string mesh) sifter with gravel, and an iron (flint mesh) one with sand and no water.
-        sifter = machineAt(MachineType.SIFTER, Tier.COPPER, 7, 1, 8_000);
-        machine(sifter).setStackIn(0, new ItemStack(Items.GRAVEL, 2));
-        sandSifter = machineAt(MachineType.SIFTER, Tier.IRON, 9, 1, 8_000);
-        machine(sandSifter).setStackIn(0, new ItemStack(Items.SAND, 4));
+        // Sifter: the same gravel through two meshes, and once with no mesh at all. Neither sieve
+        // mod is here, so the recipes are written the way theirs are, with vanilla items as meshes.
+        checkRealSieveRecipes();
+        SieveImports.useForTest(sieveRecipes());
+        stringSifter = machineAt(MachineType.SIFTER, Tier.COPPER, 7, 1, 8_000);
+        machine(stringSifter).setStackIn(SieveMesh.MATERIAL_SLOT, new ItemStack(Items.GRAVEL, 2));
+        machine(stringSifter).setStackIn(SieveMesh.MESH_SLOT, new ItemStack(Items.STRING));
+        flintSifter = machineAt(MachineType.SIFTER, Tier.COPPER, 9, 1, 8_000);
+        machine(flintSifter).setStackIn(SieveMesh.MATERIAL_SLOT, new ItemStack(Items.GRAVEL, 2));
+        machine(flintSifter).setStackIn(SieveMesh.MESH_SLOT, new ItemStack(Items.FLINT));
+        meshlessSifter = machineAt(MachineType.SIFTER, Tier.COPPER, 7, 3, 8_000);
+        machine(meshlessSifter).setStackIn(SieveMesh.MATERIAL_SLOT, new ItemStack(Items.GRAVEL, 4));
+        checkSifterSlots();
 
         // Blender: enough of both for ten blends, which is one bucket of Twilight Flux.
         blender = machine(MachineType.BLENDER, 11, 1, 8_000);
@@ -247,14 +270,18 @@ final class MoreMachinesSelfTest {
         SelfTest.check("purifier: without water it waits", machine(dryPurifier).stackIn(0).is(Items.IRON_ORE)
                 && outputs(dryPurifier).isEmpty());
 
-        // Sifter.
-        List<ItemStack> sifted = outputs(sifter);
-        boolean onlyStringMesh = sifted.stream().allMatch(stack -> stack.is(Items.FLINT) || stack.is(Items.WHEAT_SEEDS));
-        SelfTest.check("sifter: a copper sifter used up its gravel", machine(sifter).stackIn(0).isEmpty());
-        // The rolls are chances, so the outputs may be empty; whatever is there must come from the string mesh.
-        SelfTest.check("sifter: a string mesh only gives what string-mesh recipes give", onlyStringMesh);
-        SelfTest.check("sifter: sand that only washes out with water waits for water",
-                machine(sandSifter).stackIn(0).getCount() == 4);
+        // Sifter. Every amount in the test recipes is certain, so the counts are exact.
+        List<ItemStack> throughString = outputs(stringSifter);
+        SelfTest.check("sifter: gravel through a string mesh gave exactly its string-mesh drop",
+                throughString.size() == 1 && throughString.getFirst().is(Items.FLINT) && throughString.getFirst().getCount() == 2);
+        SelfTest.check("sifter: the mesh is never used up, the gravel is",
+                machine(stringSifter).stackIn(SieveMesh.MESH_SLOT).is(Items.STRING)
+                        && machine(stringSifter).stackIn(SieveMesh.MATERIAL_SLOT).isEmpty());
+        List<ItemStack> throughFlint = outputs(flintSifter);
+        SelfTest.check("sifter: the same gravel through another mesh gives that mesh's drops, binomial rolls counted",
+                throughFlint.size() == 1 && throughFlint.getFirst().is(Items.IRON_NUGGET) && throughFlint.getFirst().getCount() == 6);
+        SelfTest.check("sifter: without a mesh it waits",
+                machine(meshlessSifter).stackIn(SieveMesh.MATERIAL_SLOT).getCount() == 4 && outputs(meshlessSifter).isEmpty());
 
         // Blender.
         FluxMachineBlockEntity mixer = machine(blender);
@@ -349,6 +376,94 @@ final class MoreMachinesSelfTest {
             transaction.commit();
             return put;
         }
+    }
+
+    /**
+     * Sieve recipes in the shapes Ex Deorum and Ex Nihilo Sequentia write them. Ex Deorum's take
+     * any item as a mesh, so vanilla string and flint stand in for real meshes. The hand-only one
+     * must never run in a machine, and the Ex Nihilo one names a mesh that is not installed, so
+     * it is left out without breaking the rest.
+     */
+    private static List<JsonObject> sieveRecipes() {
+        return List.of(
+                JsonParser.parseString("""
+                        {"type": "exdeorum:sieve", "ingredient": {"item": "minecraft:gravel"},
+                         "mesh": {"item": "minecraft:string"}, "result": {"id": "minecraft:flint", "count": 1},
+                         "result_amount": 1}""").getAsJsonObject(),
+                JsonParser.parseString("""
+                        {"type": "exdeorum:sieve", "ingredient": {"item": "minecraft:gravel"},
+                         "mesh": {"item": "minecraft:flint"}, "result": {"id": "minecraft:iron_nugget"},
+                         "result_amount": {"type": "minecraft:binomial", "n": 3, "p": 1.0}}""").getAsJsonObject(),
+                JsonParser.parseString("""
+                        {"type": "exdeorum:sieve", "ingredient": {"item": "minecraft:gravel"},
+                         "mesh": {"item": "minecraft:string"}, "result": {"id": "minecraft:diamond"},
+                         "result_amount": 1, "by_hand_only": true}""").getAsJsonObject(),
+                JsonParser.parseString("""
+                        {"type": "exnihilosequentia:sieve", "input": {"item": "minecraft:gravel"},
+                         "result": {"item": "minecraft:emerald"}, "rolls": [{"chance": 1.0, "mesh": "string"}],
+                         "waterlogged": true}""").getAsJsonObject());
+    }
+
+    /**
+     * With Ex Deorum in the game (it is in the 26.1 NeoForge dev run), its own sieve recipes come
+     * through: gravel sifts through its string mesh into its own items, its meshes fit the mesh slot,
+     * and a recipe whose load condition fails (an ore no mod here adds) is left out, as it is in
+     * Ex Deorum's own sieve.
+     */
+    private static void checkRealSieveRecipes() {
+        if (!ModList.get().isLoaded("exdeorum")) {
+            return;
+        }
+        SieveImports.useForTest(null);
+        List<SieveRoll> rolls = SieveImports.of(level);
+        Item stringMesh = BuiltInRegistries.ITEM.getValue(Identifier.parse("exdeorum:string_mesh"));
+        Item boron = BuiltInRegistries.ITEM.getValue(Identifier.parse("exdeorum:boron_ore_chunk"));
+        ItemStack gravel = new ItemStack(Items.GRAVEL);
+        ItemStack mesh = new ItemStack(stringMesh);
+        boolean gravelThroughString = rolls.stream().anyMatch(roll -> roll.runs(gravel, mesh));
+        boolean ownItems = rolls.stream().anyMatch(roll -> roll.runs(gravel, mesh)
+                && BuiltInRegistries.ITEM.getKey(roll.product().item().value()).getNamespace().equals("exdeorum"));
+        SelfTest.check("sifter: Ex Deorum's own sieve recipes come through, its own items included",
+                rolls.size() > 300 && gravelThroughString && ownItems);
+        SelfTest.check("sifter: Ex Deorum's string mesh fits the mesh slot", SieveImports.isMesh(level, mesh));
+        boolean boronAdded = BuiltInRegistries.ITEM.getTagOrEmpty(ItemTags.create(Identifier.parse("c:ores/boron"))).iterator().hasNext();
+        SelfTest.check("sifter: an Ex Deorum recipe whose load condition fails is left out",
+                boronAdded || rolls.stream().noneMatch(roll -> roll.product().item().value() == boron));
+    }
+
+    /**
+     * The slots: the mesh slot takes only meshes and only one, the block slot takes what can be
+     * sifted, and a Sifter saved before the mesh slot existed keeps its products in output slots.
+     */
+    private static void checkSifterSlots() {
+        FluxMachineBlockEntity sieve = machine(meshlessSifter);
+        ResourceHandler<ItemResource> items = sieve.itemHandler(null);
+        int strings;
+        int dirt;
+        try (Transaction transaction = Transaction.openRoot()) {
+            strings = items.insert(SieveMesh.MESH_SLOT, ItemResource.of(Items.STRING), 5, transaction);
+            dirt = items.insert(SieveMesh.MESH_SLOT, ItemResource.of(Items.DIRT), 1, transaction);
+        }
+        SelfTest.check("sifter: the mesh slot takes one mesh and nothing that is not a mesh", strings == 1 && dirt == 0);
+        SelfTest.check("sifter: the block slot takes what a recipe sifts and turns away what none does",
+                sieve.inventory().isValid(SieveMesh.MATERIAL_SLOT, ItemResource.of(Items.GRAVEL))
+                        && !sieve.inventory().isValid(SieveMesh.MATERIAL_SLOT, ItemResource.of(Items.DIRT)));
+
+        // An old Sifter: one input slot, then six outputs, with flint in the first output.
+        ItemStacksResourceHandler old = new ItemStacksResourceHandler(1 + MachineType.SIFTER.outputSlots());
+        old.set(0, ItemResource.of(Items.GRAVEL), 3);
+        old.set(1, ItemResource.of(Items.FLINT), 7);
+        TagValueOutput saved = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
+        old.serialize(saved.child("items"));
+        BlockPos pos = new BlockPos(9, Y, 3);
+        level.setBlock(pos, ModBlocks.machine(MachineType.SIFTER, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
+        FluxMachineBlockEntity loaded = machine(pos);
+        loaded.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), saved.buildResult()));
+        int firstOutput = MachineType.SIFTER.inputSlots();
+        SelfTest.check("sifter: a Sifter saved before the mesh slot keeps its block and its products in their places",
+                loaded.stackIn(SieveMesh.MATERIAL_SLOT).is(Items.GRAVEL) && loaded.stackIn(SieveMesh.MESH_SLOT).isEmpty()
+                        && loaded.stackIn(firstOutput).is(Items.FLINT) && loaded.stackIn(firstOutput).getCount() == 7);
+        level.removeBlock(pos, false);
     }
 
     /** The first output slot. */

@@ -7,6 +7,7 @@ import com.itmecasey.aeroflux.block.FluxTankBlock;
 import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlock;
 import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import java.text.NumberFormat;
@@ -23,7 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Adds how much a block holds to its item's tooltip: a Flux Tank's size, a collector's buffer, and
- * the Flux tank of machines, converters, chunk loaders and lamps.
+ * the Flux tank of machines, converters, chunk loaders and lamps. The Sifter also says it needs a
+ * mesh from Ex Deorum or Ex Nihilo Sequentia.
  *
  * <p>The numbers come from {@link StorageSizes}, so on a server they are the server's sizes,
  * even when they differ from this game's own config.
@@ -42,6 +44,11 @@ public final class StorageTooltips {
         if (line != null) {
             // Right under the name, where vanilla puts a block's own short facts.
             event.getToolTip().add(Math.min(1, event.getToolTip().size()), line);
+        }
+        if (item.getBlock() instanceof FluxMachineBlock machine && machine.machine() == MachineType.SIFTER) {
+            // The Sifter does nothing without a sieve mod's mesh, so it says so up front.
+            event.getToolTip().add(Math.min(2, event.getToolTip().size()),
+                    Component.translatable("tooltip." + AeroFlux.MODID + ".sifter").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 

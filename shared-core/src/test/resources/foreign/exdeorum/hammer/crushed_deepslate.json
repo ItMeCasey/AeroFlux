@@ -1,0 +1,11 @@
+{
+  "type": "exdeorum:hammer",
+  "ingredient": [
+    "minecraft:deepslate",
+    "minecraft:cobbled_deepslate"
+  ],
+  "result": {
+    "id": "exdeorum:crushed_deepslate"
+  },
+  "result_amount": 1.0
+}

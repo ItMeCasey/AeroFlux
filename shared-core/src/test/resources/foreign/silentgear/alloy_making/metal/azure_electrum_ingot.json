@@ -1,0 +1,13 @@
+{
+  "type": "silentgear:alloy_making/metal",
+  "ingredients": [
+    "#c:storage_blocks/azure_silver",
+    "#c:ingots/gold",
+    "#c:ingots/gold",
+    "#c:ender_pearls"
+  ],
+  "result": {
+    "count": 3,
+    "item": "silentgear:azure_electrum_ingot"
+  }
+}

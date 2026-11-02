@@ -1,0 +1,1 @@
+{"bookshelf:load_conditions":[{"type":"bookshelf:item_exists","values":["aether:nightbloom"]}],"type":"botanypots:crop","seed":{"item":"aether:nightbloom"},"categories":["dirt"],"growthTicks":2400,"display":{"block":"aether:nightbloom"},"drops":[{"chance":1,"output":{"item":"aether:nightbloom"}}]}

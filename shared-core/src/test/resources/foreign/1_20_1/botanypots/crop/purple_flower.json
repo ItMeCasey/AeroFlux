@@ -1,0 +1,1 @@
+{"bookshelf:load_conditions":[{"type":"bookshelf:item_exists","values":["aether:purple_flower"]}],"type":"botanypots:crop","seed":{"item":"aether:purple_flower"},"categories":["dirt"],"growthTicks":2400,"display":{"block":"aether:purple_flower"},"drops":[{"chance":1,"output":{"item":"aether:purple_flower"}}]}

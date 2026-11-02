@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:ores/apatite"
+      }
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/apatite"
+      }
+    }
+  ],
+  "type": "occultism:crushing",
+  "ingredient": "#c:ores/apatite",
+  "result": {
+    "type": "occultism:tag",
+    "count": 4,
+    "tag": "c:dusts/apatite"
+  }
+}

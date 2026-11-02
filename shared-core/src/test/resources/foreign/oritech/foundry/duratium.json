@@ -1,0 +1,13 @@
+{
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "#c:ingots/platinum",
+    "#c:ingots/netherite"
+  ],
+  "itemResults": [
+    {
+      "id": "oritech:duratium_ingot"
+    }
+  ],
+  "time": 80
+}

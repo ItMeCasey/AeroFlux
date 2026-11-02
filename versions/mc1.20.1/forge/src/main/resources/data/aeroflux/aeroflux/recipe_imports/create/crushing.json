@@ -1,0 +1,6 @@
+{
+  "machine": "grinder",
+  "recipe_type": "create:crushing",
+  "time_key": "processingTime",
+  "time_scale": 1.0
+}

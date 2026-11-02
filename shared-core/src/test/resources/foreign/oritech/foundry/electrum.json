@@ -1,0 +1,13 @@
+{
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "#c:ingots/gold",
+    "#c:dusts/redstone"
+  ],
+  "itemResults": [
+    {
+      "id": "oritech:electrum_ingot"
+    }
+  ],
+  "time": 80
+}

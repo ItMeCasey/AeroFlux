@@ -3,17 +3,14 @@
   "category": "misc",
   "ingredients": [
     {
-      "tag": "c:dusts/glowstone"
+      "item": "aeroflux:sawdust"
     },
     {
-      "tag": "c:gems/quartz"
-    },
-    {
-      "tag": "c:dusts/redstone"
+      "item": "aeroflux:sawdust"
     }
   ],
   "result": {
-    "count": 2,
+    "count": 1,
     "id": "aeroflux:flux_dust"
   }
 }

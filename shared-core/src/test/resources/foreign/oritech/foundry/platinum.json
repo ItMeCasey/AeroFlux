@@ -1,0 +1,14 @@
+{
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "oritech:platinum_gem",
+    "oritech:platinum_gem"
+  ],
+  "itemResults": [
+    {
+      "count": 3,
+      "id": "oritech:platinum_ingot"
+    }
+  ],
+  "time": 80
+}

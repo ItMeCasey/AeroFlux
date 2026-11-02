@@ -18,5 +18,19 @@
       "item": "minecraft:jungle_sapling"
     }
   ],
+  "silk_outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:jungle_log"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:jungle_leaves"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:jungle_sapling"
+    }
+  ],
   "time": 600
 }

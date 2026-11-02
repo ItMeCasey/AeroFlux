@@ -1,11 +1,13 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_glowstone_dust": {
+    "has_sawdust": {
       "conditions": {
         "items": [
           {
-            "tag": "forge:dusts/glowstone"
+            "items": [
+              "aeroflux:sawdust"
+            ]
           }
         ]
       },
@@ -20,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_glowstone_dust",
+      "has_sawdust",
       "has_the_recipe"
     ]
   ],

@@ -1,18 +1,38 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "key": {
-    "B": "#c:ingots/gold",
-    "P": "aeroflux:iron_flux_sifter",
-    "S": "#c:gems/amethyst",
-    "T": "#c:ingots/gold"
+  "type": "forge:conditional",
+  "forge:condition": {
+    "type": "forge:or",
+    "values": [
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exdeorum"
+      },
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exnihilosequentia"
+      }
+    ]
   },
-  "pattern": [
-    " T ",
-    "SPS",
-    " B "
-  ],
-  "result": {
-    "id": "aeroflux:gold_flux_sifter"
-  }
+  "recipes": [
+    {
+      "recipe": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "B": "#c:ingots/gold",
+          "P": "aeroflux:iron_flux_sifter",
+          "S": "#c:gems/amethyst",
+          "T": "#c:ingots/gold"
+        },
+        "pattern": [
+          " T ",
+          "SPS",
+          " B "
+        ],
+        "result": {
+          "id": "aeroflux:gold_flux_sifter"
+        }
+      }
+    }
+  ]
 }

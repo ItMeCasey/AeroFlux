@@ -32,14 +32,14 @@ import net.minecraftforge.registries.ForgeRegistries;
  *   "time": 100,
  *   "flux": 0,
  *   "flux_type": "moon",
- *   "mesh": "flint",
- *   "water": 50
+ *   "water": 50,
+ *   "silk_outputs": [ { "item": "minecraft:oak_leaves", "count": 2 } ]
  * }
  * }</pre>
  * Only {@code inputs} and {@code outputs} are required; the counts default to 1, the chance to 1,
  * the time to 200 ticks and the extra flux to 0, and a missing {@code flux_type} means either flux
- * will do. {@code mesh} (the Sifter's mesh) and {@code water} (mB per run, Purifier and Sifter)
- * default to none.
+ * will do. {@code water} (mB per run, Purifier) defaults to none, and {@code silk_outputs} (what a
+ * Plant Grower with a Silk Touch Upgrade gives instead) to the usual products.
  */
 public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> {
     private static final int DEFAULT_TIME = 200;
@@ -61,8 +61,20 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
             inputs.add(new FluxRecipe.Input(ingredient, intInRange(entry, "count", 1, 1, 64)));
         }
 
+        List<FluxRecipe.Output> outputs = outputsFromJson(GsonHelper.getAsJsonArray(json, "outputs"));
+        List<FluxRecipe.Output> silkOutputs = json.has("silk_outputs")
+                ? outputsFromJson(GsonHelper.getAsJsonArray(json, "silk_outputs")) : List.of();
+
+        int time = intInRange(json, "time", DEFAULT_TIME, 1, 1_000_000);
+        int flux = intInRange(json, "flux", 0, 0, 1_000_000);
+        FluxType fluxType = json.has("flux_type") ? parseFlux(GsonHelper.getAsString(json, "flux_type")) : null;
+        int water = intInRange(json, "water", 0, 0, 1_000_000);
+        return new FluxRecipe(id, machine, inputs, outputs, time, flux, fluxType, water, silkOutputs);
+    }
+
+    private static List<FluxRecipe.Output> outputsFromJson(JsonArray array) {
         List<FluxRecipe.Output> outputs = new ArrayList<>();
-        for (JsonElement element : GsonHelper.getAsJsonArray(json, "outputs")) {
+        for (JsonElement element : array) {
             JsonObject entry = GsonHelper.convertToJsonObject(element, "output");
             float chance = GsonHelper.getAsFloat(entry, "chance", 1.0F);
             if (chance < 0.0F || chance > 1.0F) {
@@ -70,13 +82,7 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
             }
             outputs.add(new FluxRecipe.Output(CraftingHelper.getItemStack(entry, true), chance));
         }
-
-        int time = intInRange(json, "time", DEFAULT_TIME, 1, 1_000_000);
-        int flux = intInRange(json, "flux", 0, 0, 1_000_000);
-        FluxType fluxType = json.has("flux_type") ? parseFlux(GsonHelper.getAsString(json, "flux_type")) : null;
-        String mesh = GsonHelper.getAsString(json, "mesh", "");
-        int water = intInRange(json, "water", 0, 0, 1_000_000);
-        return new FluxRecipe(id, machine, inputs, outputs, time, flux, fluxType, mesh, water);
+        return outputs;
     }
 
     /** Writes a recipe in the format {@link #fromJson} reads; the data generator uses it. */
@@ -92,19 +98,10 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
         }
         json.add("inputs", inputs);
 
-        JsonArray outputs = new JsonArray();
-        for (FluxRecipe.Output output : recipe.outputs()) {
-            JsonObject entry = new JsonObject();
-            entry.addProperty("item", String.valueOf(ForgeRegistries.ITEMS.getKey(output.stack().getItem())));
-            if (output.stack().getCount() != 1) {
-                entry.addProperty("count", output.stack().getCount());
-            }
-            if (output.chance() != 1.0F) {
-                entry.addProperty("chance", output.chance());
-            }
-            outputs.add(entry);
+        json.add("outputs", outputsToJson(recipe.outputs()));
+        if (!recipe.silkOutputs().isEmpty()) {
+            json.add("silk_outputs", outputsToJson(recipe.silkOutputs()));
         }
-        json.add("outputs", outputs);
 
         if (recipe.time() != DEFAULT_TIME) {
             json.addProperty("time", recipe.time());
@@ -115,12 +112,25 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
         if (recipe.fluxType() != null) {
             json.addProperty("flux_type", recipe.fluxType().name().toLowerCase(Locale.ROOT));
         }
-        if (!recipe.mesh().isEmpty()) {
-            json.addProperty("mesh", recipe.mesh());
-        }
         if (recipe.water() != 0) {
             json.addProperty("water", recipe.water());
         }
+    }
+
+    private static JsonArray outputsToJson(List<FluxRecipe.Output> outputs) {
+        JsonArray array = new JsonArray();
+        for (FluxRecipe.Output output : outputs) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("item", String.valueOf(ForgeRegistries.ITEMS.getKey(output.stack().getItem())));
+            if (output.stack().getCount() != 1) {
+                entry.addProperty("count", output.stack().getCount());
+            }
+            if (output.chance() != 1.0F) {
+                entry.addProperty("chance", output.chance());
+            }
+            array.add(entry);
+        }
+        return array;
     }
 
     private static int intInRange(JsonObject json, String key, int fallback, int min, int max) {
@@ -150,19 +160,32 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
             Ingredient ingredient = Ingredient.fromNetwork(buf);
             inputs.add(new FluxRecipe.Input(ingredient, buf.readVarInt()));
         }
-        int outputCount = buf.readVarInt();
-        List<FluxRecipe.Output> outputs = new ArrayList<>();
-        for (int i = 0; i < outputCount; i++) {
-            ItemStack stack = buf.readItem();
-            outputs.add(new FluxRecipe.Output(stack, buf.readFloat()));
-        }
+        List<FluxRecipe.Output> outputs = readOutputs(buf);
         int time = buf.readVarInt();
         int flux = buf.readVarInt();
         int type = buf.readVarInt();
-        String mesh = buf.readUtf();
         int water = buf.readVarInt();
+        List<FluxRecipe.Output> silkOutputs = readOutputs(buf);
         return new FluxRecipe(id, machine, inputs, outputs, time, flux,
-                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type], mesh, water);
+                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type], water, silkOutputs);
+    }
+
+    private static List<FluxRecipe.Output> readOutputs(FriendlyByteBuf buf) {
+        int count = buf.readVarInt();
+        List<FluxRecipe.Output> outputs = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            ItemStack stack = buf.readItem();
+            outputs.add(new FluxRecipe.Output(stack, buf.readFloat()));
+        }
+        return outputs;
+    }
+
+    private static void writeOutputs(FriendlyByteBuf buf, List<FluxRecipe.Output> outputs) {
+        buf.writeVarInt(outputs.size());
+        for (FluxRecipe.Output output : outputs) {
+            buf.writeItem(output.stack());
+            buf.writeFloat(output.chance());
+        }
     }
 
     @Override
@@ -172,16 +195,12 @@ public final class FluxRecipeSerializer implements RecipeSerializer<FluxRecipe> 
             input.ingredient().toNetwork(buf);
             buf.writeVarInt(input.count());
         }
-        buf.writeVarInt(recipe.outputs().size());
-        for (FluxRecipe.Output output : recipe.outputs()) {
-            buf.writeItem(output.stack());
-            buf.writeFloat(output.chance());
-        }
+        writeOutputs(buf, recipe.outputs());
         buf.writeVarInt(recipe.time());
         buf.writeVarInt(recipe.flux());
         // VarInt cannot hold a negative number compactly, so "either flux" goes over the wire as a large value.
         buf.writeVarInt(recipe.fluxType() == null ? Integer.MAX_VALUE : recipe.fluxType().ordinal());
-        buf.writeUtf(recipe.mesh());
         buf.writeVarInt(recipe.water());
+        writeOutputs(buf, recipe.silkOutputs());
     }
 }

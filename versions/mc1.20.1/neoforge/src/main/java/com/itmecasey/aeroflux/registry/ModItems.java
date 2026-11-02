@@ -13,9 +13,11 @@ import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.item.UpgradeCardItem;
 import com.itmecasey.aeroflux.lamp.LampKind;
+import com.itmecasey.aeroflux.machine.MachineUpgradeItem;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -71,6 +73,17 @@ public final class ModItems {
 
     /** Installs into the pipe nearest the crosshair; makes it move more at a time. */
     public static final RegistryObject<UpgradeItem> CAPACITY_UPGRADE = ITEMS.register("capacity_upgrade", () -> new UpgradeItem(PipeUpgrades.Kind.CAPACITY, new Item.Properties()));
+
+    /** The upgrades only machines take, one item each; see {@link MachineUpgradeItem}. */
+    private static final Map<MachineUpgrades.Special, RegistryObject<MachineUpgradeItem>> MACHINE_UPGRADES =
+            new EnumMap<>(MachineUpgrades.Special.class);
+
+    static {
+        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+            MACHINE_UPGRADES.put(kind, ITEMS.register(kind.id() + "_upgrade",
+                    () -> new MachineUpgradeItem(kind, new Item.Properties())));
+        }
+    }
 
     /** Installs into one pipe at one face; only lets chosen items or fluids through that face. */
     public static final RegistryObject<EndpointUpgradeItem> FILTER_UPGRADE = ITEMS.register("filter_upgrade", () -> new EndpointUpgradeItem(EndpointSettings.Upgrade.FILTER, new Item.Properties()));
@@ -135,6 +148,11 @@ public final class ModItems {
     public static RegistryObject<PipeItem> pipe(PipeType type, Tier tier) {
         Map<Tier, RegistryObject<PipeItem>> byTier = PIPES.get(type);
         return PipeTiers.isTiered(type) ? byTier.get(tier) : byTier.get(Tier.COPPER);
+    }
+
+    /** The item of a machine-only upgrade. */
+    public static RegistryObject<MachineUpgradeItem> machineUpgrade(MachineUpgrades.Special kind) {
+        return MACHINE_UPGRADES.get(kind);
     }
 
     /** The upgrade card that raises a block to {@code tier}; there is none for copper. */

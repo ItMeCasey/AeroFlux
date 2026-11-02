@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mysticalagriculture:crop_enabled",
+      "crop": "mysticalagriculture:blizz"
+    }
+  ],
+  "type": "mysticalagriculture:reprocessor",
+  "input": "mysticalagriculture:blizz_seeds",
+  "result": {
+    "count": 2,
+    "id": "mysticalagriculture:blizz_essence"
+  }
+}

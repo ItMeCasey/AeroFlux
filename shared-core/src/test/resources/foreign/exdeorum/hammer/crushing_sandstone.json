@@ -1,0 +1,13 @@
+{
+  "type": "exdeorum:hammer",
+  "ingredient": [
+    "minecraft:sandstone",
+    "minecraft:cut_sandstone",
+    "minecraft:chiseled_sandstone",
+    "minecraft:smooth_sandstone"
+  ],
+  "result": {
+    "id": "minecraft:sand"
+  },
+  "result_amount": 1.0
+}

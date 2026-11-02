@@ -1,0 +1,8 @@
+{
+  "type": "exdeorum:hammer",
+  "ingredient": "minecraft:end_stone",
+  "result": {
+    "id": "exdeorum:crushed_end_stone"
+  },
+  "result_amount": 1.0
+}

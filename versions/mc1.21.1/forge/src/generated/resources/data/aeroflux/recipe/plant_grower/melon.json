@@ -23,5 +23,20 @@
       }
     }
   ],
+  "silk_outputs": [
+    {
+      "item": {
+        "count": 1,
+        "id": "minecraft:melon"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "count": 1,
+        "id": "minecraft:melon_seeds"
+      }
+    }
+  ],
   "time": 400
 }

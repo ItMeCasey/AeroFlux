@@ -2,6 +2,8 @@ package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.machine.ExtraTank;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.OutputChance;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.machine.recipe.MachineInput;
@@ -13,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -61,11 +64,51 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
                     .filter(imported -> imported.value().matches(input, server)).findFirst().orElse(null));
             lastRecipe = recipe;
         }
+        if (recipe == null && machine() == MachineType.PLANT_GROWER && PlantGrowth.grows(stackIn(0))) {
+            // No recipe names this plant: grow it the way it grows in the world.
+            return new GrowJob(stackIn(0).getItem());
+        }
         // A recipe that needs water (the Purifier's) waits until the tank has enough.
         if (recipe == null || !hasWater(recipe.value().water())) {
             return null;
         }
         return new RecipeJob(recipe);
+    }
+
+    /** A Plant Grower growing a plant no recipe names; see {@link PlantGrowth}. */
+    private final class GrowJob implements Job {
+        private final Item plant;
+
+        GrowJob(Item plant) {
+            this.plant = plant;
+        }
+
+        @Override
+        public Object key() {
+            return plant;
+        }
+
+        @Override
+        public int baseTicks() {
+            return PlantGrowth.ticks(stackIn(0));
+        }
+
+        /** What a harvest gives is only known once it is rolled, so a free spot for one item is enough to go on. */
+        @Override
+        public boolean outputFits() {
+            return canFitOutputs(List.of(new ItemStack(plant)));
+        }
+
+        @Override
+        public void complete() {
+            if (!(level instanceof ServerLevel server)) {
+                return;
+            }
+            ItemStack seed = stackIn(0).copyWithCount(1);
+            consumeInput(0, 1);
+            RandomSource rolls = seededRolls != null ? seededRolls : server.getRandom();
+            putOutputs(PlantGrowth.harvest(server, worldPosition, seed, silkTouch(), rolls));
+        }
     }
 
     private int waterTank() {
@@ -84,6 +127,25 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
     @Override
     protected boolean isInputValid(int slot, ItemStack stack) {
         return level != null && MachineInputs.accepts(machine(), level, slot, stack);
+    }
+
+    /** Whether a Silk Touch Upgrade makes this machine use its recipes' silk products. */
+    private boolean silkTouch() {
+        return machine() == MachineType.PLANT_GROWER && upgrades(MachineUpgrades.Special.SILK_TOUCH) > 0;
+    }
+
+    /**
+     * How many more of the main product the upgrades add to one run: Fortune in the Grinder,
+     * Purity in the Purifier. Other machines take neither, so they get none.
+     */
+    private int bonusItems(RandomSource rolls) {
+        if (machine() == MachineType.GRINDER) {
+            return MachineUpgrades.bonusItems(upgrades(MachineUpgrades.Special.FORTUNE), MachineUpgrades.FORTUNE_CHANCE, rolls::nextDouble);
+        }
+        if (machine() == MachineType.PURIFIER) {
+            return MachineUpgrades.bonusItems(upgrades(MachineUpgrades.Special.PURITY), MachineUpgrades.PURITY_CHANCE, rolls::nextDouble);
+        }
+        return 0;
     }
 
     /** One run of a recipe. */
@@ -112,7 +174,7 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
         @Override
         public boolean outputFits() {
             List<ItemStack> certain = new ArrayList<>();
-            for (FluxRecipe.Output output : holder.value().outputs()) {
+            for (FluxRecipe.Output output : holder.value().outputs(silkTouch())) {
                 if (output.chance() >= 1.0) {
                     certain.add(output.stack());
                 }
@@ -145,10 +207,16 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             }
             RandomSource rolls = seededRolls != null ? seededRolls : level.getRandom();
             List<ItemStack> products = new ArrayList<>();
-            for (FluxRecipe.Output output : recipe.outputs()) {
+            for (FluxRecipe.Output output : recipe.outputs(silkTouch())) {
                 if (OutputChance.drops(output.chance(), rolls.nextDouble())) {
                     products.add(output.stack());
                 }
+            }
+            // The bonus goes on the main product, the first one a run always makes. Like a
+            // byproduct, it is lost if there is no room left for it.
+            int bonus = bonusItems(rolls);
+            if (bonus > 0 && !recipe.outputs().isEmpty() && recipe.outputs().getFirst().chance() >= 1.0F) {
+                products.add(recipe.outputs().getFirst().stack().copyWithCount(bonus));
             }
             putOutputs(products);
         }

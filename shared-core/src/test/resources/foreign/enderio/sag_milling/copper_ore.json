@@ -1,0 +1,24 @@
+{
+  "type": "enderio:sag_milling",
+  "energy": 2400,
+  "input": "#c:ores/copper",
+  "outputs": [
+    {
+      "item": {
+        "id": "minecraft:raw_copper"
+      }
+    },
+    {
+      "chance": 0.33,
+      "item": {
+        "id": "minecraft:raw_copper"
+      }
+    },
+    {
+      "chance": 0.15,
+      "item": {
+        "id": "minecraft:cobblestone"
+      }
+    }
+  ]
+}

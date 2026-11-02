@@ -1,0 +1,25 @@
+{
+  "type": "enderio:sag_milling",
+  "energy": 2400,
+  "input": "#c:ores/emerald",
+  "outputs": [
+    {
+      "item": {
+        "count": 2,
+        "id": "minecraft:emerald"
+      }
+    },
+    {
+      "chance": 0.25,
+      "item": {
+        "id": "minecraft:emerald"
+      }
+    },
+    {
+      "chance": 0.15,
+      "item": {
+        "id": "minecraft:cobblestone"
+      }
+    }
+  ]
+}

@@ -1,156 +1,231 @@
 package com.itmecasey.aeroflux.machine;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.itmecasey.aeroflux.AeroFlux;
-import com.itmecasey.aeroflux.Ids;
-import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
+import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.mojang.serialization.JsonOps;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Reads the sieve recipes of Ex Deorum ({@code exdeorum:sieve}) and Ex Nihilo Sequentia
- * ({@code exnihilosequentia:sieve}) as plain JSON, so the Flux Sifter runs them without either mod
- * being a dependency or even present at build time. The two mods have changed their field names
- * between versions, so the reader accepts every spelling seen so far and skips anything it cannot
- * make sense of instead of failing:
+ * The sieve recipes of Ex Deorum ({@code exdeorum:sieve}) and Ex Nihilo Sequentia
+ * ({@code exnihilosequentia:sieve}, {@code exnihilosequentia:sifting} from 5.0 on), the Flux Sifter's
+ * only recipes.
+ *
+ * <p>They are taken from the recipes the game has loaded, not from the files, so whatever decides
+ * which recipes exist decides it for the Sifter too: a recipe's load conditions (Ex Deorum only
+ * adds an ore's drops when some mod adds that ore), data packs that replace or remove recipes,
+ * and KubeJS scripts. Neither mod is a dependency, so their recipe classes are never named here:
+ * each recipe is written back out with its own serializer as JSON, and that JSON is read. The two
+ * mods have changed their field names between versions, so the reader accepts every spelling
+ * seen so far and skips anything it cannot make sense of instead of failing:
  *
  * <ul>
- *     <li>Ex Deorum: {@code ingredient}, {@code mesh} (a mesh item such as {@code exdeorum:iron_mesh}),
- *     {@code result} and {@code result_amount} (a number, or a constant, uniform or binomial number
+ *     <li>Ex Deorum: {@code ingredient}, {@code mesh} (an ingredient, such as
+ *     {@code {"item": "exdeorum:iron_mesh"}}, or a plain item id in older versions), {@code result}
+ *     and {@code result_amount} (a number, or a constant, uniform, binomial or summed number
  *     provider). Recipes marked {@code by_hand_only} are left to the hand sieve.</li>
  *     <li>Ex Nihilo Sequentia: {@code input}, {@code result}, a {@code rolls} list of {@code chance}
- *     and {@code mesh}, and {@code waterlogged}, which makes the sifter use 50 mB of water.</li>
+ *     and {@code mesh} (a mesh kind such as {@code "flint"}, meaning the mod's flint mesh), and
+ *     {@code waterlogged}, which makes the sifter use {@link #WATERLOGGED_WATER} mB of water.</li>
  * </ul>
  */
-@Mod.EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SieveImports {
     /** Water one waterlogged run takes. */
     public static final int WATERLOGGED_WATER = 50;
 
-    private static volatile List<JsonObject> raw = List.of();
-    @Nullable
-    private static volatile List<RecipeHolder<FluxRecipe>> converted;
+    /** The recipe types read, Ex Deorum's and Ex Nihilo Sequentia's. */
+    // Ex Nihilo Sequentia named its type "sieve" up to 4.x and "sifting" from 5.0 on.
+    private static final List<String> SIEVE_TYPES = List.of("exdeorum:sieve", "exnihilosequentia:sieve", "exnihilosequentia:sifting");
+
+    /** The recipes the self-test gives in place of the loaded ones, or {@code null} in a real game. */
+    private static volatile @Nullable List<JsonObject> testRecipes;
+    /** The recipe set {@link #converted} was worked out from; a reload brings a new one. */
+    private static volatile @Nullable Object source;
+    private static volatile List<SieveRoll> converted = List.of();
 
     private SieveImports() {
     }
 
-    /** The imported recipes, worked out with the server's registries the first time they are asked for after a reload. */
-    public static List<RecipeHolder<FluxRecipe>> of(ServerLevel level) {
-        List<RecipeHolder<FluxRecipe>> recipes = converted;
-        if (recipes == null) {
-            recipes = convertAll(RegistryOps.create(JsonOps.INSTANCE, level.registryAccess()));
-            converted = recipes;
+    /** Every sieve drop, worked out again only when the server's recipes have changed since last time. */
+    public static List<SieveRoll> of(ServerLevel level) {
+        RecipeManager recipes = level.getRecipeManager();
+        List<JsonObject> forTest = testRecipes;
+        Object current = forTest != null ? forTest : recipes;
+        if (current != source) {
+            RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, level.registryAccess());
+            converted = convertAll(forTest != null ? forTest : loaded(recipes, ops), ops);
+            source = current;
         }
-        return recipes;
+        return converted;
     }
 
-    private static List<RecipeHolder<FluxRecipe>> convertAll(RegistryOps<JsonElement> ops) {
-        List<RecipeHolder<FluxRecipe>> recipes = new ArrayList<>();
-        int index = 0;
-        for (JsonObject json : raw) {
-            try {
-                for (FluxRecipe recipe : convert(json, ops)) {
-                    recipes.add(new RecipeHolder<>(Ids.mod("imported/sieve/" + index++), recipe));
+    /** The loaded sieve recipes of both mods, each written back out as JSON with its own serializer. */
+    private static List<JsonObject> loaded(RecipeManager recipes, RegistryOps<JsonElement> ops) {
+        List<JsonObject> found = new ArrayList<>();
+        for (String id : SIEVE_TYPES) {
+            RecipeType<?> type = BuiltInRegistries.RECIPE_TYPE.get(ResourceLocation.parse(id));
+            if (type == null) {
+                // That mod is not installed.
+                continue;
+            }
+            for (RecipeHolder<?> holder : byType(recipes, type)) {
+                JsonObject json = encode(holder.value(), ops);
+                if (json != null) {
+                    json.addProperty("type", id);
+                    found.add(json);
                 }
+            }
+        }
+        return found;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Collection<? extends RecipeHolder<?>> byType(RecipeManager recipes, RecipeType<?> type) {
+        return recipes.getAllRecipesFor((RecipeType) type);
+    }
+
+    /** A recipe as its own serializer writes it, or {@code null} if it will not write. */
+    @SuppressWarnings("unchecked")
+    private static <R extends Recipe<?>> @Nullable JsonObject encode(R recipe, RegistryOps<JsonElement> ops) {
+        RecipeSerializer<R> serializer = (RecipeSerializer<R>) recipe.getSerializer();
+        return serializer.codec().codec().encodeStart(ops, recipe).result()
+                .filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).orElse(null);
+    }
+
+    /** Whether some sieve recipe uses this item as its mesh. */
+    public static boolean isMesh(ServerLevel level, ItemStack stack) {
+        for (SieveRoll roll : of(level)) {
+            if (roll.mesh().test(stack)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether some sieve recipe sifts this item, with any mesh. */
+    public static boolean isMaterial(ServerLevel level, ItemStack stack) {
+        for (SieveRoll roll : of(level)) {
+            if (roll.material().test(stack)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Uses these recipes, written as the mods write them, in place of the loaded ones, for the
+     * self-test, which must not depend on either mod. They are read the same way as real ones.
+     * {@code null} goes back to the loaded recipes.
+     */
+    public static void useForTest(@Nullable List<JsonObject> recipes) {
+        testRecipes = recipes == null ? null : List.copyOf(recipes);
+    }
+
+    private static List<SieveRoll> convertAll(List<JsonObject> recipes, RegistryOps<JsonElement> ops) {
+        List<SieveRoll> rolls = new ArrayList<>();
+        for (JsonObject json : recipes) {
+            try {
+                rolls.addAll(convert(json, ops));
             } catch (RuntimeException skipped) {
                 // A shape this reader does not know; the recipe is simply not imported.
             }
         }
-        if (!recipes.isEmpty()) {
-            AeroFlux.LOGGER.info("Imported {} sieve roll(s) for the Flux Sifter", recipes.size());
+        if (!rolls.isEmpty()) {
+            AeroFlux.LOGGER.info("Imported {} sieve drop(s) for the Flux Sifter", rolls.size());
         }
-        return List.copyOf(recipes);
+        return List.copyOf(rolls);
     }
 
-    private static List<FluxRecipe> convert(JsonObject json, RegistryOps<JsonElement> ops) {
+    private static List<SieveRoll> convert(JsonObject json, RegistryOps<JsonElement> ops) {
         String type = json.get("type").getAsString();
-        Ingredient input = ingredient(json.has("ingredient") ? json.get("ingredient") : json.get("input"), ops);
-        if (input == null) {
+        Ingredient material = ingredient(json.has("ingredient") ? json.get("ingredient") : json.get("input"), ops);
+        ItemStack product = result(json.get("result"));
+        if (material == null || product == null) {
             return List.of();
         }
-        List<FluxRecipe> recipes = new ArrayList<>();
         if (type.equals("exdeorum:sieve")) {
             if (json.has("by_hand_only") && json.get("by_hand_only").getAsBoolean()) {
                 return List.of();
             }
-            ItemStack result = result(json.get("result"));
-            if (result == null) {
+            Ingredient mesh = ingredient(json.get("mesh"), ops);
+            SieveMesh.Amount amount = amount(json.get("result_amount"));
+            if (mesh == null || amount == null) {
                 return List.of();
             }
-            float[] countAndChance = amount(json.get("result_amount"));
-            ItemStack product = result.copyWithCount(Math.max(1, (int) countAndChance[0]));
-            String mesh = json.has("mesh") ? json.get("mesh").getAsString() : "";
-            recipes.add(sifting(input, product, countAndChance[1], mesh, 0));
-        } else {
-            ItemStack result = result(json.get("result"));
-            if (result == null || !json.has("rolls")) {
-                return List.of();
-            }
-            boolean waterlogged = json.has("waterlogged") && json.get("waterlogged").getAsBoolean();
-            JsonArray rolls = json.getAsJsonArray("rolls");
-            for (JsonElement element : rolls) {
-                JsonObject roll = element.getAsJsonObject();
-                float chance = roll.has("chance") ? roll.get("chance").getAsFloat() : 1.0F;
-                String mesh = roll.has("mesh") ? roll.get("mesh").getAsString() : "";
-                recipes.add(sifting(input, result, chance, mesh, waterlogged ? WATERLOGGED_WATER : 0));
+            // Ex Deorum ignores the result's own count; the amount says how many.
+            return List.of(new SieveRoll(material, mesh, new ItemStack(product.getItem(), 1), amount, 0));
+        }
+        if (!json.has("rolls")) {
+            return List.of();
+        }
+        int water = json.has("waterlogged") && json.get("waterlogged").getAsBoolean() ? WATERLOGGED_WATER : 0;
+        List<SieveRoll> rolls = new ArrayList<>();
+        for (JsonElement element : json.getAsJsonArray("rolls")) {
+            JsonObject roll = element.getAsJsonObject();
+            float chance = roll.has("chance") ? roll.get("chance").getAsFloat() : 1.0F;
+            Ingredient mesh = roll.has("mesh")
+                    ? ingredient(new JsonPrimitive(SieveMesh.nihiloMeshItem(roll.get("mesh").getAsString())), ops) : null;
+            if (mesh != null) {
+                rolls.add(new SieveRoll(material, mesh, product, new SieveMesh.Binomial(1, Math.clamp(chance, 0.0F, 1.0F)), water));
             }
         }
-        return recipes;
+        return rolls;
     }
 
-    private static FluxRecipe sifting(Ingredient input, ItemStack product, float chance, String mesh, int water) {
-        return new FluxRecipe(MachineType.SIFTER, List.of(new FluxRecipe.Input(input, 1)),
-                List.of(new FluxRecipe.Output(product, Math.clamp(chance, 0.0F, 1.0F))),
-                SifterBlockEntity.SIFT_TICKS, 0, null, mesh, water);
-    }
-
-    /** An ingredient in any of the shapes the two mods use: an id, {@code #tag}, or {@code {"item": ..}} / {@code {"tag": ..}}. */
-    @Nullable
-    private static Ingredient ingredient(@Nullable JsonElement json, RegistryOps<JsonElement> ops) {
+    /**
+     * An ingredient in any of the shapes the two mods use: an id, {@code #tag},
+     * {@code {"item": ..}} / {@code {"tag": ..}}, or a list of those. Minecraft 1.21.1 reads only the
+     * object form, so plain ids and tags are turned into objects first.
+     */
+    static @Nullable Ingredient ingredient(@Nullable JsonElement json, RegistryOps<JsonElement> ops) {
         if (json == null) {
             return null;
         }
-        JsonElement object = json;
+        JsonElement objects = json;
         if (json.isJsonPrimitive()) {
-            // 1.21.1 writes ingredients as objects; a bare id or #tag is turned into one.
-            String text = json.getAsString();
-            JsonObject wrapped = new JsonObject();
-            if (text.startsWith("#")) {
-                wrapped.add("tag", new JsonPrimitive(text.substring(1)));
-            } else {
-                wrapped.add("item", new JsonPrimitive(text));
+            objects = objectIngredient(json.getAsString());
+        } else if (json.isJsonArray()) {
+            JsonArray list = new JsonArray();
+            for (JsonElement entry : json.getAsJsonArray()) {
+                list.add(entry.isJsonPrimitive() ? objectIngredient(entry.getAsString()) : entry);
             }
-            object = wrapped;
+            objects = list;
         }
-        return Ingredient.CODEC.parse(ops, object).result().orElse(null);
+        return Ingredient.CODEC_NONEMPTY.parse(ops, objects).result().orElse(null);
+    }
+
+    /** {@code "a:b"} as {@code {"item": "a:b"}}, and {@code "#a:b"} as {@code {"tag": "a:b"}}. */
+    private static JsonObject objectIngredient(String id) {
+        JsonObject object = new JsonObject();
+        if (id.startsWith("#")) {
+            object.addProperty("tag", id.substring(1));
+        } else {
+            object.addProperty("item", id);
+        }
+        return object;
     }
 
     /** A product: an id, or an object with {@code id} or {@code item} and an optional {@code count}. */
-    @Nullable
-    private static ItemStack result(@Nullable JsonElement json) {
+    private static @Nullable ItemStack result(@Nullable JsonElement json) {
         if (json == null) {
             return null;
         }
@@ -166,55 +241,41 @@ public final class SieveImports {
             id = json.getAsString();
         }
         Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
-        return item == Items.AIR ? null : new ItemStack(item, count);
+        return item == Items.AIR ? null : new ItemStack(item, Math.max(1, count));
     }
 
     /**
-     * Ex Deorum's amount as a count and a chance with the same average: a plain number is that many
-     * every time, a uniform range its middle, and a binomial roll of n tries at p is n items at
-     * chance p.
+     * Ex Deorum's amount: a plain number, or a vanilla number provider (constant, uniform,
+     * binomial) or Ex Deorum's own summation of several. {@code null} for a kind this reader does
+     * not know, which leaves the recipe out rather than guessing.
      */
-    private static float[] amount(@Nullable JsonElement json) {
+    private static SieveMesh.@Nullable Amount amount(@Nullable JsonElement json) {
         if (json == null) {
-            return new float[] {1, 1};
+            return new SieveMesh.Constant(1);
         }
         if (json.isJsonPrimitive()) {
-            return new float[] {json.getAsFloat(), 1};
+            return new SieveMesh.Constant(Math.round(json.getAsFloat()));
         }
         JsonObject object = json.getAsJsonObject();
         String type = object.has("type") ? object.get("type").getAsString() : "minecraft:constant";
         return switch (type) {
-            case "minecraft:binomial" -> new float[] {object.get("n").getAsFloat(), object.get("p").getAsFloat()};
-            case "minecraft:uniform" -> new float[] {
-                    Math.round((object.get("min").getAsFloat() + object.get("max").getAsFloat()) / 2.0F), 1};
-            default -> new float[] {object.has("value") ? object.get("value").getAsFloat() : 1, 1};
-        };
-    }
-
-    @SubscribeEvent
-    public static void addReloadListener(AddReloadListenerEvent event) {
-        event.addListener(new Loader());
-    }
-
-    /** Collects the sieve recipe files of both mods from every data pack's recipe folder. */
-    private static final class Loader extends SimpleJsonResourceReloadListener {
-        Loader() {
-            super(new Gson(), "recipe");
-        }
-
-        @Override
-        protected void apply(Map<ResourceLocation, JsonElement> loaded, ResourceManager manager, ProfilerFiller profiler) {
-            List<JsonObject> sieves = new ArrayList<>();
-            for (JsonElement json : loaded.values()) {
-                if (json.isJsonObject() && json.getAsJsonObject().has("type")) {
-                    String type = json.getAsJsonObject().get("type").getAsString();
-                    if (type.equals("exdeorum:sieve") || type.equals("exnihilosequentia:sieve")) {
-                        sieves.add(json.getAsJsonObject());
+            case "minecraft:constant", "constant" -> new SieveMesh.Constant(Math.round(object.get("value").getAsFloat()));
+            case "minecraft:uniform", "uniform" ->
+                    new SieveMesh.Uniform(Math.round(object.get("min").getAsFloat()), Math.round(object.get("max").getAsFloat()));
+            case "minecraft:binomial", "binomial" ->
+                    new SieveMesh.Binomial(Math.round(object.get("n").getAsFloat()), object.get("p").getAsDouble());
+            case "exdeorum:summation" -> {
+                List<SieveMesh.Amount> parts = new ArrayList<>();
+                for (JsonElement part : object.getAsJsonArray("values")) {
+                    SieveMesh.Amount amount = amount(part);
+                    if (amount == null) {
+                        yield null;
                     }
+                    parts.add(amount);
                 }
+                yield new SieveMesh.Sum(parts);
             }
-            raw = List.copyOf(sieves);
-            converted = null;
-        }
+            default -> null;
+        };
     }
 }

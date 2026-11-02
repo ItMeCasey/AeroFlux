@@ -1,0 +1,13 @@
+{
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "#c:ingots/gold",
+    "minecraft:netherite_scrap"
+  ],
+  "itemResults": [
+    {
+      "id": "minecraft:netherite_ingot"
+    }
+  ],
+  "time": 80
+}

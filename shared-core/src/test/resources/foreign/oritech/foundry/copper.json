@@ -1,0 +1,14 @@
+{
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "oritech:copper_gem",
+    "oritech:copper_gem"
+  ],
+  "itemResults": [
+    {
+      "count": 3,
+      "id": "minecraft:copper_ingot"
+    }
+  ],
+  "time": 80
+}

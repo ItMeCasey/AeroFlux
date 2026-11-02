@@ -1,27 +1,47 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "key": {
-    "B": {
-      "item": "aeroflux:moon_crystal"
-    },
-    "P": {
-      "item": "aeroflux:netherite_flux_sifter"
-    },
-    "S": {
-      "item": "aeroflux:fluxsteel_ingot"
-    },
-    "T": {
-      "item": "aeroflux:aero_crystal"
-    }
+  "type": "forge:conditional",
+  "forge:condition": {
+    "type": "forge:or",
+    "values": [
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exdeorum"
+      },
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exnihilosequentia"
+      }
+    ]
   },
-  "pattern": [
-    " T ",
-    "SPS",
-    " B "
-  ],
-  "result": {
-    "count": 1,
-    "id": "aeroflux:fluxium_flux_sifter"
-  }
+  "recipes": [
+    {
+      "recipe": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "B": {
+            "item": "aeroflux:moon_crystal"
+          },
+          "P": {
+            "item": "aeroflux:netherite_flux_sifter"
+          },
+          "S": {
+            "item": "aeroflux:fluxsteel_ingot"
+          },
+          "T": {
+            "item": "aeroflux:aero_crystal"
+          }
+        },
+        "pattern": [
+          " T ",
+          "SPS",
+          " B "
+        ],
+        "result": {
+          "count": 1,
+          "id": "aeroflux:fluxium_flux_sifter"
+        }
+      }
+    }
+  ]
 }

@@ -20,5 +20,25 @@
       }
     }
   ],
+  "silk_outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:birch_log"
+      }
+    },
+    {
+      "item": {
+        "count": 2,
+        "id": "minecraft:birch_leaves"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:birch_sapling"
+      }
+    }
+  ],
   "time": 600
 }

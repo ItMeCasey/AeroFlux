@@ -91,6 +91,7 @@ public final class SelfTest {
         ChunkLoaderSelfTest.setUp(level);
         MoreMachinesSelfTest.setUp(level);
         StorageSelfTest.run(level);
+        MachineExtrasSelfTest.setUp(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;
@@ -121,12 +122,14 @@ public final class SelfTest {
             ChunkLoaderSelfTest.tick();
             // The second wave of machines builds in a layer of its own as well.
             MoreMachinesSelfTest.tick();
+            // The upgrades and imported recipes build in a layer of their own too.
+            MachineExtrasSelfTest.tick();
         }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer, tool, screen and machine checks to finish too.
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
                     && MachineSelfTest.finished() && MachineUpgradeSelfTest.finished() && ChunkLoaderSelfTest.finished()
-                    && MoreMachinesSelfTest.finished()) {
+                    && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()) {
                 finish();
             }
             return;

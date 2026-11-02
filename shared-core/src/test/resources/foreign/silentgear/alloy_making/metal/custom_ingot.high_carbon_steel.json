@@ -1,0 +1,13 @@
+{
+  "type": "silentgear:alloy_making/metal",
+  "ingredients": [
+    "#c:ingots/iron",
+    "#minecraft:coals",
+    "#minecraft:coals",
+    "#minecraft:coals"
+  ],
+  "result": {
+    "item": "silentgear:custom_ingot",
+    "material": "silentgear:high_carbon_steel"
+  }
+}

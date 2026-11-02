@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -41,6 +42,9 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.CAPACITY_UPGRADE.get());
                         output.accept(ModItems.FILTER_UPGRADE.get());
                         output.accept(ModItems.PRIORITY_UPGRADE.get());
+                        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+                            output.accept(ModItems.machineUpgrade(kind).get());
+                        }
                         for (Tier tier : Tier.values()) {
                             if (tier != Tier.COPPER) {
                                 output.accept(ModItems.upgradeCard(tier).get());

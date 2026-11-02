@@ -1,0 +1,10 @@
+{
+  "machine": "sawmill",
+  "recipe_type": "immersiveengineering:sawmill",
+  "time_key": "energy",
+  "time_scale": 0.2,
+  "outputs": [
+    "result",
+    "secondaryOutputs[]"
+  ]
+}

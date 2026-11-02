@@ -16,5 +16,19 @@
       }
     }
   ],
+  "silk_outputs": [
+    {
+      "item": {
+        "count": 1,
+        "id": "minecraft:brown_mushroom_block"
+      }
+    },
+    {
+      "item": {
+        "count": 1,
+        "id": "minecraft:brown_mushroom"
+      }
+    }
+  ],
   "time": 400
 }

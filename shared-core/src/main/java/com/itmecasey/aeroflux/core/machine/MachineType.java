@@ -35,8 +35,11 @@ public enum MachineType {
     CRAFTER("flux_crafter", "Flux Crafter", 9, 2, EnumSet.of(FluxType.AERO)),
     /** Ore, a little water and Flux into three times the raw material. */
     PURIFIER("flux_purifier", "Flux Purifier", 1, 2, EnumSet.of(FluxType.AERO), List.of(ExtraTank.WATER)),
-    /** A powered sieve whose tier is its mesh; some recipes need water in its tank. */
-    SIFTER("flux_sifter", "Flux Sifter", 1, 6, EnumSet.of(FluxType.AERO), List.of(ExtraTank.WATER)),
+    /**
+     * A powered sieve for the recipes of Ex Deorum and Ex Nihilo Sequentia: the block to sift and a
+     * mesh from either mod, which decides the drops (see {@link SieveMesh}). Some recipes need water.
+     */
+    SIFTER("flux_sifter", "Flux Sifter", 2, 6, EnumSet.of(FluxType.AERO), List.of(ExtraTank.WATER)),
     /** Aero Flux and Moon Flux into Twilight Flux; an empty bucket in the slot is filled from it. */
     BLENDER("flux_blender", "Flux Blender", 1, 1, EnumSet.of(FluxType.AERO),
             List.of(ExtraTank.MOON_FLUX, ExtraTank.TWILIGHT_FLUX)),
@@ -115,7 +118,7 @@ public enum MachineType {
     /** Whether the machine's work comes from data-driven recipes of its own type (the furnace uses vanilla's, the enchanters use rules). */
     public boolean hasOwnRecipes() {
         return this == GRINDER || this == SAWMILL || this == ALLOY_SMELTER || this == INFUSER || this == PLANT_GROWER
-                || this == PURIFIER || this == SIFTER;
+                || this == PURIFIER;
     }
 
     /** The machine with this id, or {@code null}. */

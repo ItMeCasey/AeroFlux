@@ -1,0 +1,18 @@
+{
+  "type": "enderio:alloy_smelting",
+  "energy": 3200,
+  "experience": 0.3,
+  "inputs": [
+    {
+      "count": 1,
+      "ingredient": "#c:glass_blocks/colorless"
+    },
+    {
+      "count": 4,
+      "ingredient": "#c:dusts/glowstone"
+    }
+  ],
+  "output": {
+    "id": "enderio:clear_glass_e"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mysticalagriculture:crop_enabled",
+      "crop": "mysticalagriculture:basalz"
+    }
+  ],
+  "type": "mysticalagriculture:reprocessor",
+  "input": "mysticalagriculture:basalz_seeds",
+  "result": {
+    "count": 2,
+    "id": "mysticalagriculture:basalz_essence"
+  }
+}

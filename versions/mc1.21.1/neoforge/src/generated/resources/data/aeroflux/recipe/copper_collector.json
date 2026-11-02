@@ -10,13 +10,10 @@
     },
     "G": {
       "tag": "c:glass_blocks/colorless"
-    },
-    "S": {
-      "item": "minecraft:daylight_detector"
     }
   },
   "pattern": [
-    "GSG",
+    "GGG",
     "CDC",
     "CCC"
   ],

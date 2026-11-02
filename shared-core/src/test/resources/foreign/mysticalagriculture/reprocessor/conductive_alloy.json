@@ -1,0 +1,14 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "mysticalagriculture:crop_enabled",
+      "crop": "mysticalagriculture:conductive_alloy"
+    }
+  ],
+  "type": "mysticalagriculture:reprocessor",
+  "input": "mysticalagriculture:conductive_alloy_seeds",
+  "result": {
+    "count": 2,
+    "id": "mysticalagriculture:conductive_alloy_essence"
+  }
+}

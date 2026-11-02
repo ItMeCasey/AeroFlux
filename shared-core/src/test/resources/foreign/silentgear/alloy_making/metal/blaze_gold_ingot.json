@@ -1,0 +1,11 @@
+{
+  "type": "silentgear:alloy_making/metal",
+  "ingredients": [
+    "#c:ingots/gold",
+    "minecraft:blaze_powder",
+    "minecraft:blaze_powder"
+  ],
+  "result": {
+    "item": "silentgear:blaze_gold_ingot"
+  }
+}

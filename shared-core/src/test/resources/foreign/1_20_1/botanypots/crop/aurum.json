@@ -1,0 +1,1 @@
+{"bookshelf:load_conditions":[{"type":"bookshelf:item_exists","values":["aether_redux:aurum"]}],"type":"botanypots:crop","seed":{"item":"aether_redux:aurum"},"categories":["dirt"],"growthTicks":1200,"display":{"block":"aether_redux:aurum"},"drops":[{"chance":1,"output":{"item":"aether_redux:aurum"}}]}

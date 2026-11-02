@@ -19,7 +19,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A recipe of one of the data-driven machines: some ingredients (each with a count), some
  * products (each with a chance), a base time, and optionally extra Flux and a required flux type.
- * Grinder, Sawmill, Alloy Smelter, Infuser and Plant Grower all use this one shape, each with a
+ * A Plant Grower recipe may also list {@code silk_outputs}: what the plant gives instead when the
+ * grower has a Silk Touch Upgrade, such as leaves next to the logs of a tree.
+ * Grinder, Sawmill, Alloy Smelter, Infuser, Plant Grower and Purifier all use this one shape, each with a
  * recipe type of its own so a datapack adds to exactly one machine.
  *
  * <p>Ingredients are matched against the input slots in any order, so a recipe does not care
@@ -42,8 +44,8 @@ public class FluxRecipe implements Recipe<MachineInput> {
     private final int flux;
     @Nullable
     private final FluxType fluxType;
-    private final String mesh;
     private final int water;
+    private final List<Output> silkOutputs;
 
     /**
      * @param id       the recipe's name, as the datapack file gives it
@@ -56,17 +58,18 @@ public class FluxRecipe implements Recipe<MachineInput> {
      */
     public FluxRecipe(ResourceLocation id, MachineType machine, List<Input> inputs, List<Output> outputs, int time,
                       int flux, @Nullable FluxType fluxType) {
-        this(id, machine, inputs, outputs, time, flux, fluxType, "", 0);
+        this(id, machine, inputs, outputs, time, flux, fluxType, 0, List.of());
     }
 
     /**
-     * @param mesh  the sieve mesh the recipe needs (Sifter only), such as "flint"; empty for any
-     * @param water mB of water one run takes from the machine's water tank (Purifier and Sifter)
+     * @param water       mB of water one run takes from the machine's water tank (Purifier)
+     * @param silkOutputs the products with a Silk Touch Upgrade (Plant Grower only); empty when it
+     *                    makes no difference
      */
     public FluxRecipe(ResourceLocation id, MachineType machine, List<Input> inputs, List<Output> outputs, int time,
-                      int flux, @Nullable FluxType fluxType, String mesh, int water) {
+                      int flux, @Nullable FluxType fluxType, int water, List<Output> silkOutputs) {
         this.id = id;
-        this.mesh = mesh;
+        this.silkOutputs = List.copyOf(silkOutputs);
         this.water = water;
         this.machine = machine;
         this.inputs = List.copyOf(inputs);
@@ -88,6 +91,16 @@ public class FluxRecipe implements Recipe<MachineInput> {
         return outputs;
     }
 
+    /** The products with a Silk Touch Upgrade; empty if the recipe has none. */
+    public List<Output> silkOutputs() {
+        return silkOutputs;
+    }
+
+    /** The products one run makes: the Silk Touch ones when asked for and the recipe has them, else the usual. */
+    public List<Output> outputs(boolean silkTouch) {
+        return silkTouch && !silkOutputs.isEmpty() ? silkOutputs : outputs;
+    }
+
     /** Base time in ticks, before tier speed. */
     public int time() {
         return time;
@@ -101,11 +114,6 @@ public class FluxRecipe implements Recipe<MachineInput> {
     @Nullable
     public FluxType fluxType() {
         return fluxType;
-    }
-
-    /** The sieve mesh a Sifter needs for this recipe; empty for any. */
-    public String mesh() {
-        return mesh;
     }
 
     /** mB of water one run uses; 0 for none. */

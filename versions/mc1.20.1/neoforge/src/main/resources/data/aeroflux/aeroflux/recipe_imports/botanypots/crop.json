@@ -1,0 +1,6 @@
+{
+  "machine": "plant_grower",
+  "recipe_type": "botanypots:crop",
+  "time_key": "growthTicks",
+  "time_scale": 0.33
+}

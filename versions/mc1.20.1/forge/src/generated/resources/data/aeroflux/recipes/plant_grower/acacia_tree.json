@@ -18,5 +18,19 @@
       "item": "minecraft:acacia_sapling"
     }
   ],
+  "silk_outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:acacia_log"
+    },
+    {
+      "count": 2,
+      "item": "minecraft:acacia_leaves"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:acacia_sapling"
+    }
+  ],
   "time": 600
 }

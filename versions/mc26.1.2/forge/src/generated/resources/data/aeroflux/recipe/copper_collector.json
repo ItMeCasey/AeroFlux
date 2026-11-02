@@ -4,11 +4,10 @@
   "key": {
     "C": "#c:ingots/copper",
     "D": "aeroflux:flux_dust",
-    "G": "#c:glass_blocks/colorless",
-    "S": "minecraft:daylight_detector"
+    "G": "#c:glass_blocks/colorless"
   },
   "pattern": [
-    "GSG",
+    "GGG",
     "CDC",
     "CCC"
   ],

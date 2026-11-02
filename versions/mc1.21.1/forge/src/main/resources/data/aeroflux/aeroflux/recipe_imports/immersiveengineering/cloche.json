@@ -1,0 +1,6 @@
+{
+  "machine": "plant_grower",
+  "recipe_type": "immersiveengineering:cloche",
+  "time_key": "time",
+  "time_scale": 0.5
+}

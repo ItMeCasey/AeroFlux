@@ -1,0 +1,5 @@
+{
+  "machine": "alloy_smelter",
+  "recipe_type": "thermal:smelter",
+  "time": 200
+}

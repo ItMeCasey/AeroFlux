@@ -18,6 +18,7 @@ import com.itmecasey.aeroflux.core.machine.GlyphSidePanelLayout;
 import com.itmecasey.aeroflux.core.machine.MachineLayout;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.core.machine.UpgradeStripLayout;
 import com.itmecasey.aeroflux.machine.ExtraTanks;
@@ -78,8 +79,14 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
         super.init();
         // The redstone button and the upgrade slots share the strip on the panel's right edge.
         UpgradeStripLayout strip = menu.strip();
-        upgradeSlots = addRenderableOnly(new UpgradeSlots(leftPos, topPos, strip, menu.tier(), new UpgradeModel(),
-                List.of(new ItemStack(ModItems.SPEED_UPGRADE.get()), new ItemStack(ModItems.CAPACITY_UPGRADE.get()))));
+        List<ItemStack> ghosts = new ArrayList<>(List.of(new ItemStack(ModItems.SPEED_UPGRADE.get()),
+                new ItemStack(ModItems.CAPACITY_UPGRADE.get())));
+        for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
+            if (kind.fits(menu.machine())) {
+                ghosts.add(new ItemStack(ModItems.machineUpgrade(kind).get()));
+            }
+        }
+        upgradeSlots = addRenderableOnly(new UpgradeSlots(leftPos, topPos, strip, menu.tier(), new UpgradeModel(), ghosts));
         MachineLayout.Rect buttonRect = strip.redstoneButton();
         redstoneButton = addRenderableWidget(new RedstoneButton(leftPos + buttonRect.x(), topPos + buttonRect.y(),
                 buttonRect.width(), menu::redstoneMode, this::sendButton));
@@ -208,6 +215,16 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
         @Override
         public int capacityUpgrades() {
             return menu.capacityUpgrades();
+        }
+
+        @Override
+        public MachineType machine() {
+            return menu.machine();
+        }
+
+        @Override
+        public int upgrades(MachineUpgrades.Special kind) {
+            return menu.upgrades(kind);
         }
     }
 

@@ -1,0 +1,14 @@
+{
+  "type": "actuallyadditions:crushing",
+  "ingredient": {
+    "item": "minecraft:coal_block"
+  },
+  "result": [
+    {
+      "result": {
+        "count": 9,
+        "id": "minecraft:coal"
+      }
+    }
+  ]
+}

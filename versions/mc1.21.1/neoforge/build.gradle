@@ -139,6 +139,11 @@ dependencies {
 
     compileOnly "maven.modrinth:mekanism:${mekanism_version}"
     localRuntime "maven.modrinth:mekanism:${mekanism_version}"
+    // Ex Deorum is only here so the self-test can read its real sieve and hammer recipes; AeroFlux
+    // never compiles against it. It stays out of data generation, which needs none of it.
+    if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
+        localRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
+    }
     compileOnly "maven.modrinth:jei:${jei_version}"
     localRuntime "maven.modrinth:jei:${jei_version}"
 
