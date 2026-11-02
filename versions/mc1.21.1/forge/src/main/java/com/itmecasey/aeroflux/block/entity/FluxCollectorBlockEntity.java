@@ -7,6 +7,7 @@ import com.itmecasey.aeroflux.core.DimensionRules;
 import com.itmecasey.aeroflux.core.FluxAccumulator;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.fluid.OutputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
@@ -53,7 +54,7 @@ public class FluxCollectorBlockEntity extends BlockEntity {
     public FluxCollectorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COLLECTOR.get(), pos, state);
         this.tier = ((FluxCollectorBlock) state.getBlock()).tier();
-        this.buffer = new FluidTank(AeroFluxConfig.collectorBuffer(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
+        this.buffer = new FluxFluidTank(AeroFluxConfig.collectorBuffer(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
             @Override
             protected void onContentsChanged() {
                 setChanged();

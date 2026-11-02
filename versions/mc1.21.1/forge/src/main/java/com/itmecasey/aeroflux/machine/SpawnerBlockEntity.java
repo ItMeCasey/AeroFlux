@@ -6,11 +6,9 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
@@ -26,15 +24,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The Moon Spawner: a mob farm with no mobs. Each cycle it makes the mob on the spawn egg in its
  * first slot without putting it in the world, rolls that mob's loot, and drops the loot in its
- * output slots. A weapon in the second slot counts as the Looting upgrade: the loot is rolled as
- * if a player killed the mob with that weapon, so Looting on it applies and player-only drops (a
- * blaze rod, wither skeleton skulls) can come. Without it there is no player kill credit. Bosses
- * never work, and the server can switch spawners off or cap the mobs per cycle in the config.
+ * output slots. On NeoForge a weapon in the second slot makes the loot roll as a player kill;
+ * Forge 1.21.1 has no fake players, so here the slot is only kept to match the layout and the
+ * loot never counts as a player kill. Bosses never work, and the server can switch spawners off
+ * or cap the mobs per cycle in the config.
  */
 public class SpawnerBlockEntity extends FluxMachineBlockEntity {
     private static final int SPAWN_TICKS = 400;
     private static final int EGG_SLOT = 0;
-    private static final int WEAPON_SLOT = 1;
 
     public SpawnerBlockEntity(BlockPos pos, BlockState state) {
         super(pos, state);
@@ -109,20 +106,10 @@ public class SpawnerBlockEntity extends FluxMachineBlockEntity {
         List<ItemStack> loot = new ArrayList<>();
         if (key != null) {
             LootTable table = server.getServer().reloadableRegistries().getLootTable(key);
-            ItemStack weapon = stackIn(WEAPON_SLOT);
-            Player killer = null;
-            DamageSource source = server.damageSources().generic();
-            // Forge 1.21.1 has no fake players to hold the weapon, so the weapon slot only counts
-            // where there is one (NeoForge); here every mob dies of no one in particular.
             LootParams.Builder params = new LootParams.Builder(server)
                     .withParameter(LootContextParams.THIS_ENTITY, living)
                     .withParameter(LootContextParams.ORIGIN, living.position())
-                    .withParameter(LootContextParams.DAMAGE_SOURCE, source)
-                    .withOptionalParameter(LootContextParams.ATTACKING_ENTITY, killer)
-                    .withOptionalParameter(LootContextParams.DIRECT_ATTACKING_ENTITY, killer);
-            if (killer != null) {
-                params = params.withParameter(LootContextParams.LAST_DAMAGE_PLAYER, killer).withLuck(killer.getLuck());
-            }
+                    .withParameter(LootContextParams.DAMAGE_SOURCE, server.damageSources().generic());
             table.getRandomItems(params.create(LootContextParamSets.ENTITY), loot::add);
         }
         living.discard();

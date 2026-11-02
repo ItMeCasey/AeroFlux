@@ -373,12 +373,11 @@ public class ModRecipeProvider extends RecipeProvider {
 
     /**
      * The converters: a copper tank of Flux in a copper frame, with redstone for the FE converter and
-     * fluix for the AE one. The AE converter is only worth having with AE2, so its recipes need AE2.
+     * fluix for the AE one. Forge only has the FE converter (see {@link ModBlocks#CONVERTER_TYPES}).
      * Higher tiers upgrade the tier below like every other block.
      */
     private void converters() {
         for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
-            RecipeOutput target = output;
             Ingredient core = type == ConverterType.AE
                     ? tag(ItemTags.create(ResourceLocation.fromNamespaceAndPath("c", "gems/fluix")))
                     : tag(Tags.Items.STORAGE_BLOCKS_REDSTONE);
@@ -391,7 +390,7 @@ public class ModRecipeProvider extends RecipeProvider {
                     .pattern("DTD")
                     .pattern("CXC")
                     .unlockedBy(getHasName(ModBlocks.tank(Tier.COPPER).get()), has(ModBlocks.tank(Tier.COPPER).get()))
-                    .save(target);
+                    .save(output);
             Tier[] tiers = Tier.values();
             for (int i = 1; i < tiers.length; i++) {
                 TierKit kit = kit(tiers[i]);
@@ -405,7 +404,7 @@ public class ModRecipeProvider extends RecipeProvider {
                         .pattern("SPS")
                         .pattern(" B ")
                         .unlockedBy(getHasName(previous), has(previous))
-                        .save(target);
+                        .save(output);
             }
         }
     }
@@ -440,7 +439,7 @@ public class ModRecipeProvider extends RecipeProvider {
                     .pattern("DXD")
                     .pattern("CCC")
                     .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
-                    .save(outputFor(type));
+                    .save(output);
             if (!PipeTiers.isTiered(type)) {
                 continue;
             }
@@ -456,17 +455,9 @@ public class ModRecipeProvider extends RecipeProvider {
                         .pattern("PSP")
                         .pattern("PBP")
                         .unlockedBy(getHasName(previous), has(previous))
-                        .save(outputFor(type));
+                        .save(output);
             }
         }
-
-        ItemLike mePipe = ModItems.pipe(PipeType.ME, Tier.COPPER).get();
-        shapeless(RecipeCategory.MISC, ModItems.pipe(PipeType.DENSE_ME, Tier.COPPER).get())
-                .requires(mePipe, 4)
-                .requires(Tags.Items.DUSTS_GLOWSTONE)
-                .requires(Tags.Items.DUSTS_REDSTONE)
-                .unlockedBy(getHasName(mePipe), has(mePipe))
-                .save(outputFor(PipeType.DENSE_ME));
     }
 
     /**
@@ -475,10 +466,6 @@ public class ModRecipeProvider extends RecipeProvider {
      */
     private static boolean craftable(PipeType type) {
         return type != PipeType.GAS && type != PipeType.ME && type != PipeType.DENSE_ME;
-    }
-
-    private RecipeOutput outputFor(PipeType type) {
-        return output;
     }
 
     /** The vanilla item in the middle of a copper pipe recipe: something that already handles what the pipe carries. */

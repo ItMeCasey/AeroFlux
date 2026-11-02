@@ -17,6 +17,7 @@ import com.itmecasey.aeroflux.core.machine.RedstoneControl;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfigs;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import java.util.ArrayList;
@@ -171,7 +172,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         this.machine = block.machine();
         this.sides = new SideConfigs(machine.resources());
         // A single tank, so it can only ever hold one kind of flux.
-        this.fluxTank = new FluidTank(MachineMath.inputCapacity(tier), this::acceptsFlux) {
+        this.fluxTank = new FluxFluidTank(MachineMath.inputCapacity(tier), this::acceptsFlux) {
             /**
              * Capacity upgrades can change this at any time, so it is never cached. It is never
              * less than what the tank holds: a tank can end up overfull (a Capacity upgrade came
@@ -189,7 +190,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             }
         };
         for (ExtraTank spec : machine.extraTanks()) {
-            extraTanks.add(new FluidTank(MachineMath.inputCapacity(tier), stack -> ExtraTanks.matches(spec, stack)) {
+            extraTanks.add(new FluxFluidTank(MachineMath.inputCapacity(tier), stack -> ExtraTanks.matches(spec, stack)) {
                 @Override
                 public int getCapacity() {
                     return Math.max(fluxCapacity(), getFluidAmount());

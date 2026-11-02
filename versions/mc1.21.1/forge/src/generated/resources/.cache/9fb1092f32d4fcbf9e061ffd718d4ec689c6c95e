@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-02T09:13:45.4883067	Recipes
+// 1.21.1	2026-11-02T10:01:59.0247785	Recipes
 d3ffbb46ce25aa67d076614a84434225b45e6d59 data/aeroflux/advancement/recipes/misc/aero_crystal.json
 4722311b8c0153370ccf8bd117b8f16b2f2e97b8 data/aeroflux/advancement/recipes/misc/alloy_smelter.json
 2067b022b02abce8fa63bf0779d5e4356eebe24c data/aeroflux/advancement/recipes/misc/animal_breeder.json
@@ -9,7 +9,6 @@ e4710165eaacd8e9826ed1b00531dbb1f709c650 data/aeroflux/advancement/recipes/misc/
 bf1236829d34731ce1a3ea1750c675d223d69485 data/aeroflux/advancement/recipes/misc/copper_fluid_pipe.json
 020843265bf78995127f8adf4f40c9cba0281f52 data/aeroflux/advancement/recipes/misc/copper_item_pipe.json
 5644022e7eb12edbb8fa50bbcea01ccc8c88b46e data/aeroflux/advancement/recipes/misc/copper_tank.json
-fa08b44dff377501ccb57cfe58e548c775b18c0d data/aeroflux/advancement/recipes/misc/dense_me_pipe.json
 daa9b3d02ab954d41732f00353a328050d4cdb66 data/aeroflux/advancement/recipes/misc/diamond_alloy_smelter.json
 37b69022fae8a93f731215d2d852fb2d2045fde1 data/aeroflux/advancement/recipes/misc/diamond_animal_breeder.json
 44a0fd517c456f422f0544de4cd2ce452f726e14 data/aeroflux/advancement/recipes/misc/diamond_chunk_loader.json
@@ -192,7 +191,6 @@ e46ca54247e06d5312ce4859555df3016c8989cc data/aeroflux/recipe/copper_fluid_pipe.
 6cabeea931e1523462290a74281da840a8e87edb data/aeroflux/recipe/copper_item_pipe.json
 4df5d797625f9772936e07daa039e170c5003c73 data/aeroflux/recipe/copper_redstone_pipe.json
 1530c0829169c39b1bf59b6cea1b76fb58bfdb45 data/aeroflux/recipe/copper_tank.json
-4ff5fde79e14e0966ea0f0b393ca9bee1267d7a3 data/aeroflux/recipe/dense_me_pipe.json
 3ecee2dceba0872e8ea2ec6f4695aaaff61fe25c data/aeroflux/recipe/diamond_alloy_smelter.json
 5429f6e8f4dc54202463636c521466930d7140cd data/aeroflux/recipe/diamond_animal_breeder.json
 83e73a041298fb07591fc778fbb13bed78ef1809 data/aeroflux/recipe/diamond_chunk_loader.json

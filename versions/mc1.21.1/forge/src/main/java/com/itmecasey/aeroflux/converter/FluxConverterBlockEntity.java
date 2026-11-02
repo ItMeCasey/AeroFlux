@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.fluid.InputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModCapabilities;
@@ -75,7 +76,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
         FluxConverterBlock block = (FluxConverterBlock) state.getBlock();
         this.type = block.type();
         this.tier = block.tier();
-        this.tank = new FluidTank(ConverterMath.tankCapacity(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
+        this.tank = new FluxFluidTank(ConverterMath.tankCapacity(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update); it still takes nothing more, and probes such as Jade, which refuse a fill

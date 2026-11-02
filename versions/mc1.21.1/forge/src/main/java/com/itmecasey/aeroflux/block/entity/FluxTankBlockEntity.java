@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.AeroFluxConfig;
 import com.itmecasey.aeroflux.block.FluxTankBlock;
 import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import net.minecraft.core.BlockPos;
@@ -38,7 +39,7 @@ public class FluxTankBlockEntity extends BlockEntity {
     public FluxTankBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TANK.get(), pos, state);
         int capacity = AeroFluxConfig.tankCapacity(((FluxTankBlock) state.getBlock()).tier());
-        this.tank = new FluidTank(capacity, stack -> ModFluids.isAnyFlux(stack.getFluid())) {
+        this.tank = new FluxFluidTank(capacity, stack -> ModFluids.isAnyFlux(stack.getFluid())) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update); it still takes nothing more, and probes such as Jade, which refuse a fill above

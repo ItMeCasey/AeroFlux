@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.lamp;
 
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineReach;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModTags;
@@ -44,7 +45,7 @@ public class FluxLampBlockEntity extends BlockEntity {
     public FluxLampBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.LAMP.get(), pos, state);
         LampKind kind = ((FluxLampBlock) state.getBlock()).kind();
-        this.tank = new FluidTank(CAPACITY, stack -> ModFluids.fluxTypeOf(stack.getFluid()) == kind.flux()) {
+        this.tank = new FluxFluidTank(CAPACITY, stack -> ModFluids.fluxTypeOf(stack.getFluid()) == kind.flux()) {
             @Override
             protected void onContentsChanged() {
                 setChanged();
