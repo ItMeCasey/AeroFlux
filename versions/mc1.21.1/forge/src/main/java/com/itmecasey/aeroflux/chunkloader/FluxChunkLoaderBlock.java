@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.chunkloader;
 
 import com.itmecasey.aeroflux.block.entity.FluxDimensions;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.fluid.Buckets;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -25,7 +26,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.fluids.FluidUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -94,7 +94,7 @@ public class FluxChunkLoaderBlock extends BaseEntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
-        if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, null)) {
+        if (Buckets.interact(player, hand, level, pos, null)) {
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);

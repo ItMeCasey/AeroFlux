@@ -19,6 +19,7 @@ import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.conduit.PriorityPlanner;
+import com.itmecasey.aeroflux.fluid.Buckets;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.List;
 import java.util.Locale;
@@ -27,7 +28,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
 
 /**
  * Everything the pipe screen decides, with no screen, menu or player in sight. The menu and the
@@ -379,7 +379,7 @@ public final class PipeConfigActions {
             return null;
         }
         if (type == PipeType.FLUID) {
-            FluidStack fluid = FluidUtil.getFluidContained(stack).orElse(FluidStack.EMPTY);
+            FluidStack fluid = Buckets.contained(stack);
             return fluid.isEmpty() ? null : fluidId(fluid.getFluid());
         }
         return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
