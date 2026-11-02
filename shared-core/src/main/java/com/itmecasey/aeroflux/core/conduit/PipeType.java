@@ -45,6 +45,15 @@ public enum PipeType {
     }
 
     /**
+     * Whether this pipe chooses among destinations. Redstone and the two ME pipes do not: a signal
+     * has one value everywhere and AE2 routes its own network, so a distribution mode means nothing
+     * to them.
+     */
+    public boolean usesDistribution() {
+        return this == FLUID || this == ITEM || this == ENERGY || this == GAS;
+    }
+
+    /**
      * Whether this pipe can connect to blocks beside it. A dense ME pipe is a trunk that only
      * joins end to end, so it never attaches to side devices.
      */

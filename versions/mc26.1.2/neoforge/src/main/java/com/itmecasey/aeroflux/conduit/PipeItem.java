@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.conduit;
 
+import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
@@ -15,21 +16,28 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * An item that places one kind of pipe. Used on an existing bundle it adds the pipe to that
- * bundle if the pipe's lane is free; used anywhere else it places a new bundle holding just
- * this pipe.
+ * An item that places one kind of pipe at one tier. Used on an existing bundle it adds the pipe
+ * to that bundle if the pipe's lane is free; used anywhere else it places a new bundle holding
+ * just this pipe.
  */
 public class PipeItem extends Item {
     private final PipeType type;
+    private final Tier tier;
 
-    public PipeItem(PipeType type, Properties properties) {
+    public PipeItem(PipeType type, Tier tier, Properties properties) {
         super(properties);
         this.type = type;
+        this.tier = tier;
     }
 
     /** The kind of pipe this item places. */
     public PipeType type() {
         return type;
+    }
+
+    /** The tier of the pipe this item places; always copper for the untiered ME pipes. */
+    public Tier tier() {
+        return tier;
     }
 
     @Override
@@ -39,7 +47,7 @@ public class PipeItem extends Item {
         Player player = context.getPlayer();
 
         if (level.getBlockEntity(clickedPos) instanceof ConduitBundleBlockEntity bundle) {
-            if (bundle.addPipe(type)) {
+            if (bundle.addPipe(type, tier)) {
                 return placed(context, level, clickedPos, player);
             }
             // The lane is taken; fall through and place a separate bundle next to it.
@@ -55,7 +63,7 @@ public class PipeItem extends Item {
                 || !(level.getBlockEntity(target) instanceof ConduitBundleBlockEntity placedBundle)) {
             return InteractionResult.FAIL;
         }
-        placedBundle.addPipe(type);
+        placedBundle.addPipe(type, tier);
         return placed(context, level, target, player);
     }
 

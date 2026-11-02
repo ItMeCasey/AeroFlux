@@ -1,0 +1,105 @@
+package com.itmecasey.aeroflux.conduit.tool;
+
+import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.conduit.RunPlanner;
+import com.itmecasey.aeroflux.core.conduit.ToolMode;
+import java.util.Locale;
+import java.util.function.Consumer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+
+/**
+ * Everything the Conduit Tool remembers, kept on the item stack: its mode, a copied bundle and
+ * the start of a pending run removal. All reads and writes go through here, so the storage
+ * (custom data in this version; 26.1 reads it through optional getters) can be swapped without touching the tool's logic.
+ */
+public final class ToolStackData {
+    private static final String KEY_MODE = "mode";
+    private static final String KEY_COPIED = "copied";
+    private static final String KEY_RUN = "run";
+    private static final String KEY_X = "x";
+    private static final String KEY_Y = "y";
+    private static final String KEY_Z = "z";
+    private static final String KEY_PIPE = "pipe";
+    private static final String KEY_DIMENSION = "dimension";
+
+    private ToolStackData() {
+    }
+
+    /** The remembered start of a run removal. */
+    public record RunStart(RunPlanner.Pos pos, PipeType pipe, String dimension) {
+    }
+
+    /** The stack's mode; {@link ToolMode#EDIT} when none was ever set or the stored name is unknown. */
+    public static ToolMode mode(ItemStack stack) {
+        String name = read(stack).getStringOr(KEY_MODE, "");
+        for (ToolMode mode : ToolMode.values()) {
+            if (mode.name().toLowerCase(Locale.ROOT).equals(name)) {
+                return mode;
+            }
+        }
+        return ToolMode.EDIT;
+    }
+
+    /** Changes the mode. A pending run only makes sense in its own mode, so it is forgotten. */
+    public static void setMode(ItemStack stack, ToolMode mode) {
+        update(stack, tag -> {
+            tag.putString(KEY_MODE, mode.name().toLowerCase(Locale.ROOT));
+            tag.remove(KEY_RUN);
+        });
+    }
+
+    /** The serialized bundle last copied, or {@code null} if nothing was copied. */
+    public static int[] copiedBundle(ItemStack stack) {
+        return read(stack).getIntArray(KEY_COPIED).orElse(null);
+    }
+
+    /** Remembers a bundle's serialized state. */
+    public static void setCopiedBundle(ItemStack stack, int[] serialized) {
+        update(stack, tag -> tag.putIntArray(KEY_COPIED, serialized));
+    }
+
+    /** The pending run start, or {@code null} if none is remembered. */
+    public static RunStart runStart(ItemStack stack) {
+        CompoundTag run = read(stack).getCompound(KEY_RUN).orElse(null);
+        if (run == null) {
+            return null;
+        }
+        String pipe = run.getStringOr(KEY_PIPE, "");
+        for (PipeType type : PipeType.values()) {
+            if (type.name().equals(pipe)) {
+                return new RunStart(new RunPlanner.Pos(run.getIntOr(KEY_X, 0), run.getIntOr(KEY_Y, 0), run.getIntOr(KEY_Z, 0)),
+                        type, run.getStringOr(KEY_DIMENSION, ""));
+            }
+        }
+        return null;
+    }
+
+    /** Remembers where a run removal started and which pipe it is about. */
+    public static void setRunStart(ItemStack stack, RunStart start) {
+        update(stack, tag -> {
+            CompoundTag run = new CompoundTag();
+            run.putInt(KEY_X, start.pos().x());
+            run.putInt(KEY_Y, start.pos().y());
+            run.putInt(KEY_Z, start.pos().z());
+            run.putString(KEY_PIPE, start.pipe().name());
+            run.putString(KEY_DIMENSION, start.dimension());
+            tag.put(KEY_RUN, run);
+        });
+    }
+
+    /** Forgets the pending run start. */
+    public static void clearRunStart(ItemStack stack) {
+        update(stack, tag -> tag.remove(KEY_RUN));
+    }
+
+    private static CompoundTag read(ItemStack stack) {
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+    }
+
+    private static void update(ItemStack stack, Consumer<CompoundTag> change) {
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, change);
+    }
+}

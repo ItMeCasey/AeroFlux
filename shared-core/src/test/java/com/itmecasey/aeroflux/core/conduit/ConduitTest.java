@@ -47,51 +47,127 @@ class ConduitTest {
     // --- Layout and geometry ----------------------------------------------------------------
 
     @Test
-    void layoutsMatchThePlan() {
-        assertEquals(new PipeGeometry.Slot(0, 0), PipeGeometry.layout(1).get(0));
-
-        List<PipeGeometry.Slot> two = PipeGeometry.layout(2);
-        assertEquals(-3, two.get(0).u(), EPSILON);
-        assertEquals(3, two.get(1).u(), EPSILON);
-
-        // Three pipes: one on top, two below.
-        List<PipeGeometry.Slot> three = PipeGeometry.layout(3);
-        assertEquals(0, three.get(0).u(), EPSILON);
-        assertEquals(3, three.get(0).v(), EPSILON);
-        assertEquals(-3, three.get(1).v(), EPSILON);
-
-        assertEquals(4, PipeGeometry.layout(4).size());
-        assertEquals(6, PipeGeometry.layout(6).size());
+    void everyBundleSizeHasALayout() {
+        for (int count = 0; count <= 6; count++) {
+            assertEquals(count, PipeGeometry.layout(count).size());
+        }
     }
 
     @Test
-    void theFirstRingPipeIsAtTheTopAndTheRestGoClockwise() {
-        List<PipeGeometry.Slot> ring = PipeGeometry.layout(6);
-        assertEquals(0, ring.get(0).u(), 1e-6);
-        assertTrue(ring.get(0).v() > 0);
-        assertTrue(ring.get(1).u() > 0, "the second pipe is to the right of the top");
+    void aSinglePipeSitsAtTheCenterOfTheBlock() {
+        assertEquals(new PipeGeometry.Slot(8, 8, 8), PipeGeometry.layout(1).get(0));
     }
 
     @Test
-    void pipesInAnyLayoutNeverTouchAndStayInsideTheBlock() {
+    void everyGroupIsCenteredInTheBlock() {
+        for (int count = 1; count <= 6; count++) {
+            List<Box> cores = PipeGeometry.layout(count).stream().map(PipeGeometry::core).toList();
+            double minX = cores.stream().mapToDouble(Box::minX).min().orElseThrow();
+            double maxX = cores.stream().mapToDouble(Box::maxX).max().orElseThrow();
+            double minY = cores.stream().mapToDouble(Box::minY).min().orElseThrow();
+            double maxY = cores.stream().mapToDouble(Box::maxY).max().orElseThrow();
+            double minZ = cores.stream().mapToDouble(Box::minZ).min().orElseThrow();
+            double maxZ = cores.stream().mapToDouble(Box::maxZ).max().orElseThrow();
+            assertEquals(16.0, minX + maxX, EPSILON, count + " pipes: x");
+            assertEquals(16.0, minY + maxY, EPSILON, count + " pipes: y");
+            assertEquals(16.0, minZ + maxZ, EPSILON, count + " pipes: z");
+        }
+    }
+
+    @Test
+    void coresStayInsideTheBlockAndNeverTouch() {
         for (int count = 1; count <= 6; count++) {
             List<Box> cores = PipeGeometry.layout(count).stream().map(PipeGeometry::core).toList();
             for (int i = 0; i < cores.size(); i++) {
                 Box core = cores.get(i);
                 assertTrue(core.minX() >= 0 && core.maxX() <= 16, count + " pipes: x inside block");
                 assertTrue(core.minY() >= 0 && core.maxY() <= 16, count + " pipes: y inside block");
+                assertTrue(core.minZ() >= 0 && core.maxZ() <= 16, count + " pipes: z inside block");
                 for (int j = i + 1; j < cores.size(); j++) {
-                    Box other = cores.get(j);
-                    // At least one pixel of clear space between two pipes.
-                    double gapX = Math.max(core.minX() - other.maxX(), other.minX() - core.maxX());
-                    double gapY = Math.max(core.minY() - other.maxY(), other.minY() - core.maxY());
-                    assertTrue(Math.max(gapX, gapY) >= 1.0 - 1e-6,
+                    assertTrue(gap(core, cores.get(j)) >= 1.0 - 1e-6,
                             count + " pipes: " + i + " and " + j + " are too close");
                 }
             }
         }
     }
 
+    @Test
+    void straightRunsAreCleanAlongEveryAxis() {
+        // Looking along an axis, any two pipes must be at least a pixel apart on one visible axis.
+        for (int count = 2; count <= 6; count++) {
+            List<PipeGeometry.Slot> slots = PipeGeometry.layout(count);
+            for (Face face : Face.values()) {
+                for (int i = 0; i < slots.size(); i++) {
+                    for (int j = i + 1; j < slots.size(); j++) {
+                        Box a = PipeGeometry.arm(slots.get(i), face, false);
+                        Box b = PipeGeometry.arm(slots.get(j), face, false);
+                        assertFalse(a.overlaps(b), count + " pipes: arms " + i + "," + j + " toward " + face);
+                        assertTrue(viewGap(PipeGeometry.core(slots.get(i)), PipeGeometry.core(slots.get(j)), face) >= 1.0 - 1e-6,
+                                count + " pipes: " + i + " and " + j + " seen along " + face);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void anArmNeverRunsThroughAnotherPipesCore() {
+        for (int count = 2; count <= 6; count++) {
+            List<PipeGeometry.Slot> slots = PipeGeometry.layout(count);
+            for (int i = 0; i < slots.size(); i++) {
+                for (int j = 0; j < slots.size(); j++) {
+                    if (i == j) {
+                        continue;
+                    }
+                    for (Face face : Face.values()) {
+                        assertFalse(PipeGeometry.arm(slots.get(i), face, false).overlaps(PipeGeometry.core(slots.get(j))),
+                                count + " pipes: arm of " + i + " toward " + face + " hits the core of " + j);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void bundlesOfUpToThreePipesCanTurnAnyCornerWithoutCrossing() {
+        for (int count = 2; count <= 3; count++) {
+            List<PipeGeometry.Slot> slots = PipeGeometry.layout(count);
+            for (int i = 0; i < slots.size(); i++) {
+                for (int j = 0; j < slots.size(); j++) {
+                    for (Face first : Face.values()) {
+                        for (Face second : Face.values()) {
+                            if (i == j) {
+                                continue;
+                            }
+                            assertFalse(PipeGeometry.arm(slots.get(i), first, false)
+                                            .overlaps(PipeGeometry.arm(slots.get(j), second, false)),
+                                    count + " pipes: " + i + " toward " + first + " crosses " + j + " toward " + second);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** The clearest gap between two boxes on any one axis; negative when they overlap on all. */
+    private static double gap(Box a, Box b) {
+        double gapX = Math.max(a.minX() - b.maxX(), b.minX() - a.maxX());
+        double gapY = Math.max(a.minY() - b.maxY(), b.minY() - a.maxY());
+        double gapZ = Math.max(a.minZ() - b.maxZ(), b.minZ() - a.maxZ());
+        return Math.max(gapX, Math.max(gapY, gapZ));
+    }
+
+    /** The gap between two boxes as seen looking along a face's axis, so that axis is ignored. */
+    private static double viewGap(Box a, Box b, Face face) {
+        double gapX = Math.max(a.minX() - b.maxX(), b.minX() - a.maxX());
+        double gapY = Math.max(a.minY() - b.maxY(), b.minY() - a.maxY());
+        double gapZ = Math.max(a.minZ() - b.maxZ(), b.minZ() - a.maxZ());
+        return switch (face) {
+            case NORTH, SOUTH -> Math.max(gapX, gapY);
+            case EAST, WEST -> Math.max(gapY, gapZ);
+            case UP, DOWN -> Math.max(gapX, gapZ);
+        };
+    }
     @Test
     void aSinglePipeIsCenteredAndFourPixelsWide() {
         Box core = PipeGeometry.core(PipeGeometry.layout(1).get(0));
@@ -121,10 +197,30 @@ class ConduitTest {
         assertEquals(4, one.maxY() - one.minY(), EPSILON);
         assertEquals(2, one.maxZ() - one.minZ(), EPSILON);
 
-        // Two pipes side by side: 10 by 4, as in the plan.
+        // Two pipes sit diagonally, so the connector covers both: 9 by 9.
         Box two = PipeGeometry.connector(2, Face.NORTH);
-        assertEquals(10, two.maxX() - two.minX(), EPSILON);
-        assertEquals(4, two.maxY() - two.minY(), EPSILON);
+        assertEquals(9, two.maxX() - two.minX(), EPSILON);
+        assertEquals(9, two.maxY() - two.minY(), EPSILON);
+
+        // For any bundle, the connector covers the cross-section of every pipe.
+        for (int count = 1; count <= 6; count++) {
+            for (Face face : Face.values()) {
+                Box connector = PipeGeometry.connector(count, face);
+                for (PipeGeometry.Slot slot : PipeGeometry.layout(count)) {
+                    Box core = PipeGeometry.core(slot);
+                    // Only the two axes across the face matter; the third is the connector's depth.
+                    boolean coversX = connector.minX() <= core.minX() + EPSILON && connector.maxX() >= core.maxX() - EPSILON;
+                    boolean coversY = connector.minY() <= core.minY() + EPSILON && connector.maxY() >= core.maxY() - EPSILON;
+                    boolean coversZ = connector.minZ() <= core.minZ() + EPSILON && connector.maxZ() >= core.maxZ() - EPSILON;
+                    boolean covers = switch (face) {
+                        case NORTH, SOUTH -> coversX && coversY;
+                        case EAST, WEST -> coversY && coversZ;
+                        case UP, DOWN -> coversX && coversZ;
+                    };
+                    assertTrue(covers, count + " pipes: connector on " + face + " misses a pipe");
+                }
+            }
+        }
 
         // A connector on the east face sits against that face.
         Box east = PipeGeometry.connector(1, Face.EAST);

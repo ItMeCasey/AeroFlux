@@ -38,7 +38,8 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * {@code AEROFLUX_SELFTEST} is set, so a normal game never runs it.
  *
  * <p>Results are written to the log as {@code AEROFLUX-SELFTEST PASS/FAIL <name>}, followed by a
- * summary line, and the server then stops.
+ * summary line, and the server then stops. The transfer scenarios (pipes moving fluid, items and
+ * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}.
  */
 @EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SelfTest {
@@ -81,6 +82,8 @@ public final class SelfTest {
         command("forceload add 0 0");
         runBundleChecks();
         setUpCollectors();
+        TransferSelfTest.setUp(level);
+        ToolSelfTest.setUp(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;
@@ -89,7 +92,22 @@ public final class SelfTest {
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
-        if (phase < 0 || ++ticks < RUN_TICKS) {
+        if (phase < 0) {
+            return;
+        }
+        TransferSelfTest.tick();
+        // The tool checks come last: they place and remove many bundles, which must not disturb the timed transfer checks.
+        if (TransferSelfTest.finished()) {
+            ToolSelfTest.tick();
+        }
+        if (phase == 2) {
+            // The collector checks are done; wait for the transfer and tool checks to finish too.
+            if (TransferSelfTest.finished() && ToolSelfTest.finished()) {
+                finish();
+            }
+            return;
+        }
+        if (++ticks < RUN_TICKS) {
             return;
         }
         ticks = 0;
@@ -102,7 +120,7 @@ public final class SelfTest {
             phase = 1;
         } else if (phase == 1) {
             checkNight();
-            finish();
+            phase = 2;
         }
     }
 
@@ -233,7 +251,7 @@ public final class SelfTest {
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
     }
 
-    private static void check(String name, boolean condition) {
+    static void check(String name, boolean condition) {
         if (condition) {
             passed++;
         } else {

@@ -13,6 +13,16 @@ public enum ConnectionMode {
     /** Not connected at all; the pipe visually detaches and nothing can attach. */
     BLOCKED;
 
+    /** Whether a pipe in this mode pulls from the block next to it into the network. */
+    public boolean pullsFromNeighbor() {
+        return this == OPEN || this == IMPORT;
+    }
+
+    /** Whether a pipe in this mode pushes from the network into the block next to it. */
+    public boolean pushesToNeighbor() {
+        return this == OPEN || this == EXPORT;
+    }
+
     /** The next mode in the order the wrench cycles through. */
     public ConnectionMode next() {
         return values()[(ordinal() + 1) % values().length];

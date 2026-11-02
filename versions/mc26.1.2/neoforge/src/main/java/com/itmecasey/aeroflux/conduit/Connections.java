@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.conduit;
 
 import com.itmecasey.aeroflux.core.conduit.BundleState;
+import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import net.minecraft.core.BlockPos;
@@ -14,8 +15,14 @@ import net.neoforged.neoforge.capabilities.Capabilities;
  *
  * <p>Two pipe blocks join only when they hold the same set of pipes; a pipe node joins
  * anything; and a machine or other block attaches when it offers the capability the pipe
- * carries. Nothing is transferred yet: this only decides what is drawn and what the wrench
- * can target.
+ * carries. This only decides what is drawn, what the wrench can target and where the transfer
+ * engine finds its endpoints; the moving itself happens in the {@code transfer} package.
+ *
+ * <p>A redstone pipe has no capability to look for, so it attaches by what the block is: one that
+ * gives off a signal ({@code isSignalSource}, such as a lever, button, repeater or redstone block) or
+ * reports a comparator value ({@code hasAnalogOutputSignal}, such as a chest or a cauldron).
+ * Blocks that only receive power (a lamp, a piston) attach only after the player sets that face
+ * to EXPORT with the wrench, which is how a player says "power this one".
  */
 public final class Connections {
     private Connections() {
@@ -43,7 +50,8 @@ public final class Connections {
                 if (sameSetBundle || node) {
                     bundle.setConnection(lane, face, true, false);
                 } else {
-                    boolean attaches = type.connectsToSides() && attaches(level, neighborPos, direction.getOpposite(), type);
+                    boolean attaches = type.connectsToSides()
+                            && attaches(level, neighborPos, direction.getOpposite(), type, bundle.mode(lane, face));
                     bundle.setConnection(lane, face, attaches, true);
                 }
             }
@@ -52,13 +60,26 @@ public final class Connections {
     }
 
     /** Whether the block at {@code pos} offers what this kind of pipe carries on the given side. */
-    private static boolean attaches(Level level, BlockPos pos, Direction side, PipeType type) {
+    private static boolean attaches(Level level, BlockPos pos, Direction side, PipeType type, ConnectionMode mode) {
         return switch (type) {
+            case REDSTONE -> attachesToRedstone(level.getBlockState(pos), mode);
             case FLUID -> level.getCapability(Capabilities.Fluid.BLOCK, pos, side) != null;
             case ITEM -> level.getCapability(Capabilities.Item.BLOCK, pos, side) != null;
             case ENERGY -> level.getCapability(Capabilities.Energy.BLOCK, pos, side) != null;
-            // Redstone, gas and ME have nothing to attach to until their support is built.
+            // Gas has no capability to look for until its support is built, and ME pipes are AE2's business.
             default -> false;
         };
+    }
+
+    /**
+     * Whether a redstone pipe attaches to this block. Other conduits never count: bundles pass
+     * signals through the network, not through each other, and counting them would let a pipe read
+     * its own output back.
+     */
+    private static boolean attachesToRedstone(BlockState state, ConnectionMode mode) {
+        if (state.getBlock() instanceof ConduitBundleBlock || state.getBlock() instanceof PipeNodeBlock) {
+            return false;
+        }
+        return state.isSignalSource() || state.hasAnalogOutputSignal() || mode == ConnectionMode.EXPORT;
     }
 }

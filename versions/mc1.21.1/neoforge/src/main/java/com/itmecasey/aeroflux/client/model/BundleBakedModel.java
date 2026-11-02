@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.block.model.BlockElementFace;
 import net.minecraft.client.renderer.block.model.BlockFaceUV;
 import net.minecraft.client.renderer.block.model.FaceBakery;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.core.Direction;
@@ -121,14 +120,17 @@ public class BundleBakedModel implements IDynamicBakedModel {
         return false;
     }
 
+    /** NeoForge asks for the particle sprite with model data; this model has just the one. */
     @Override
-    public TextureAtlasSprite getParticleIcon() {
+    public TextureAtlasSprite getParticleIcon(ModelData data) {
         return particleSprite;
     }
 
+    // NeoForge deprecated the plain getter in favor of the one above but it is still abstract.
     @Override
-    public ItemTransforms getTransforms() {
-        return ItemTransforms.NO_TRANSFORMS;
+    @SuppressWarnings("deprecation")
+    public TextureAtlasSprite getParticleIcon() {
+        return particleSprite;
     }
 
     @Override

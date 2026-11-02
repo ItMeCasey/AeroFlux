@@ -33,7 +33,8 @@ import net.minecraftforge.fml.common.Mod;
  * {@code AEROFLUX_SELFTEST} is set, so a normal game never runs it.
  *
  * <p>Results are written to the log as {@code AEROFLUX-SELFTEST PASS/FAIL <name>}, followed by a
- * summary line, and the server then stops.
+ * summary line, and the server then stops. The transfer scenarios (pipes moving fluid, items and
+ * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}.
  */
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SelfTest {
@@ -74,6 +75,8 @@ public final class SelfTest {
         command("forceload add 0 0");
         runBundleChecks();
         setUpCollectors();
+        TransferSelfTest.setUp(level);
+        ToolSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -81,7 +84,22 @@ public final class SelfTest {
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || phase < 0 || ++ticks < RUN_TICKS) {
+        if (event.phase != TickEvent.Phase.END || phase < 0) {
+            return;
+        }
+        TransferSelfTest.tick();
+        // The tool checks come last: they place and remove many bundles, which must not disturb the timed transfer checks.
+        if (TransferSelfTest.finished()) {
+            ToolSelfTest.tick();
+        }
+        if (phase == 2) {
+            // The collector checks are done; wait for the transfer and tool checks to finish too.
+            if (TransferSelfTest.finished() && ToolSelfTest.finished()) {
+                finish();
+            }
+            return;
+        }
+        if (++ticks < RUN_TICKS) {
             return;
         }
         ticks = 0;
@@ -94,7 +112,7 @@ public final class SelfTest {
             phase = 1;
         } else if (phase == 1) {
             checkNight();
-            finish();
+            phase = 2;
         }
     }
 
@@ -214,7 +232,7 @@ public final class SelfTest {
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
     }
 
-    private static void check(String name, boolean condition) {
+    static void check(String name, boolean condition) {
         if (condition) {
             passed++;
         } else {

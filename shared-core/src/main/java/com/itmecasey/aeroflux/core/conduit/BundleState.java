@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.core.conduit;
 
+import com.itmecasey.aeroflux.core.Tier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +16,18 @@ import java.util.List;
 public final class BundleState {
     private static final int FACES = 6;
     private static final int MODE_BITS = 3;
-    /** Serialized form: set key, then connected, external and mode words for each lane. */
-    private static final int SERIALIZED_LENGTH = 1 + 3 * PipeType.LANES;
+    /** Serialized form: set key, then connected, external and mode words for each lane, then the tiers. */
+    private static final int SERIALIZED_LENGTH = 1 + 3 * PipeType.LANES + 3;
+    /** The length before upgrades existed; still readable, with no upgrades. */
+    private static final int TIERS_LENGTH = 1 + 3 * PipeType.LANES + 1;
+    /** The length before tiers existed; still readable, with every pipe at the lowest tier. */
+    private static final int LEGACY_LENGTH = 1 + 3 * PipeType.LANES;
+    /** Bits per lane for each upgrade count. */
+    private static final int UPGRADE_BITS = 3;
+    private static final int TIER_BITS = 3;
+    /** Bits per lane for the distribution mode; they sit above the tier bits in the same word. */
+    private static final int DISTRIBUTION_BITS = 2;
+    private static final int DISTRIBUTION_SHIFT = PipeType.LANES * TIER_BITS;
 
     private PipeSet set = PipeSet.EMPTY;
     /** For each lane, a bit per face that has a connection. */
@@ -25,6 +36,19 @@ public final class BundleState {
     private final int[] external = new int[PipeType.LANES];
     /** For each lane, {@value #MODE_BITS} bits per face holding the {@link ConnectionMode} ordinal. */
     private final int[] modes = new int[PipeType.LANES];
+    /** For each lane, the tier of the pipe in it. */
+    private final Tier[] tiers = new Tier[PipeType.LANES];
+    /** For each lane, the number of Speed upgrades in the pipe. */
+    private final int[] speedUpgrades = new int[PipeType.LANES];
+    /** For each lane, the number of Capacity upgrades in the pipe. */
+    private final int[] capacityUpgrades = new int[PipeType.LANES];
+    /** For each lane, how the pipe in it chooses among its destinations. */
+    private final DistributionMode[] distribution = new DistributionMode[PipeType.LANES];
+
+    public BundleState() {
+        Arrays.fill(tiers, Tier.COPPER);
+        Arrays.fill(distribution, DistributionMode.ROUND_ROBIN);
+    }
 
     /**
      * What identifies the shape and look of a bundle. Equal keys mean equal quads and boxes, so
@@ -46,10 +70,82 @@ public final class BundleState {
         return deserialize(serialize());
     }
 
-    /** Adds a pipe, replacing whatever shared its lane, and clears that lane's old connections. */
+    /** Adds a lowest-tier pipe, replacing whatever shared its lane, and clears that lane's old connections. */
     public void addPipe(PipeType type) {
+        addPipe(type, Tier.COPPER);
+    }
+
+    /** Adds a pipe of the given tier, replacing whatever shared its lane, and clears that lane's old connections. */
+    public void addPipe(PipeType type, Tier tier) {
         set = set.with(type);
         clearLane(type.lane());
+        tiers[type.lane()] = tier;
+    }
+
+    /** The tier of the pipe in a lane; meaningless for an empty lane. */
+    public Tier tier(int lane) {
+        return tiers[lane];
+    }
+
+    /** Speed upgrades installed in the pipe in a lane. */
+    public int speedUpgrades(int lane) {
+        return speedUpgrades[lane];
+    }
+
+    /** Capacity upgrades installed in the pipe in a lane. */
+    public int capacityUpgrades(int lane) {
+        return capacityUpgrades[lane];
+    }
+
+    /** Upgrades of all kinds installed in the pipe in a lane. */
+    public int upgradeCount(int lane) {
+        return speedUpgrades[lane] + capacityUpgrades[lane];
+    }
+
+    /**
+     * Installs one upgrade if the pipe has a free slot.
+     *
+     * @return false if the pipe is missing or all its slots are taken
+     */
+    public boolean addUpgrade(int lane, PipeUpgrades.Kind kind) {
+        if (set.get(lane) == null || upgradeCount(lane) >= PipeUpgrades.slots(tiers[lane])) {
+            return false;
+        }
+        if (kind == PipeUpgrades.Kind.SPEED) {
+            speedUpgrades[lane]++;
+        } else {
+            capacityUpgrades[lane]++;
+        }
+        return true;
+    }
+
+    /** Takes out all upgrades of one kind from a pipe and says how many there were. */
+    public int removeUpgrades(int lane, PipeUpgrades.Kind kind) {
+        int removed = kind == PipeUpgrades.Kind.SPEED ? speedUpgrades[lane] : capacityUpgrades[lane];
+        if (kind == PipeUpgrades.Kind.SPEED) {
+            speedUpgrades[lane] = 0;
+        } else {
+            capacityUpgrades[lane] = 0;
+        }
+        return removed;
+    }
+
+    /** How the pipe in a lane chooses among its destinations; round robin until changed. */
+    public DistributionMode distribution(int lane) {
+        return distribution[lane];
+    }
+
+    /** Changes the distribution mode of the pipe in a lane. Pipes that do not distribute ignore it. */
+    public void setDistribution(int lane, DistributionMode mode) {
+        PipeType pipe = set.get(lane);
+        if (pipe != null && pipe.usesDistribution()) {
+            distribution[lane] = mode;
+        }
+    }
+
+    /** Changes the tier of the pipe in a lane, keeping its connections and modes. */
+    public void setTier(int lane, Tier tier) {
+        tiers[lane] = tier;
     }
 
     /** Removes the pipe in a lane together with its connections and modes. */
@@ -62,6 +158,10 @@ public final class BundleState {
         connected[lane] = 0;
         external[lane] = 0;
         modes[lane] = 0;
+        tiers[lane] = Tier.COPPER;
+        distribution[lane] = DistributionMode.ROUND_ROBIN;
+        speedUpgrades[lane] = 0;
+        capacityUpgrades[lane] = 0;
     }
 
     /** Whether the pipe in this lane has a connection at this face. */
@@ -194,6 +294,10 @@ public final class BundleState {
             data[1 + lane] = connected[lane];
             data[1 + PipeType.LANES + lane] = external[lane];
             data[1 + 2 * PipeType.LANES + lane] = modes[lane];
+            data[LEGACY_LENGTH] |= tiers[lane].ordinal() << (lane * TIER_BITS);
+            data[LEGACY_LENGTH] |= distribution[lane].ordinal() << (DISTRIBUTION_SHIFT + lane * DISTRIBUTION_BITS);
+            data[TIERS_LENGTH] |= speedUpgrades[lane] << (lane * UPGRADE_BITS);
+            data[TIERS_LENGTH + 1] |= capacityUpgrades[lane] << (lane * UPGRADE_BITS);
         }
         return data;
     }
@@ -201,7 +305,7 @@ public final class BundleState {
     /** Restores a state saved by {@link #serialize()}. Data of the wrong size gives an empty bundle. */
     public static BundleState deserialize(int[] data) {
         BundleState state = new BundleState();
-        if (data == null || data.length != SERIALIZED_LENGTH) {
+        if (data == null || (data.length != SERIALIZED_LENGTH && data.length != TIERS_LENGTH && data.length != LEGACY_LENGTH)) {
             return state;
         }
         state.set = PipeSet.fromKey(data[0]);
@@ -213,6 +317,17 @@ public final class BundleState {
             state.connected[lane] = data[1 + lane] & ((1 << FACES) - 1);
             state.external[lane] = data[1 + PipeType.LANES + lane] & state.connected[lane];
             state.modes[lane] = data[1 + 2 * PipeType.LANES + lane];
+            if (data.length >= TIERS_LENGTH) {
+                int code = (data[LEGACY_LENGTH] >> (lane * TIER_BITS)) & ((1 << TIER_BITS) - 1);
+                state.tiers[lane] = Tier.values()[Math.min(code, Tier.values().length - 1)];
+                int mode = (data[LEGACY_LENGTH] >> (DISTRIBUTION_SHIFT + lane * DISTRIBUTION_BITS)) & ((1 << DISTRIBUTION_BITS) - 1);
+                state.distribution[lane] = DistributionMode.values()[mode];
+            }
+            if (data.length == SERIALIZED_LENGTH) {
+                int mask = (1 << UPGRADE_BITS) - 1;
+                state.speedUpgrades[lane] = (data[TIERS_LENGTH] >> (lane * UPGRADE_BITS)) & mask;
+                state.capacityUpgrades[lane] = (data[TIERS_LENGTH + 1] >> (lane * UPGRADE_BITS)) & mask;
+            }
         }
         return state;
     }
@@ -231,12 +346,17 @@ public final class BundleState {
                 && set.equals(state.set)
                 && Arrays.equals(connected, state.connected)
                 && Arrays.equals(external, state.external)
-                && Arrays.equals(modes, state.modes);
+                && Arrays.equals(modes, state.modes)
+                && Arrays.equals(tiers, state.tiers)
+                && Arrays.equals(distribution, state.distribution)
+                && Arrays.equals(speedUpgrades, state.speedUpgrades)
+                && Arrays.equals(capacityUpgrades, state.capacityUpgrades);
     }
 
     @Override
     public int hashCode() {
-        return 31 * (31 * (31 * set.hashCode() + Arrays.hashCode(connected))
-                + Arrays.hashCode(external)) + Arrays.hashCode(modes);
+        return 31 * (31 * (31 * (31 * (31 * set.hashCode() + Arrays.hashCode(connected))
+                + Arrays.hashCode(external)) + Arrays.hashCode(modes)) + Arrays.hashCode(tiers))
+                + Arrays.hashCode(distribution) + Arrays.hashCode(speedUpgrades) * 7 + Arrays.hashCode(capacityUpgrades);
     }
 }

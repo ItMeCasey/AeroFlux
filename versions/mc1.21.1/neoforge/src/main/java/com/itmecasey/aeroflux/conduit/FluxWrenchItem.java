@@ -1,8 +1,10 @@
 package com.itmecasey.aeroflux.conduit;
 
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
+import com.itmecasey.aeroflux.core.conduit.DistributionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -13,9 +15,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The wrench, in its first form: used on a conduit bundle it cycles the mode of the pipe
- * nearest the crosshair at the face that was clicked. A pipe is only four pixels wide, so the
- * nearest pipe is chosen instead of asking the player to hit it exactly.
+ * The wrench. Used on a conduit bundle it cycles the mode of the pipe nearest the crosshair at
+ * the face that was clicked; used while sneaking it cycles that pipe's distribution mode
+ * instead. A pipe is only four pixels wide, so the nearest pipe is chosen instead of asking the
+ * player to hit it exactly.
  */
 public class FluxWrenchItem extends Item {
     public FluxWrenchItem(Properties properties) {
@@ -40,19 +43,42 @@ public class FluxWrenchItem extends Item {
             return InteractionResult.PASS;
         }
 
+        Player player = context.getPlayer();
+        if (context.isSecondaryUseActive()) {
+            cycleDistribution(entity, pipe, player);
+            return InteractionResult.CONSUME;
+        }
+
         Face face = Face.byIndex(context.getClickedFace().get3DDataValue());
         ConnectionMode next = entity.bundle().mode(pipe.lane(), face).next();
         entity.bundle().setMode(pipe.lane(), face, next);
         entity.refreshConnections();
         entity.changed();
 
-        Player player = context.getPlayer();
         if (player != null) {
             player.displayClientMessage(Component.translatable("message.aeroflux.pipe_mode",
                     Component.translatable("pipe.aeroflux." + pipe.id()),
-                    Component.translatable("face.aeroflux." + face.name().toLowerCase(java.util.Locale.ROOT)),
-                    Component.translatable("connection_mode.aeroflux." + next.name().toLowerCase(java.util.Locale.ROOT))), true);
+                    Component.translatable("face.aeroflux." + face.name().toLowerCase(Locale.ROOT)),
+                    Component.translatable("connection_mode.aeroflux." + next.name().toLowerCase(Locale.ROOT))), true);
         }
         return InteractionResult.CONSUME;
+    }
+
+    /** Moves the pipe on to its next distribution mode, or says the pipe has none. */
+    private static void cycleDistribution(ConduitBundleBlockEntity entity, PipeType pipe, Player player) {
+        Component pipeName = Component.translatable("pipe.aeroflux." + pipe.id());
+        if (!pipe.usesDistribution()) {
+            if (player != null) {
+                player.displayClientMessage(Component.translatable("message.aeroflux.pipe_no_distribution", pipeName), true);
+            }
+            return;
+        }
+        DistributionMode next = entity.bundle().distribution(pipe.lane()).next();
+        entity.bundle().setDistribution(pipe.lane(), next);
+        entity.changed();
+        if (player != null) {
+            player.displayClientMessage(Component.translatable("message.aeroflux.pipe_distribution", pipeName,
+                    Component.translatable("distribution_mode.aeroflux." + next.name().toLowerCase(Locale.ROOT))), true);
+        }
     }
 }

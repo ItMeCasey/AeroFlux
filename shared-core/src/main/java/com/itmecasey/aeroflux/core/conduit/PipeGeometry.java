@@ -1,79 +1,70 @@
 package com.itmecasey.aeroflux.core.conduit;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The shape rules for pipes in a bundle, in pixels.
  *
- * <p>Every pipe is 4 by 4 pixels. The pipes of a block are centered as a group and the layout
- * depends only on how many there are, so equal sets always line up from block to block. A
- * pipe's core sits at its slot in the plane facing north and south; its arms run straight from
- * the core to the block face (or to a machine connector) in each connected direction.
+ * <p>Every pipe is a 4 pixel square. A bundle of up to six pipes has to run straight along any of
+ * the three axes and also turn corners, so each pipe gets a fixed position in all three
+ * dimensions, not a flat slot. A pipe is a core cube at that position plus an arm from the core
+ * to each connected face; an arm keeps the core's other two coordinates.
  *
- * <p>Arms toward the sides and up and down keep the core's other coordinates, so a bundle that
- * only runs north to south has parallel, evenly spaced pipes. Where a bundle bends or branches,
- * arms of different pipes can overlap; resolving that is left to a later pass.
+ * <p>Positions are chosen so that, for every pair of pipes, at least two of the three coordinates
+ * differ by 5 pixels or more. Looking along any axis, no two pipes then touch and each pair keeps
+ * a pixel of clear space, so straight runs are clean in every direction, and an arm never runs
+ * through another pipe's core. Where two pipes also differ on the third coordinate, their arms
+ * cannot cross even at a corner. Up to three pipes get that everywhere; with four to six pipes
+ * the lattice runs out of room and some corner combinations of different pipes still cross.
  */
 public final class PipeGeometry {
-    /** Width and height of a pipe, in pixels. */
+    /** Width, height and depth of a pipe, in pixels. */
     public static final double PIPE_SIZE = 4.0;
     /** How deep a machine connector reaches into the block, in pixels. */
     public static final double CONNECTOR_DEPTH = 2.0;
 
-    private static final double CENTER = 8.0;
     private static final double HALF = PIPE_SIZE / 2.0;
+
     /**
-     * Distance from the block center to a pipe center in the five and six pipe rings. Pipes are
-     * squares, not circles, so neighbors only clear each other by the required pixel once the
-     * ring is a little wider than the plan's rough 5 pixels (about 5.3 and 5.8).
+     * Core center positions by pipe count, as x, y, z in pixels. Each set is centered as a group
+     * (its extent is symmetric around the block center), and pipes take their positions in lane
+     * order. The search that found these is described in the class comment.
      */
-    private static final double RING_RADIUS_FIVE = 5.3;
-    private static final double RING_RADIUS_SIX = 5.8;
+    private static final double[][][] LAYOUTS = {
+        {},
+        {{8, 8, 8}},
+        {{5.5, 5.5, 5.5}, {10.5, 10.5, 10.5}},
+        {{3, 3, 3}, {8, 8, 8}, {13, 13, 13}},
+        {{3, 3, 3}, {3, 8, 8}, {8, 3, 8}, {13, 13, 13}},
+        {{3, 3, 3}, {3, 8, 8}, {8, 3, 8}, {8, 8, 3}, {13, 13, 13}},
+        {{3, 3, 3}, {3, 8, 8}, {8, 3, 8}, {8, 13, 13}, {13, 8, 13}, {13, 13, 3}},
+    };
 
     private PipeGeometry() {
     }
 
     /**
-     * A pipe's position relative to the block center.
+     * Where a pipe's core is centered.
      *
-     * @param u pixels to the east (right when looking north)
-     * @param v pixels up
+     * @param x pixels from the west edge of the block
+     * @param y pixels from the bottom
+     * @param z pixels from the north edge
      */
-    public record Slot(double u, double v) {
+    public record Slot(double x, double y, double z) {
     }
 
-    /**
-     * The slots for a bundle of {@code count} pipes, in the order pipes fill them: for two,
-     * left then right; otherwise clockwise starting at the top (or top left for four).
-     */
+    /** The positions for a bundle of {@code count} pipes, in the order pipes take them. */
     public static List<Slot> layout(int count) {
-        return switch (count) {
-            case 0 -> List.of();
-            case 1 -> List.of(new Slot(0, 0));
-            case 2 -> List.of(new Slot(-3, 0), new Slot(3, 0));
-            case 3 -> List.of(new Slot(0, 3), new Slot(3, -3), new Slot(-3, -3));
-            case 4 -> List.of(new Slot(-3, 3), new Slot(3, 3), new Slot(3, -3), new Slot(-3, -3));
-            case 5, 6 -> ring(count);
-            default -> throw new IllegalArgumentException("A bundle holds at most 6 pipes, not " + count);
-        };
-    }
-
-    private static List<Slot> ring(int count) {
-        double radius = count == 5 ? RING_RADIUS_FIVE : RING_RADIUS_SIX;
-        List<Slot> slots = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            double angle = 2.0 * Math.PI * i / count;
-            slots.add(new Slot(radius * Math.sin(angle), radius * Math.cos(angle)));
+        if (count < 0 || count >= LAYOUTS.length) {
+            throw new IllegalArgumentException("A bundle holds at most 6 pipes, not " + count);
         }
-        return slots;
+        return java.util.Arrays.stream(LAYOUTS[count]).map(p -> new Slot(p[0], p[1], p[2])).toList();
     }
 
     /** The core cube of a pipe at the given slot. */
     public static Box core(Slot slot) {
-        double x = CENTER + slot.u();
-        double y = CENTER + slot.v();
-        return new Box(x - HALF, y - HALF, CENTER - HALF, x + HALF, y + HALF, CENTER + HALF);
+        return new Box(slot.x() - HALF, slot.y() - HALF, slot.z() - HALF,
+                slot.x() + HALF, slot.y() + HALF, slot.z() + HALF);
     }
 
     /**
@@ -105,17 +96,19 @@ public final class PipeGeometry {
         List<Slot> slots = layout(pipeCount);
         double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
+        double minZ = Double.MAX_VALUE;
         double maxX = -Double.MAX_VALUE;
         double maxY = -Double.MAX_VALUE;
+        double maxZ = -Double.MAX_VALUE;
         for (Slot slot : slots) {
             Box core = core(slot);
             minX = Math.min(minX, core.minX());
             maxX = Math.max(maxX, core.maxX());
             minY = Math.min(minY, core.minY());
             maxY = Math.max(maxY, core.maxY());
+            minZ = Math.min(minZ, core.minZ());
+            maxZ = Math.max(maxZ, core.maxZ());
         }
-        double minZ = CENTER - HALF;
-        double maxZ = CENTER + HALF;
         double near = CONNECTOR_DEPTH;
         double far = 16.0 - CONNECTOR_DEPTH;
         return switch (face) {

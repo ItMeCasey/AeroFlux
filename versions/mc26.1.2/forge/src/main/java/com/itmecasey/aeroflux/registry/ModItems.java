@@ -3,8 +3,12 @@ package com.itmecasey.aeroflux.registry;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.conduit.FluxWrenchItem;
 import com.itmecasey.aeroflux.conduit.PipeItem;
+import com.itmecasey.aeroflux.conduit.UpgradeItem;
+import com.itmecasey.aeroflux.conduit.tool.ConduitToolItem;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
@@ -32,20 +36,39 @@ public final class ModItems {
     public static final RegistryObject<BucketItem> MOON_FLUX_BUCKET = ITEMS.register("moon_flux_bucket",
             () -> new BucketItem(ModFluids.MOON_FLUX, bucketProperties("moon_flux_bucket")));
 
-    private static final Map<PipeType, RegistryObject<PipeItem>> PIPES = new EnumMap<>(PipeType.class);
+    /** One item per pipe type and tier. The untiered ME pipes have a single entry, under copper. */
+    private static final Map<PipeType, Map<Tier, RegistryObject<PipeItem>>> PIPES = new EnumMap<>(PipeType.class);
+
+    /** Installs into the pipe nearest the crosshair; makes it move faster. */
+    public static final RegistryObject<UpgradeItem> SPEED_UPGRADE = ITEMS.register("speed_upgrade",
+            () -> new UpgradeItem(PipeUpgrades.Kind.SPEED, new Item.Properties().setId(ITEMS.key("speed_upgrade"))));
+
+    /** Installs into the pipe nearest the crosshair; makes it move more at a time. */
+    public static final RegistryObject<UpgradeItem> CAPACITY_UPGRADE = ITEMS.register("capacity_upgrade",
+            () -> new UpgradeItem(PipeUpgrades.Kind.CAPACITY, new Item.Properties().setId(ITEMS.key("capacity_upgrade"))));
 
     /** Cycles the mode of the pipe nearest the crosshair at the clicked face of a bundle. */
     public static final RegistryObject<FluxWrenchItem> FLUX_WRENCH = ITEMS.register("flux_wrench",
             () -> new FluxWrenchItem(new Item.Properties().setId(ITEMS.key("flux_wrench")).stacksTo(1)));
+
+    /** Edits, removes, copies and inspects pipes; the sneak-use cycles its mode. */
+    public static final RegistryObject<ConduitToolItem> CONDUIT_TOOL = ITEMS.register("conduit_tool",
+            () -> new ConduitToolItem(new Item.Properties().setId(ITEMS.key("conduit_tool")).stacksTo(1)));
 
     /** The block item of the pipe node. */
     public static final RegistryObject<BlockItem> PIPE_NODE = registerBlockItem(ModBlocks.PIPE_NODE, "pipe_node");
 
     static {
         for (PipeType type : PipeType.values()) {
-            String name = type.id() + "_pipe";
-            PIPES.put(type, ITEMS.register(name,
-                    () -> new PipeItem(type, new Item.Properties().setId(ITEMS.key(name)))));
+            Map<Tier, RegistryObject<PipeItem>> byTier = new EnumMap<>(Tier.class);
+            if (PipeTiers.isTiered(type)) {
+                for (Tier tier : Tier.values()) {
+                    byTier.put(tier, registerPipe(tier.id() + "_" + type.id() + "_pipe", type, tier));
+                }
+            } else {
+                byTier.put(Tier.COPPER, registerPipe(type.id() + "_pipe", type, Tier.COPPER));
+            }
+            PIPES.put(type, byTier);
         }
         for (Tier tier : Tier.values()) {
             registerBlockItem(ModBlocks.collector(tier), tier.id() + "_collector");
@@ -56,9 +79,17 @@ public final class ModItems {
     private ModItems() {
     }
 
-    /** The item that places one kind of pipe. */
-    public static RegistryObject<PipeItem> pipe(PipeType type) {
-        return PIPES.get(type);
+    private static RegistryObject<PipeItem> registerPipe(String id, PipeType type, Tier tier) {
+        return ITEMS.register(id, () -> new PipeItem(type, tier, new Item.Properties().setId(ITEMS.key(id))));
+    }
+
+    /**
+     * The item that places one kind of pipe at one tier. The tier is ignored for ME and dense ME
+     * pipes, which do not come in tiers.
+     */
+    public static RegistryObject<PipeItem> pipe(PipeType type, Tier tier) {
+        Map<Tier, RegistryObject<PipeItem>> byTier = PIPES.get(type);
+        return PipeTiers.isTiered(type) ? byTier.get(tier) : byTier.get(Tier.COPPER);
     }
 
     /** Registers the plain block item for a block, under the same name as the block. */

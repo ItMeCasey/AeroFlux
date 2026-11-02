@@ -4,7 +4,10 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
+import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
+import com.itmecasey.aeroflux.core.conduit.ToolMode;
 import java.util.Locale;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModItems;
@@ -49,9 +52,23 @@ public class ModLanguageProvider extends LanguageProvider {
 
         for (PipeType type : PipeType.values()) {
             String name = pipeName(type);
-            addItem(ModItems.pipe(type), name + " Pipe");
+            if (PipeTiers.isTiered(type)) {
+                for (Tier tier : Tier.values()) {
+                    addItem(ModItems.pipe(type, tier), displayName(tier) + " " + name + " Pipe");
+                }
+            } else {
+                addItem(ModItems.pipe(type, Tier.COPPER), name + " Pipe");
+            }
             add("pipe." + AeroFlux.MODID + "." + type.id(), name);
         }
+
+        addItem(ModItems.SPEED_UPGRADE, "Speed Upgrade");
+        addItem(ModItems.CAPACITY_UPGRADE, "Capacity Upgrade");
+        for (PipeUpgrades.Kind kind : PipeUpgrades.Kind.values()) {
+            add("upgrade." + AeroFlux.MODID + "." + kind.name().toLowerCase(Locale.ROOT), capitalize(kind.name()));
+        }
+        add("message." + AeroFlux.MODID + ".upgrade_installed", "%s upgrade added to %s pipe (%s of %s slots)");
+        add("message." + AeroFlux.MODID + ".upgrade_full", "%s pipe has no free upgrade slots");
 
         for (Face face : Face.values()) {
             add("face." + AeroFlux.MODID + "." + face.name().toLowerCase(Locale.ROOT), capitalize(face.name()));
@@ -60,6 +77,57 @@ public class ModLanguageProvider extends LanguageProvider {
             add("connection_mode." + AeroFlux.MODID + "." + mode.name().toLowerCase(Locale.ROOT), capitalize(mode.name()));
         }
         add("message." + AeroFlux.MODID + ".pipe_mode", "%s pipe, %s side: %s");
+
+        add("distribution_mode." + AeroFlux.MODID + ".round_robin", "Round robin");
+        add("distribution_mode." + AeroFlux.MODID + ".first_to_last", "First to last");
+        add("distribution_mode." + AeroFlux.MODID + ".last_to_first", "Last to first");
+        add("distribution_mode." + AeroFlux.MODID + ".random", "Random");
+        add("message." + AeroFlux.MODID + ".pipe_distribution", "%s pipe distribution: %s");
+        add("message." + AeroFlux.MODID + ".pipe_no_distribution", "%s pipes have no distribution setting");
+
+        addConduitToolTranslations();
+    }
+
+    /** Names and messages of the Conduit Tool. */
+    private void addConduitToolTranslations() {
+        addItem(ModItems.CONDUIT_TOOL, "Conduit Tool");
+        for (ToolMode mode : ToolMode.values()) {
+            add("tool_mode." + AeroFlux.MODID + "." + mode.name().toLowerCase(Locale.ROOT), toolModeName(mode));
+        }
+        for (Tier tier : Tier.values()) {
+            add("tier." + AeroFlux.MODID + "." + tier.id(), displayName(tier));
+        }
+        add("tooltip." + AeroFlux.MODID + ".tool_mode", "Mode: %s");
+        add("message." + AeroFlux.MODID + ".tool_mode", "Conduit Tool: %s");
+        add("message." + AeroFlux.MODID + ".tool_removed", "Removed the %s pipe");
+        add("message." + AeroFlux.MODID + ".tool_removed_bundle", "Removed the bundle (%s pipes)");
+        add("message." + AeroFlux.MODID + ".tool_run_start", "Run started on a %s pipe. Use the tool on the other end of the run.");
+        add("message." + AeroFlux.MODID + ".tool_run_invalid", "A run must be a straight line of at most %s blocks");
+        add("message." + AeroFlux.MODID + ".tool_run_removed", "Removed %s of the %s pipe along the run");
+        add("message." + AeroFlux.MODID + ".tool_tier_replaced", "The %s pipe is now %s");
+        add("message." + AeroFlux.MODID + ".tool_tier_none", "Hold a %s pipe of a different tier in your off hand");
+        add("message." + AeroFlux.MODID + ".tool_copied", "Copied the settings of %s pipes");
+        add("message." + AeroFlux.MODID + ".tool_pasted", "Pasted settings onto %s pipes");
+        add("message." + AeroFlux.MODID + ".tool_nothing_copied", "Nothing copied yet");
+        add("message." + AeroFlux.MODID + ".tool_no_network", "The %s pipe is not part of a network");
+        add("message." + AeroFlux.MODID + ".tool_inspect",
+                "%s network: %s bundles, %s sources, %s destinations, speed %s");
+        add("message." + AeroFlux.MODID + ".tool_speed_items", "%s items every %s ticks");
+        add("message." + AeroFlux.MODID + ".tool_speed_milli", "%s mB per tick");
+        add("message." + AeroFlux.MODID + ".tool_speed_energy", "%s FE per tick");
+        add("message." + AeroFlux.MODID + ".tool_speed_none", "not limited");
+    }
+
+    private static String toolModeName(ToolMode mode) {
+        return switch (mode) {
+            case EDIT -> "Edit";
+            case REMOVE -> "Remove";
+            case REMOVE_RUN -> "Remove run";
+            case REPLACE_TIER -> "Replace tier";
+            case COPY -> "Copy";
+            case PASTE -> "Paste";
+            case INSPECT -> "Inspect";
+        };
     }
 
     private static String pipeName(PipeType type) {

@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -25,9 +26,18 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.AERO_FLUX_BUCKET.get());
                         output.accept(ModItems.MOON_FLUX_BUCKET.get());
                         output.accept(ModItems.FLUX_WRENCH.get());
+                        output.accept(ModItems.CONDUIT_TOOL.get());
                         output.accept(ModItems.PIPE_NODE.get());
+                        output.accept(ModItems.SPEED_UPGRADE.get());
+                        output.accept(ModItems.CAPACITY_UPGRADE.get());
                         for (PipeType type : PipeType.values()) {
-                            output.accept(ModItems.pipe(type).get());
+                            if (PipeTiers.isTiered(type)) {
+                                for (Tier tier : Tier.values()) {
+                                    output.accept(ModItems.pipe(type, tier).get());
+                                }
+                            } else {
+                                output.accept(ModItems.pipe(type, Tier.COPPER).get());
+                            }
                         }
                         for (Tier tier : Tier.values()) {
                             output.accept(ModBlocks.collector(tier).get());
