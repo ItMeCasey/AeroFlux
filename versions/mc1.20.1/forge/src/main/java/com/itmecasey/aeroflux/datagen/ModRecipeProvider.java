@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.datagen;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.core.FluxType;
@@ -375,13 +376,14 @@ public class ModRecipeProvider extends RecipeProvider {
 
     /**
      * The converters: a copper tank of Flux in a copper frame, with redstone for the FE converter and
-     * fluix for the AE one. Forge only has the FE converter (see {@link ModBlocks#CONVERTER_TYPES}).
+     * fluix for the AE one. The AE converter is only worth having with AE2, so its recipes need AE2.
      * Higher tiers upgrade the tier below like every other block.
      */
     private void converters() {
         for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
+            Consumer<FinishedRecipe> target = type == ConverterType.AE ? whenLoaded("ae2") : output;
             Ingredient core = type == ConverterType.AE
-                    ? tag(ItemTags.create(ResourceLocation.fromNamespaceAndPath("c", "gems/fluix")))
+                    ? tag(ItemTags.create(ResourceLocation.fromNamespaceAndPath("forge", "gems/fluix")))
                     : tag(Tags.Items.STORAGE_BLOCKS_REDSTONE);
             shaped(RecipeCategory.REDSTONE, ModBlocks.converter(type, Tier.COPPER).get())
                     .define('C', Tags.Items.INGOTS_COPPER)
@@ -392,7 +394,7 @@ public class ModRecipeProvider extends RecipeProvider {
                     .pattern("DTD")
                     .pattern("CXC")
                     .unlockedBy(getHasName(ModBlocks.tank(Tier.COPPER).get()), has(ModBlocks.tank(Tier.COPPER).get()))
-                    .save(output);
+                    .save(target);
             Tier[] tiers = Tier.values();
             for (int i = 1; i < tiers.length; i++) {
                 TierKit kit = kit(tiers[i]);
@@ -406,7 +408,7 @@ public class ModRecipeProvider extends RecipeProvider {
                         .pattern("SPS")
                         .pattern(" B ")
                         .unlockedBy(getHasName(previous), has(previous))
-                        .save(output);
+                        .save(target);
             }
         }
     }
@@ -428,7 +430,8 @@ public class ModRecipeProvider extends RecipeProvider {
     private void pipes() {
         Tier[] tiers = Tier.values();
         for (PipeType type : PipeType.values()) {
-            if (type == PipeType.DENSE_ME || !craftable(type)) {
+            if (type == PipeType.DENSE_ME || type == PipeType.GAS) {
+                // Dense ME pipes are made from ME pipes below; gas pipes wait for the Mekanism hookup.
                 continue;
             }
             ItemLike copperPipe = ModItems.pipe(type, Tier.COPPER).get();
@@ -441,7 +444,7 @@ public class ModRecipeProvider extends RecipeProvider {
                     .pattern("DXD")
                     .pattern("CCC")
                     .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
-                    .save(output);
+                    .save(outputFor(type));
             if (!PipeTiers.isTiered(type)) {
                 continue;
             }
@@ -457,17 +460,83 @@ public class ModRecipeProvider extends RecipeProvider {
                         .pattern("PSP")
                         .pattern("PBP")
                         .unlockedBy(getHasName(previous), has(previous))
-                        .save(output);
+                        .save(outputFor(type));
             }
         }
+
+        ItemLike mePipe = ModItems.pipe(PipeType.ME, Tier.COPPER).get();
+        shapeless(RecipeCategory.MISC, ModItems.pipe(PipeType.DENSE_ME, Tier.COPPER).get())
+                .requires(mePipe, 4)
+                .requires(Tags.Items.DUSTS_GLOWSTONE)
+                .requires(Tags.Items.DUSTS_REDSTONE)
+                .unlockedBy(getHasName(mePipe), has(mePipe))
+                .save(outputFor(PipeType.DENSE_ME));
     }
 
     /**
-     * Whether a pipe gets recipes on this version. Gas pipes only matter with Mekanism and ME pipes
-     * only with AE2, and neither hookup is ported to 1.20.1 yet, so those stay out of survival here.
+     * Where a pipe's recipes go. ME pipes only matter with AE2, so their recipes load only when AE2
+     * is installed and stay out of the recipe book otherwise.
      */
-    private static boolean craftable(PipeType type) {
-        return type != PipeType.GAS && type != PipeType.ME && type != PipeType.DENSE_ME;
+    private Consumer<FinishedRecipe> outputFor(PipeType type) {
+        return type == PipeType.ME || type == PipeType.DENSE_ME ? whenLoaded("ae2") : output;
+    }
+
+    /**
+     * Recipes that only load when a mod is installed. Forge reads a {@code conditions} list at the
+     * top of a recipe file, and of the advancement that unlocks it, so each is written with one.
+     */
+    private Consumer<FinishedRecipe> whenLoaded(String modId) {
+        return recipe -> output.accept(new Conditional(recipe, modId));
+    }
+
+    /** A finished recipe, and its advancement, that only load when a mod is installed. */
+    private record Conditional(FinishedRecipe recipe, String modId) implements FinishedRecipe {
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            recipe.serializeRecipeData(json);
+        }
+
+        @Override
+        public JsonObject serializeRecipe() {
+            JsonObject json = recipe.serializeRecipe();
+            json.add("conditions", conditions());
+            return json;
+        }
+
+        @Override
+        public ResourceLocation getId() {
+            return recipe.getId();
+        }
+
+        @Override
+        public RecipeSerializer<?> getType() {
+            return recipe.getType();
+        }
+
+        @Nullable
+        @Override
+        public JsonObject serializeAdvancement() {
+            JsonObject json = recipe.serializeAdvancement();
+            if (json != null) {
+                json.add("conditions", conditions());
+            }
+            return json;
+        }
+
+        @Nullable
+        @Override
+        public ResourceLocation getAdvancementId() {
+            return recipe.getAdvancementId();
+        }
+
+        private JsonArray conditions() {
+            JsonObject loaded = new JsonObject();
+            loaded.addProperty("type", "forge:mod_loaded");
+            loaded.addProperty("modid", modId);
+            JsonArray conditions = new JsonArray();
+            conditions.add(loaded);
+            return conditions;
+        }
     }
 
     /** The vanilla item in the middle of a copper pipe recipe: something that already handles what the pipe carries. */

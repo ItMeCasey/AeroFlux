@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "T": {
+      "item": "aeroflux:copper_tank"
+    },
+    "X": {
+      "tag": "forge:gems/fluix"
+    }
+  },
+  "pattern": [
+    "CXC",
+    "DTD",
+    "CXC"
+  ],
+  "result": {
+    "item": "aeroflux:flux_ae_converter"
+  },
+  "show_notification": true
+}

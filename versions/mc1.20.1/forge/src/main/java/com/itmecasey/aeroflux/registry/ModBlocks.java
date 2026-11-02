@@ -43,10 +43,10 @@ public final class ModBlocks {
     private static final Map<LampKind, Map<Tier, RegistryObject<FluxLampBlock>>> LAMPS = new EnumMap<>(LampKind.class);
 
     /**
-     * The converters this version has. The AE converter needs AE2 and the stress converter Create,
-     * and neither hookup is ported to 1.20.1 yet, so only the FE converter is here.
+     * The converters this version has. The stress converter needs Create, whose hookup is not built
+     * yet, so it is left out. The AE converter is always registered but only craftable with AE2.
      */
-    public static final List<ConverterType> CONVERTER_TYPES = List.of(ConverterType.ENERGY);
+    public static final List<ConverterType> CONVERTER_TYPES = List.of(ConverterType.ENERGY, ConverterType.AE);
 
     /** The in-world block for Aero Flux; behaves like water apart from the glow. */
     public static final RegistryObject<LiquidBlock> AERO_FLUX = BLOCKS.register("aero_flux", () -> fluidBlock(ModFluids.AERO_FLUX));

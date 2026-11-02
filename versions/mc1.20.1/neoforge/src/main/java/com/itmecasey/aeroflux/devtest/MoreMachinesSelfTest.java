@@ -1,7 +1,12 @@
 package com.itmecasey.aeroflux.devtest;
 
+import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
+import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
@@ -18,6 +23,7 @@ import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
@@ -70,6 +76,10 @@ final class MoreMachinesSelfTest {
     private static BlockPos magnet;
     private static BlockPos breeder;
     private static BlockPos repairer;
+    /** Two bundles with an ME pipe each and an AE converter beside them, when AE2 is installed. */
+    private static BlockPos meWest;
+    private static BlockPos meEast;
+    private static BlockPos aeConverter;
     private static BlockPos spawner;
     private static BlockPos sunLamp;
 
@@ -106,6 +116,7 @@ final class MoreMachinesSelfTest {
         }
         if (tick == WORKED) {
             checkWork();
+            checkAe2();
         }
         if (tick >= LAST && !machinesChecked) {
             checkLamp();
@@ -122,6 +133,19 @@ final class MoreMachinesSelfTest {
     // --- Building ----------------------------------------------------------------------------
 
     private static void build() {
+        // AE2: two ME pipes side by side and an AE converter next to them. AE2 makes their grid
+        // nodes on their first tick, so they are only looked at once the machines have worked.
+        if (Ae2Compat.loaded()) {
+            meWest = new BlockPos(3, Y, 9);
+            meEast = meWest.east();
+            for (BlockPos pos : List.of(meWest, meEast)) {
+                level.setBlock(pos, ModBlocks.CONDUIT_BUNDLE.get().defaultBlockState(), Block.UPDATE_ALL);
+                ((ConduitBundleBlockEntity) level.getBlockEntity(pos)).addPipe(PipeType.ME);
+            }
+            aeConverter = meEast.east();
+            level.setBlock(aeConverter, ModBlocks.converter(ConverterType.AE, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
+        }
+
         // A stone floor under the Magnet's cobblestone and the Breeder's cows, so they stay put. It
         // leaves the column over the collector checks open: they need to see the sky.
         for (int x = 0; x <= 10; x++) {
@@ -221,6 +245,20 @@ final class MoreMachinesSelfTest {
         SelfTest.check("magnet: a whitelist of dirt leaves cobblestone on the ground", cobbleOnGround() == 5);
         MachineConfigActions.applyButton(machine(magnet), MachineConfigActions.MAGNET_MODE_BUTTON);
         SelfTest.check("magnet: the filter button switches to blacklist", machine(magnet).machineMode() == 0);
+    }
+
+    /** AE2 finds the nodes of ME pipes and the AE converter through the block entities' capability. */
+    private static void checkAe2() {
+        if (!Ae2Compat.loaded()) {
+            AeroFlux.LOGGER.info("AEROFLUX-SELFTEST INFO AE2 is not installed; the ME pipe checks are skipped");
+            return;
+        }
+        SelfTest.check("ae2: an ME pipe offers AE2 a grid node toward the next ME pipe",
+                Ae2Compat.attaches(level, meWest, Direction.EAST) && Ae2Compat.attaches(level, meEast, Direction.WEST));
+        SelfTest.check("ae2: an ME pipe offers no node where it has no connection",
+                !Ae2Compat.attaches(level, meWest, Direction.UP));
+        SelfTest.check("ae2: the AE converter offers AE2 a grid node",
+                Ae2Compat.attaches(level, aeConverter, Direction.WEST));
     }
 
     private static void checkWork() {

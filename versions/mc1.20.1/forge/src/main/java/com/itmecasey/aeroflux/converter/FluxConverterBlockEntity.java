@@ -326,6 +326,10 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        LazyOptional<T> node = Ae2Compat.gridNode(cap, aeLink);
+        if (node.isPresent()) {
+            return node;
+        }
         if (cap == ForgeCapabilities.FLUID_HANDLER) {
             return fluidCap.cast();
         }

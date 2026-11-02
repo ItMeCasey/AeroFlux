@@ -75,6 +75,11 @@ minecraft {
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
             property 'forge.logging.console.level', 'debug'
 
+            // AE2 and other optional mods ship mixins written against SRG names; this lets Mixin
+            // map them to the dev names these runs use.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -116,6 +121,15 @@ repositories {
     // Put repositories for dependencies here
     // ForgeGradle automatically adds the Forge maven and Maven Central for you
 
+    // The optional mods AeroFlux talks to, straight from Modrinth.
+    // Not exclusive: ForgeGradle serves the remapped copies of these jars from its own local
+    // repository under the same group, so that group must stay open to other repositories.
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
     // flatDir {
@@ -130,6 +144,23 @@ dependencies {
     // If the group id is "net.minecraft" and the artifact id is one of ["client", "server", "joined"],
     // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // Optional mods. AeroFlux compiles against them and runs with the ones the dev runs need;
+    // none of them is required at play time. fg.deobf maps their jars to our mappings.
+    compileOnly fg.deobf("maven.modrinth:jade:${jade_version}")
+    runtimeOnly fg.deobf("maven.modrinth:jade:${jade_version}")
+    compileOnly fg.deobf("maven.modrinth:the-one-probe:${top_version}")
+    runtimeOnly fg.deobf("maven.modrinth:the-one-probe:${top_version}")
+    compileOnly fg.deobf("maven.modrinth:ae2:${ae2_version}")
+    runtimeOnly fg.deobf("maven.modrinth:ae2:${ae2_version}")
+    runtimeOnly fg.deobf("maven.modrinth:guideme:${guideme_version}")
+    compileOnly fg.deobf("maven.modrinth:jei:${jei_version}")
+    runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
+    compileOnly fg.deobf("maven.modrinth:kubejs:${kubejs_version}")
+    compileOnly fg.deobf("maven.modrinth:rhino:${rhino_version}")
+    compileOnly fg.deobf("maven.modrinth:rei:${rei_version}")
+    compileOnly fg.deobf("maven.modrinth:cloth-config:${cloth_config_version}")
+    compileOnly fg.deobf("maven.modrinth:architectury-api:${architectury_version}")
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

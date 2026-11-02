@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "key": {
+    "B": {
+      "tag": "forge:gems/diamond"
+    },
+    "P": {
+      "item": "aeroflux:gold_flux_ae_converter"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "tag": "forge:gems/diamond"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:diamond_flux_ae_converter"
+  },
+  "show_notification": true
+}

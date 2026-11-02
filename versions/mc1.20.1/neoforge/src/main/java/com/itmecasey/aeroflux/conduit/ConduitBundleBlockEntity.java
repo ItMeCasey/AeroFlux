@@ -10,6 +10,7 @@ import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,6 +25,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 
 /**
  * Remembers what is inside a {@link ConduitBundleBlock}: the pipes, their connections and their
@@ -246,6 +249,14 @@ public class ConduitBundleBlockEntity extends BlockEntity {
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_IMMEDIATE);
         }
+    }
+
+    /** AE2 finds the ME pipe's grid node through this; the bundle offers no other capability. */
+    @Nonnull
+    @Override
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
+        LazyOptional<T> node = Ae2Compat.gridNode(cap, meLink);
+        return node.isPresent() ? node : super.getCapability(cap, side);
     }
 
     @Override

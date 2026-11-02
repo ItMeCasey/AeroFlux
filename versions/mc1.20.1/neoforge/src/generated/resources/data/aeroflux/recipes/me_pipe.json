@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "X": {
+      "item": "aeroflux:moon_crystal"
+    }
+  },
+  "pattern": [
+    "CCC",
+    "DXD",
+    "CCC"
+  ],
+  "result": {
+    "count": 8,
+    "item": "aeroflux:me_pipe"
+  },
+  "show_notification": true
+}

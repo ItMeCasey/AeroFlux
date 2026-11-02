@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "item": "aeroflux:me_pipe"
+    },
+    {
+      "tag": "forge:dusts/glowstone"
+    },
+    {
+      "tag": "forge:dusts/redstone"
+    }
+  ],
+  "result": {
+    "item": "aeroflux:dense_me_pipe"
+  }
+}
