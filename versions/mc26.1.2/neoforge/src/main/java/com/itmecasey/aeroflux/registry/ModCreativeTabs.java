@@ -39,6 +39,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.GUIDEBOOK.get());
                         output.accept(ModItems.FLUX_WRENCH.get());
                         output.accept(ModItems.CONDUIT_TOOL.get());
+                        output.accept(ModItems.FLUX_CONFIGURATOR.get());
                         output.accept(ModItems.SPEED_UPGRADE.get());
                         output.accept(ModItems.CAPACITY_UPGRADE.get());
                         output.accept(ModItems.FILTER_UPGRADE.get());
