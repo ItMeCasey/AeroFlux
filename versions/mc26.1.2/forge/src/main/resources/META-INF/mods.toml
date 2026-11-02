@@ -5,7 +5,7 @@
 modLoader="javafml"
 loaderVersion="[64,)"
 license="MIT"
-#issueTrackerURL="https://github.com/MyOrganization/MyMod/" #optional
+issueTrackerURL="https://github.com/ItMeCasey/AeroFlux/issues" #optional
 #clientSideOnly=true #optional, default=false
 
 [[mods]]
@@ -13,14 +13,13 @@ modId="aeroflux"
 version="2026.11.1"
 displayName="AeroFlux"
 #updateJSONURL="https://example.com/updates.json" #optional
-#displayURL="https://example.com/" #optional
-#logoFile="aeroflux.png" #optional
+displayURL="https://github.com/ItMeCasey/AeroFlux" #optional
+logoFile="aeroflux.png" #optional
 #credits="" #optional
 authors="ItMeCasey" #optional
 #displayTest="MATCH_VERSION" #optional, default=MATCH_VERSION when not clientSideOnly, else IGNORE_ALL_VERSION
 
-description='''Example mod description.
-Newline characters can be used like this, and rendered on the mods screen properly.'''
+description='''Collect Aero Flux from the sun by day and Moon Flux from the moon by night, then pipe them into tiered machines, tanks, converters and chunk loaders.'''
 
 [[dependencies.aeroflux]] #recommended
     modId="forge"

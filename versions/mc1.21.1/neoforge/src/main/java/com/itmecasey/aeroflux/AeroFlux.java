@@ -47,6 +47,6 @@ public class AeroFlux {
         ModCreativeTabs.register(modEventBus);
         modContainer.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
 
-        LOGGER.info("AeroFlux skeleton loaded (NeoForge 1.21.1)");
+        LOGGER.info("AeroFlux loaded (NeoForge 1.21.1)");
     }
 }

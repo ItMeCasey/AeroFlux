@@ -52,6 +52,6 @@ public final class AeroFlux {
         GatherDataEvent.getBus(modBusGroup).addListener(DataGenerators::gatherData);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
 
-        LOGGER.info("AeroFlux skeleton loaded (Forge 26.1.2)");
+        LOGGER.info("AeroFlux loaded (Forge 26.1.2)");
     }
 }

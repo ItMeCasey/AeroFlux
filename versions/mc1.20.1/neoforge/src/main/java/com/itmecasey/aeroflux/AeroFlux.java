@@ -51,6 +51,6 @@ public class AeroFlux {
         // The loader checks the chunk loaders' saved tickets as the world loads; this hands it the check.
         ChunkLoaderTickets.register();
 
-        LOGGER.info("AeroFlux skeleton loaded (Minecraft 1.20.1)");
+        LOGGER.info("AeroFlux loaded (Minecraft 1.20.1)");
     }
 }
