@@ -1,10 +1,16 @@
 package com.itmecasey.aeroflux.devtest;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
+import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.machine.FluxCost;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
+import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.registry.ModBlocks;
+import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -19,14 +25,19 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
@@ -36,7 +47,10 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.NetworkHooks;
 
 /**
  * A development-only camera tour: it opens a fresh creative superflat world, builds the pipe
@@ -44,9 +58,10 @@ import net.minecraftforge.fml.common.Mod;
  * {@code aeroflux_<name>.png}, then quits the game. It does nothing unless the environment
  * variable {@code AEROFLUX_SHOTS} is set, so a normal game never runs it.
  *
- * <p>This is the pipe-scene part of the newer builds' tour. Pipes and machines are placed through
- * the client's own right-click path ({@code MultiPlayerGameMode.useItemOn}), so the shots show
- * what a player sees after the client's prediction and the server's answer.
+ * <p>This is the pipe scenes and the Flux screens of the newer builds' tour. Pipes and machines are
+ * placed through the client's own right-click path ({@code MultiPlayerGameMode.useItemOn}), so the
+ * shots show what a player sees after the client's prediction and the server's answer. The
+ * screens are opened the way the server opens them for a player.
  *
  * <p>The tour runs on a desktop that someone may be using, so it stays out of the way: it lets go
  * of the mouse every tick, keeps rendering while unfocused instead of pausing, never asks for the
@@ -161,6 +176,7 @@ public final class ShotTour {
         });
 
         sceneShots();
+        fluxScreenShots();
 
         then(40, () -> {
             Minecraft minecraft = Minecraft.getInstance();
@@ -225,6 +241,82 @@ public final class ShotTour {
         placePipe(PipeType.ENERGY, at(37, 0), false);
         placePipe(PipeType.FLUID, at(37, 1), true);
         settleAndShoot("mixed", eye(36.5, 2.4, -2.6), new Vec3(36.5, ground + 0.8, 0.5));
+    }
+
+    // --- Screens -----------------------------------------------------------------------------
+
+    /**
+     * The flux badge and cost bar on machine screens (a furnace at work with less than one smelt of
+     * Flux, one with none, and a Plant Grower holding Moon Flux for the two-flux badge), then a
+     * collector feeding a tank, a collector under leaves, and the screens of all three.
+     */
+    private static void fluxScreenShots() {
+        BlockPos working = at(62, 6);
+        BlockPos starved = at(64, 6);
+        BlockPos grower = at(66, 6);
+        Item furnace = ModBlocks.machine(MachineType.FURNACE, Tier.IRON).get().asItem();
+        placeBlock(furnace, working);
+        placeBlock(furnace, starved);
+        placeBlock(ModBlocks.machine(MachineType.PLANT_GROWER, Tier.GOLD).get().asItem(), grower);
+        then(SETTLE, () -> onServer(server -> {
+            ServerLevel level = server.overworld();
+            if (level.getBlockEntity(working) instanceof FluxMachineBlockEntity machine) {
+                // Three quarters of a smelt, so the cost bar shows part full while it works.
+                int smelt = FluxCost.perOperation(MachineUpgrades.fluxPerTick(Tier.IRON, 0),
+                        MachineUpgrades.ticksFor(200, Tier.IRON, 0), 0);
+                machine.setFlux(new FluidStack(ModFluids.AERO_FLUX.get(), smelt * 3 / 4));
+                machine.setStackIn(0, new ItemStack(Items.RAW_IRON, 8));
+            }
+            if (level.getBlockEntity(starved) instanceof FluxMachineBlockEntity machine) {
+                machine.setStackIn(0, new ItemStack(Items.RAW_IRON, 8));
+            }
+            if (level.getBlockEntity(grower) instanceof FluxMachineBlockEntity machine) {
+                machine.setFlux(new FluidStack(ModFluids.MOON_FLUX.get(), 3_000));
+            }
+        }));
+        openShot(working, "screen_cost_working");
+        openShot(starved, "screen_cost_starved");
+        openShot(grower, "screen_badge_either");
+
+        // A collector pushing into the tank beside it, and a second collector under a leaf roof.
+        BlockPos collector = at(70, 6);
+        BlockPos tank = at(71, 6);
+        BlockPos covered = at(74, 6);
+        placeBlock(ModBlocks.collector(Tier.GOLD).get().asItem(), collector);
+        placeBlock(ModBlocks.tank(Tier.GOLD).get().asItem(), tank);
+        placeBlock(ModBlocks.collector(Tier.IRON).get().asItem(), covered);
+        then(2, () -> onServer(server -> {
+            server.overworld().setBlockAndUpdate(covered.above(3), Blocks.OAK_LEAVES.defaultBlockState());
+            if (server.overworld().getBlockEntity(tank) instanceof FluxTankBlockEntity entity) {
+                entity.tank().fill(new FluidStack(ModFluids.AERO_FLUX.get(), 40_000), IFluidHandler.FluidAction.EXECUTE);
+            }
+        }));
+        // Long enough for the sky checks and a full second of flow for the rates.
+        then(60, () -> {
+        });
+        openShot(collector, "screen_collector");
+        openShot(covered, "screen_collector_blocked");
+        openShot(tank, "screen_tank");
+    }
+
+    /** Opens the screen of the block at {@code pos} the way the server opens it for a player, and shoots it. */
+    private static void openShot(BlockPos pos, String name) {
+        then(5, () -> onServer(server -> {
+            ServerPlayer player = server.getPlayerList().getPlayers().get(0);
+            BlockEntity entity = server.overworld().getBlockEntity(pos);
+            if (entity instanceof FluxMachineBlockEntity machine) {
+                NetworkHooks.openScreen(player, machine, machine::writeOpenData);
+            } else if (entity instanceof FluxCollectorBlockEntity collector) {
+                NetworkHooks.openScreen(player, collector, collector::writeOpenData);
+            } else if (entity instanceof FluxTankBlockEntity tank) {
+                NetworkHooks.openScreen(player, tank, tank::writeOpenData);
+            } else {
+                AeroFlux.LOGGER.warn("AEROFLUX-SHOTS nothing to open for {}", name);
+            }
+        }));
+        then(0, () -> Minecraft.getInstance().options.hideGui = false);
+        shoot(name, 10);
+        then(2, () -> player().closeContainer());
     }
 
     // --- Building blocks of the tour ---------------------------------------------------------

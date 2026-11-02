@@ -67,7 +67,11 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
     /** The machine-only upgrade counts, three bits each in {@link MachineUpgrades.Special} order. */
     private static final int DATA_SPECIAL_UPGRADES = DATA_MODE + 1;
     private static final int SPECIAL_BITS = 3;
-    private static final int DATA_COUNT = DATA_SPECIAL_UPGRADES + 1;
+    /** Two slots: the current job's whole Flux cost, worked out by the server (only it knows the job's extra Flux). */
+    private static final int DATA_OPERATION_COST = DATA_SPECIAL_UPGRADES + 1;
+    /** Two slots: what the next tick of the job takes. */
+    private static final int DATA_NEXT_TICK_COST = DATA_OPERATION_COST + 2;
+    private static final int DATA_COUNT = DATA_NEXT_TICK_COST + 2;
 
     /** How far from the machine a player may be and keep the screen open, like a chest. */
     private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
@@ -268,6 +272,16 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         return MachineUpgrades.fluxPerTick(tier, speedUpgrades(), upgrades(MachineUpgrades.Special.EFFICIENCY));
     }
 
+    /** Flux the current job takes from start to finish, in mB, as last synced; 0 with no job. */
+    public int fluxPerOperation() {
+        return SplitInt.join(data.get(DATA_OPERATION_COST), data.get(DATA_OPERATION_COST + 1));
+    }
+
+    /** Flux the next tick of the job takes, in mB, as last synced; 0 with no job. */
+    public int nextTickCost() {
+        return SplitInt.join(data.get(DATA_NEXT_TICK_COST), data.get(DATA_NEXT_TICK_COST + 1));
+    }
+
     /** How many machine-only upgrades of one kind are installed, as last synced. */
     public int upgrades(MachineUpgrades.Special kind) {
         return (data.get(DATA_SPECIAL_UPGRADES) >> (SPECIAL_BITS * kind.ordinal())) & ((1 << SPECIAL_BITS) - 1);
@@ -409,6 +423,14 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
                             packed |= count << (SPECIAL_BITS * kind.ordinal());
                         }
                         yield packed;
+                    }
+                    if (index == DATA_OPERATION_COST || index == DATA_OPERATION_COST + 1) {
+                        int cost = machine.fluxPerOperation();
+                        yield index == DATA_OPERATION_COST ? SplitInt.low(cost) : SplitInt.high(cost);
+                    }
+                    if (index == DATA_NEXT_TICK_COST || index == DATA_NEXT_TICK_COST + 1) {
+                        int cost = machine.nextTickCost();
+                        yield index == DATA_NEXT_TICK_COST ? SplitInt.low(cost) : SplitInt.high(cost);
                     }
                     if (index >= DATA_EXTRA && index < DATA_MODE) {
                         int tank = (index - DATA_EXTRA) / 2;

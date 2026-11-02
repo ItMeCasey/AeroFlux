@@ -8,6 +8,7 @@ import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.FaceRules;
+import com.itmecasey.aeroflux.core.machine.FluxCost;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
@@ -157,6 +158,8 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     private boolean signalRead;
     @Nullable
     private Object activeKey;
+    /** The current job's {@link Job#extraFlux}, for the cost the screen shows; 0 with no job. */
+    private int jobExtraFlux;
     /** True while there was nothing to do, so the machine only checks now and then. */
     private boolean sleeping;
     /** What a plant grower shows in its chamber; see {@link CropDisplay}. Always null for other machines. */
@@ -512,6 +515,16 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         return MachineUpgrades.fluxPerTick(tier, speedUpgrades(), upgrades(MachineUpgrades.Special.EFFICIENCY));
     }
 
+    /** Flux the current job takes from start to finish, in mB; 0 with no job. See {@link FluxCost#perOperation}. */
+    public int fluxPerOperation() {
+        return FluxCost.perOperation(fluxPerTick(), totalTime(), jobExtraFlux);
+    }
+
+    /** Flux the next tick of the current job takes, in mB; 0 with no job. See {@link FluxCost#nextTick}. */
+    public int nextTickCost() {
+        return FluxCost.nextTick(fluxPerTick(), progress(), totalTime(), jobExtraFlux);
+    }
+
     /** The size of the Flux tank in mB, with Capacity upgrades counted. */
     public int fluxCapacity() {
         return StorageSizes.machine(tier, capacityUpgrades());
@@ -848,6 +861,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             // Nothing to do: forget any half-finished work and sleep until the inventory changes.
             timer.reset();
             activeKey = null;
+            jobExtraFlux = 0;
             sleeping = true;
             status = MachineStatus.IDLE;
             showWorking(level, false);
@@ -861,6 +875,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             timer.reset();
         }
         timer.setTotal(MachineUpgrades.ticksFor(job.baseTicks(), tier, speedUpgrades()));
+        jobExtraFlux = job.extraFlux();
 
         // The last tick of a job also pays the job's extra Flux.
         boolean lastTick = timer.progress() + 1 >= timer.total();

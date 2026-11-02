@@ -4,6 +4,10 @@ import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -12,8 +16,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.network.NetworkHooks;
 
 /**
  * A collector. It faces the sky and turns sunlight into Aero Flux by day and moonlight into
@@ -59,6 +65,23 @@ public class FluxCollectorBlock extends BaseEntityBlock {
     @Override
     public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         return level.getBlockEntity(pos) instanceof FluxCollectorBlockEntity entity ? entity.comparatorSignal() : 0;
+    }
+
+    /**
+     * An empty hand opens the collector's screen with its sky panel. With anything else in hand the
+     * item gets its own use, such as placing a block.
+     */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        if (!player.getItemInHand(hand).isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer
+                && level.getBlockEntity(pos) instanceof FluxCollectorBlockEntity collector) {
+            NetworkHooks.openScreen(serverPlayer, collector, collector::writeOpenData);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override

@@ -85,6 +85,7 @@ public final class SelfTest {
         MachineExtrasSelfTest.setUp(level);
         BlockIoSelfTest.setUp(level);
         EnchantConfigSelfTest.setUp(level);
+        FluxScreenSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -96,6 +97,8 @@ public final class SelfTest {
             return;
         }
         TransferSelfTest.tick();
+        // The collector, tank and cost bar screen checks build in a layer of their own and need no other check done.
+        FluxScreenSelfTest.tick();
         // The tool checks come last: they place and remove many bundles, which must not disturb the timed transfer checks.
         if (TransferSelfTest.finished()) {
             ToolSelfTest.tick();
@@ -124,7 +127,8 @@ public final class SelfTest {
             // The collector checks are done; wait for the transfer and tool checks to finish too.
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
                     && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()
-                    && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished()) {
+                    && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished()
+                    && FluxScreenSelfTest.finished()) {
                 finish();
             }
             return;
