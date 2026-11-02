@@ -20,6 +20,9 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew test --no-daemon
+      # Translations: no unknown keys and no broken placeholders (see TRANSLATING.md).
+      - name: Check translations
+        run: python3 assets-src/tools/lang_sync.py check
 
   build:
     name: Build ${{ matrix.name }}
@@ -55,3 +58,72 @@ jobs:
         with:
           name: aeroflux-${{ matrix.name }}
           path: ${{ matrix.dir }}/build/libs/*.jar
+
+  # Starts each build's dev server with the in-game self-test switched on. The self-test builds
+  # its test layers in a fresh world, logs a PASS or FAIL line per check and a RESULT summary,
+  # then stops the server itself; the timeout only catches a server that hangs.
+  selftest:
+    name: Self-test ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: neoforge-26.1.2, dir: versions/mc26.1.2/neoforge }
+          - { name: forge-26.1.2,    dir: versions/mc26.1.2/forge }
+          - { name: neoforge-1.21.1, dir: versions/mc1.21.1/neoforge }
+          - { name: forge-1.21.1,    dir: versions/mc1.21.1/forge }
+          - { name: neoforge-1.20.1, dir: versions/mc1.20.1/neoforge }
+          - { name: forge-1.20.1,    dir: versions/mc1.20.1/forge }
+    steps:
+      - uses: actions/checkout@v4
+      # Same JDKs as the build job.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+            25
+            21
+      - name: Run the server self-test
+        working-directory: ${{ matrix.dir }}
+        env:
+          AEROFLUX_SELFTEST: "1"
+          SELFTEST_PORT: "25599"
+        run: |
+          chmod +x gradlew
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          printf 'server-port=%s\nonline-mode=false\n' "$SELFTEST_PORT" > run/server.properties
+
+          # The dev server's exit code says nothing useful (it is halted, not stopped), so the
+          # verdict comes from the RESULT line alone.
+          set +e
+          timeout --kill-after=1m 25m ./gradlew runServer --no-daemon > selftest.log 2>&1
+          status=$?
+          set -e
+
+          if grep -Eq 'AEROFLUX-SELFTEST RESULT passed=[1-9][0-9]* failed=0' selftest.log; then
+            grep -E 'AEROFLUX-SELFTEST RESULT' selftest.log
+            exit 0
+          fi
+
+          if [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
+            echo "::error::The self-test did not finish within 25 minutes."
+          fi
+          if grep -q 'AEROFLUX-SELFTEST' selftest.log; then
+            grep -E 'AEROFLUX-SELFTEST (FAIL|RESULT)' selftest.log || true
+            echo "::error::The self-test reported failures."
+          else
+            echo "::error::The self-test never ran (gradle exited with $status). Last lines of the log:"
+            tail -n 80 selftest.log
+          fi
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selftest-log-${{ matrix.name }}
+          path: ${{ matrix.dir }}/selftest.log
+          if-no-files-found: ignore

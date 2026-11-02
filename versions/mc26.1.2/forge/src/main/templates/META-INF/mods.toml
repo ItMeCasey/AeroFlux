@@ -1,0 +1,46 @@
+# AeroFlux metadata for Forge 26.1.2. generateModMetadata in build.gradle fills in the
+# placeholders from gradle.properties, so a release only changes mod_version there.
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/ItMeCasey/AeroFlux/issues"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+displayURL="https://github.com/ItMeCasey/AeroFlux"
+logoFile="aeroflux.png"
+authors="${mod_authors}"
+description='''${mod_description}'''
+
+[[dependencies.${mod_id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+# Optional mods. This build has no recipe viewer, look-at tooltip, AE2 or Mekanism support yet,
+# so only the sieve mods are listed: the Sifter runs their sieve recipes and is only craftable
+# with one installed.
+[[dependencies.${mod_id}]]
+    modId="exdeorum"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="exnihilosequentia"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
