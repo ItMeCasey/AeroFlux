@@ -2,7 +2,7 @@ package com.itmecasey.aeroflux;
 
 import net.minecraft.resources.ResourceLocation;
 
-/** Builds resource identifiers. Minecraft 26.1 renamed {@code ResourceLocation} to {@code ResourceLocation}. */
+/** Builds resource identifiers. Minecraft 26.1 renamed {@code ResourceLocation} to {@code Identifier}; this version still has the old name. */
 public final class Ids {
     private Ids() {
     }

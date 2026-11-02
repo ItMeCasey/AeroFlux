@@ -29,7 +29,7 @@ public class ModItemModelProvider extends ItemModelProvider {
 
     }
 
-    /** A bucket that draws the fluid it holds, tinted, through NeoForge's dynamic container model. */
+    /** A bucket that draws the fluid it holds, tinted, through Forge's fluid container model. */
     private void fluidBucket(String name, Fluid fluid) {
         withExistingParent(name, ResourceLocation.fromNamespaceAndPath("forge", "item/bucket"))
                 .customLoader(DynamicFluidContainerModelBuilder::begin)

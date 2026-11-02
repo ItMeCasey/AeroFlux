@@ -65,7 +65,7 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
     private UUID owner;
     /** Milli-mB already paid for and not used yet; always under one mB. */
     private long creditMilli;
-    /** Whether the tickets are held, as far as this loader knows. Saved, because NeoForge saves the tickets too. */
+    /** Whether the tickets are held, as far as this loader knows. Saved, because Forge saves the tickets too. */
     private boolean holding;
     private int graceLeft;
     private LoaderStatus status = LoaderStatus.NO_FLUX;
@@ -191,7 +191,7 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
 
         boolean wanted = status.holdsTickets();
         if (wanted != holding || !settled) {
-            // NeoForge may have brought the tickets back from the save, or the save may say they
+            // Forge may have brought the tickets back from the save, or the save may say they
             // were held when they were not; either way, this puts the world in line with "wanted".
             setHolding(level, wanted);
         }
