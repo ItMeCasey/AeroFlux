@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.machine;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -179,7 +180,7 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
 
     /** The tank's size in mB; it follows from the tier and the Capacity upgrades. */
     public int fluxCapacity() {
-        return MachineUpgrades.inputCapacity(tier, capacityUpgrades());
+        return StorageSizes.machine(tier, capacityUpgrades());
     }
 
     /** Where the redstone button and the upgrade slots sit. */

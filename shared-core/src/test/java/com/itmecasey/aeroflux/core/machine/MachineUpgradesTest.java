@@ -53,6 +53,15 @@ class MachineUpgradesTest {
     }
 
     @Test
+    void aConfiguredBaseSizeIsMultipliedTheSameWay() {
+        assertEquals(15_000, MachineUpgrades.inputCapacity(3_000, 4));
+        assertEquals(3_000, MachineUpgrades.inputCapacity(3_000, 0));
+        // Too big for an int: it stops at the largest int instead of wrapping around.
+        assertEquals(Integer.MAX_VALUE, MachineUpgrades.inputCapacity(1_000_000_000, 4));
+        assertEquals(0, MachineUpgrades.inputCapacity(-5, 2));
+    }
+
+    @Test
     void countsOutsideTheRangeAreClamped() {
         assertEquals(MachineUpgrades.ticksFor(VANILLA_SMELT, Tier.IRON, 4), MachineUpgrades.ticksFor(VANILLA_SMELT, Tier.IRON, 9));
         assertEquals(MachineUpgrades.inputCapacity(Tier.IRON, 0), MachineUpgrades.inputCapacity(Tier.IRON, -3));

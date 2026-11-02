@@ -68,7 +68,17 @@ public final class MachineUpgrades {
 
     /** The size of the Flux tank, in mB: the tier's size once, plus once more for every Capacity upgrade. */
     public static int inputCapacity(Tier tier, int capacityUpgrades) {
-        return MachineMath.inputCapacity(tier) * (1 + clamp(capacityUpgrades));
+        return inputCapacity(MachineMath.inputCapacity(tier), capacityUpgrades);
+    }
+
+    /**
+     * The size of a tank whose own size is {@code baseCapacity} mB (a server can set that in its
+     * config): the base once, plus once more for every Capacity upgrade. A total too big for an
+     * int stops at {@link Integer#MAX_VALUE}.
+     */
+    public static int inputCapacity(int baseCapacity, int capacityUpgrades) {
+        long total = (long) Math.max(baseCapacity, 0) * (1 + clamp(capacityUpgrades));
+        return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
     private static int clamp(int upgrades) {

@@ -1,11 +1,13 @@
 package com.itmecasey.aeroflux.converter;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.fluid.InputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
@@ -68,7 +70,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
         FluxConverterBlock block = (FluxConverterBlock) state.getBlock();
         this.type = block.type();
         this.tier = block.tier();
-        this.tank = new FluidTank(ConverterMath.tankCapacity(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
+        this.tank = new FluxFluidTank(StorageSizes.converterTank(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update); it still takes nothing more, and probes such as Jade, which refuse a fill
@@ -85,7 +87,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
             }
         };
         this.inputView = new InputOnlyFluidHandler(tank);
-        this.energy = new Buffer(ConverterMath.bufferCapacity(tier, ConverterType.ENERGY));
+        this.energy = new Buffer(StorageSizes.converterBuffer(tier, ConverterType.ENERGY));
     }
 
     /** The FE buffer: anything may draw from it, nothing may fill it, and the converter sets it directly. */
@@ -173,7 +175,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     }
 
     public int bufferCapacity() {
-        return ConverterMath.bufferCapacity(tier, type);
+        return StorageSizes.converterBuffer(tier, type);
     }
 
     public int lastBurn() {

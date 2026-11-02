@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.lamp;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineReach;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
@@ -29,7 +30,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  */
 public class FluxLampBlockEntity extends BlockEntity {
     private static final String TAG_TANK = "tank";
-    /** The lamp holds four buckets. */
+    /** The lamp's tank, four buckets, unless the config says otherwise (see {@link StorageSizes#lamp}). */
     public static final int CAPACITY = 4_000;
     /** How often a lamp works, in ticks. */
     private static final int INTERVAL = 20;
@@ -41,7 +42,17 @@ public class FluxLampBlockEntity extends BlockEntity {
     public FluxLampBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.LAMP.get(), pos, state);
         LampKind kind = ((FluxLampBlock) state.getBlock()).kind();
-        this.tank = new FluidStacksResourceHandler(1, CAPACITY) {
+        this.tank = new FluidStacksResourceHandler(1, StorageSizes.lamp()) {
+            /**
+             * Never less than what the tank holds. A tank can end up overfull (the config made lamps
+             * smaller); it still takes nothing more, and probes such as Jade, which refuse a fill
+             * above 100%, see a full tank instead of crashing.
+             */
+            @Override
+            public long getCapacityAsLong(int index, FluidResource resource) {
+                return Math.max(super.getCapacityAsLong(index, resource), getAmountAsLong(index));
+            }
+
             @Override
             public boolean isValid(int index, FluidResource resource) {
                 return ModFluids.fluxTypeOf(resource) == kind.flux();

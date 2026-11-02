@@ -51,6 +51,7 @@ public final class AeroFlux {
         ChunkLoaderTickets.register(modBusGroup);
         GatherDataEvent.getBus(modBusGroup).addListener(DataGenerators::gatherData);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
+        StorageSizesSync.register();
 
         LOGGER.info("AeroFlux loaded (Forge 26.1.2)");
     }

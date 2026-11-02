@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.chunkloader;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.chunkloader.ChunkLoaderMath;
@@ -84,7 +85,7 @@ public class ChunkLoaderMenu extends AbstractContainerMenu {
     }
 
     public int capacity() {
-        return ChunkLoaderMath.capacity(tier);
+        return StorageSizes.chunkLoader(tier);
     }
 
     public @Nullable FluxType fluxType() {

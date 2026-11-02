@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.client.screen.widget;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineLayout;
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
@@ -111,7 +112,7 @@ public class UpgradeSlots extends AbstractWidget implements HoverInfo {
         lines.add(Component.translatable("gui.aeroflux.upgrades.speed", speed, MachineUpgrades.speedPercent(speed),
                 MachineUpgrades.fluxPerTick(tier, speed)).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("gui.aeroflux.upgrades.capacity", capacity,
-                numbers.format(MachineUpgrades.inputCapacity(tier, capacity))).withStyle(ChatFormatting.GRAY));
+                numbers.format(StorageSizes.machine(tier, capacity))).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("gui.aeroflux.upgrades.hint").withStyle(ChatFormatting.DARK_GRAY));
         return lines;
     }

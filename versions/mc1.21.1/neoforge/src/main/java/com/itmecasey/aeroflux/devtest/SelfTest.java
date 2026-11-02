@@ -80,6 +80,7 @@ public final class SelfTest {
         ScreenSelfTest.setUp(level);
         MachineSelfTest.setUp(level);
         MoreMachinesSelfTest.setUp(level);
+        StorageSelfTest.run(level);
         command("time set day");
         phase = 0;
         ticks = 0;

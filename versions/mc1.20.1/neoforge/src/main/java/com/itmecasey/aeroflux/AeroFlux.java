@@ -48,6 +48,7 @@ public class AeroFlux {
         ModRecipes.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
+        StorageSizesSync.register();
         // The loader checks the chunk loaders' saved tickets as the world loads; this hands it the check.
         ChunkLoaderTickets.register();
 

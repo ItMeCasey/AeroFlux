@@ -69,6 +69,14 @@ public class ModLanguageProvider extends LanguageProvider {
             }
         }
         add("tooltip." + AeroFlux.MODID + ".upgrade_card", "Upgrades a %s machine, collector, tank or converter to %s: sneak and use it on the block");
+        String holds = "tooltip." + AeroFlux.MODID + ".holds.";
+        add(holds + "tank", "Holds %s");
+        add(holds + "collector", "Stores up to %s");
+        add(holds + "machine", "Flux tank: %s");
+        add(holds + "converter_energy", "Flux tank: %s, holds %s FE");
+        add(holds + "converter_ae", "Flux tank: %s, holds %s AE");
+        add(holds + "chunk_loader", "Flux tank: %s");
+        add(holds + "lamp", "Flux tank: %s");
         add("message." + AeroFlux.MODID + ".card_wrong_tier", "This block is %s; this card only upgrades %s");
         add("message." + AeroFlux.MODID + ".card_upgraded", "Upgraded to %s");
         add("advancements." + AeroFlux.MODID + ".root.title", "AeroFlux");

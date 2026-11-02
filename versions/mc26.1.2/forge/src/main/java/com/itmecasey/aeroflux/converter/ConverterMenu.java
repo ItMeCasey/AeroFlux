@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.converter;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Face;
@@ -85,7 +86,7 @@ public class ConverterMenu extends AbstractContainerMenu {
     }
 
     public int fluxCapacity() {
-        return ConverterMath.tankCapacity(tier);
+        return StorageSizes.converterTank(tier);
     }
 
     public @Nullable FluxType fluxType() {
@@ -99,7 +100,7 @@ public class ConverterMenu extends AbstractContainerMenu {
     }
 
     public int bufferCapacity() {
-        return ConverterMath.bufferCapacity(tier, type);
+        return StorageSizes.converterBuffer(tier, type);
     }
 
     /** Which way the converter's front points, so the screen can name its faces. */

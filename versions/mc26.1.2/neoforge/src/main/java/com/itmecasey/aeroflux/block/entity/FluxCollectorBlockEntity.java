@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.block.entity;
 
 import com.itmecasey.aeroflux.AeroFluxConfig;
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.core.CollectionMath;
 import com.itmecasey.aeroflux.core.DimensionRules;
@@ -53,7 +54,7 @@ public class FluxCollectorBlockEntity extends BlockEntity {
         super(ModBlockEntities.COLLECTOR.get(), pos, state);
         this.tier = ((FluxCollectorBlock) state.getBlock()).tier();
         // A single slot, so the buffer can only ever hold one kind of flux.
-        this.buffer = new FluidStacksResourceHandler(1, AeroFluxConfig.collectorBuffer(tier)) {
+        this.buffer = new FluidStacksResourceHandler(1, StorageSizes.collector(tier)) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update, or a Capacity upgrade came out); it still takes nothing more, and probes such as

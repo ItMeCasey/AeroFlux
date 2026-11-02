@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.chunkloader;
 
 import com.itmecasey.aeroflux.AeroFluxConfig;
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.block.entity.FluxDimensions;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -73,7 +74,7 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
         super(ModBlockEntities.CHUNK_LOADER.get(), pos, state);
         this.tier = ((FluxChunkLoaderBlock) state.getBlock()).tier();
         // One slot, so the loader holds one kind of Flux at a time; either kind will do.
-        this.tank = new FluidStacksResourceHandler(1, ChunkLoaderMath.capacity(tier)) {
+        this.tank = new FluidStacksResourceHandler(1, StorageSizes.chunkLoader(tier)) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update, or a Capacity upgrade came out); it still takes nothing more, and probes such as

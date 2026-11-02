@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.converter;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
@@ -70,7 +71,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
         FluxConverterBlock block = (FluxConverterBlock) state.getBlock();
         this.type = block.type();
         this.tier = block.tier();
-        this.tank = new FluidStacksResourceHandler(1, ConverterMath.tankCapacity(tier)) {
+        this.tank = new FluidStacksResourceHandler(1, StorageSizes.converterTank(tier)) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update, or a Capacity upgrade came out); it still takes nothing more, and probes such as
@@ -92,7 +93,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
             }
         };
         this.inputView = new InputOnlyFluidHandler(tank);
-        int buffer = ConverterMath.bufferCapacity(tier, ConverterType.ENERGY);
+        int buffer = StorageSizes.converterBuffer(tier, ConverterType.ENERGY);
         this.energy = new SimpleEnergyHandler(buffer, 0, buffer) {
             @Override
             protected void onEnergyChanged(int previousAmount) {
@@ -164,7 +165,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     }
 
     public int bufferCapacity() {
-        return ConverterMath.bufferCapacity(tier, type);
+        return StorageSizes.converterBuffer(tier, type);
     }
 
     public int lastBurn() {

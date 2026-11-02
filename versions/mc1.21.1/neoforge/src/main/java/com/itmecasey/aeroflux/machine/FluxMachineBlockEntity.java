@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.machine;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
@@ -17,6 +18,7 @@ import com.itmecasey.aeroflux.core.machine.RedstoneControl;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfigs;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import java.util.ArrayList;
@@ -67,9 +69,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The outside world sees the machine through item and fluid capabilities that follow the face
  * settings (see {@link SidedItemHandler} and {@link SidedFluidHandler}); the player sees it through
- * its menu. Tier decides the speed, the Flux cost and the tank size, all through {@link MachineMath};
- * Speed and Capacity upgrades in the upgrade slots change those numbers through
- * {@link MachineUpgrades}. A {@link RedstoneControl} can hold the machine back: while it does, the
+ * its menu. Tier decides the speed and the Flux cost through {@link MachineMath}, and the tank size
+ * through the config ({@link StorageSizes#machine}); Speed and Capacity upgrades in the upgrade
+ * slots change those numbers through {@link MachineUpgrades}. A {@link RedstoneControl} can hold the machine back: while it does, the
  * machine keeps its progress, burns nothing and stays unlit.
  */
 public abstract class FluxMachineBlockEntity extends BlockEntity implements MenuProvider {
@@ -163,7 +165,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         this.machine = block.machine();
         this.sides = new SideConfigs(machine.resources());
         // A single tank, so it can only ever hold one kind of flux.
-        this.fluxTank = new FluidTank(MachineMath.inputCapacity(tier), this::acceptsFlux) {
+        this.fluxTank = new FluxFluidTank(StorageSizes.machine(tier), this::acceptsFlux) {
             /**
              * Capacity upgrades can change this at any time, so it is never cached. It is never
              * less than what the tank holds: a tank can end up overfull (a Capacity upgrade came
@@ -181,7 +183,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             }
         };
         for (ExtraTank spec : machine.extraTanks()) {
-            extraTanks.add(new FluidTank(MachineMath.inputCapacity(tier), stack -> ExtraTanks.matches(spec, stack)) {
+            extraTanks.add(new FluxFluidTank(StorageSizes.machine(tier), stack -> ExtraTanks.matches(spec, stack)) {
                 @Override
                 public int getCapacity() {
                     return Math.max(fluxCapacity(), getFluidAmount());
@@ -483,7 +485,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     /** The size of the Flux tank in mB, with Capacity upgrades counted. */
     public int fluxCapacity() {
-        return MachineUpgrades.inputCapacity(tier, capacityUpgrades());
+        return StorageSizes.machine(tier, capacityUpgrades());
     }
 
     // --- Upgrades and redstone ---------------------------------------------------------------

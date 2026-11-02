@@ -88,6 +88,7 @@ public final class SelfTest {
         MachineUpgradeSelfTest.setUp(level);
         ChunkLoaderSelfTest.setUp(level);
         MoreMachinesSelfTest.setUp(level);
+        StorageSelfTest.run(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;

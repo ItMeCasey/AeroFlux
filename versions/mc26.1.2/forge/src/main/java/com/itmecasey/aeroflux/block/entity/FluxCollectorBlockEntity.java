@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.block.entity;
 
 import com.itmecasey.aeroflux.AeroFluxConfig;
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.core.CollectionMath;
 import com.itmecasey.aeroflux.core.DimensionRules;
@@ -56,7 +57,7 @@ public class FluxCollectorBlockEntity extends BlockEntity {
     public FluxCollectorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COLLECTOR.get(), pos, state);
         this.tier = ((FluxCollectorBlock) state.getBlock()).tier();
-        this.buffer = new FluxFluidTank(AeroFluxConfig.collectorBuffer(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
+        this.buffer = new FluxFluidTank(StorageSizes.collector(tier), stack -> ModFluids.isFlux(stack.getFluid())) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update); it still takes nothing more, and probes see a full tank rather than more than 100%.

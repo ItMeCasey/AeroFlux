@@ -1,6 +1,11 @@
 package com.itmecasey.aeroflux;
 
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.chunkloader.ChunkLoaderMath;
+import com.itmecasey.aeroflux.core.converter.ConverterMath;
+import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.machine.MachineMath;
+import com.itmecasey.aeroflux.lamp.FluxLampBlockEntity;
 import java.util.EnumMap;
 import java.util.Map;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -10,6 +15,10 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  *
  * <p>Tier numbers default to the values in {@link Tier} and can be rebalanced here without
  * touching code. Values are read lazily, so call the accessors only after the config has loaded.
+ *
+ * <p>Storage sizes are not read from here directly: code asks {@link StorageSizes}, which hands a
+ * client the server's sizes instead of the client's own file, so screens, tooltips and the tank
+ * picture match the server. A changed size reaches a block the next time it loads.
  */
 public final class AeroFluxConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
@@ -20,8 +29,16 @@ public final class AeroFluxConfig {
 
     private static final Map<Tier, TierValues> TIER_VALUES = new EnumMap<>(Tier.class);
 
+    /**
+     * The largest machine tank allowed: four Capacity Upgrades make it five times as big, and that
+     * still has to fit in an int.
+     */
+    private static final int MAX_UPGRADABLE = Integer.MAX_VALUE / 5;
+
     static {
-        BUILDER.comment("Per-tier stats for collectors and tanks. Defaults are the built-in balance.")
+        BUILDER.comment("Per-tier stats: collector output and how much every block of the tier holds.",
+                        "Defaults are the built-in balance. A changed size applies to a block the next time it loads.",
+                        "A block that holds more than a smaller new size keeps it and takes nothing more until it drops below.")
                 .push("tiers");
         for (Tier tier : Tier.values()) {
             BUILDER.push(tier.id());
@@ -31,11 +48,26 @@ public final class AeroFluxConfig {
                     BUILDER.comment("Collector internal buffer (buckets).")
                             .defineInRange("collectorBufferBuckets", tier.collectorBuffer() / 1_000, 1, 1_000_000),
                     BUILDER.comment("Storage tank capacity (mB).")
-                            .defineInRange("tankCapacityMb", tier.tankCapacity(), 1_000, Integer.MAX_VALUE)));
+                            .defineInRange("tankCapacityMb", tier.tankCapacity(), 1_000, Integer.MAX_VALUE),
+                    BUILDER.comment("Machine Flux tank, and each extra tank (water, Twilight Flux), before Capacity Upgrades (mB).",
+                                    "Each Capacity Upgrade adds this much again.")
+                            .defineInRange("machineTankMb", MachineMath.inputCapacity(tier), 1_000, MAX_UPGRADABLE),
+                    BUILDER.comment("Flux converter tank (mB).")
+                            .defineInRange("converterTankMb", ConverterMath.tankCapacity(tier), 1_000, Integer.MAX_VALUE),
+                    BUILDER.comment("Energy the Flux to FE converter holds before it must hand some on (FE).")
+                            .defineInRange("converterBufferFe", ConverterMath.bufferCapacity(tier, ConverterType.ENERGY), 1_000, Integer.MAX_VALUE),
+                    BUILDER.comment("Power the Flux to AE converter holds before it must hand some on (AE).")
+                            .defineInRange("converterBufferAe", ConverterMath.bufferCapacity(tier, ConverterType.AE), 1_000, Integer.MAX_VALUE),
+                    BUILDER.comment("Flux Chunk Loader tank (mB).")
+                            .defineInRange("chunkLoaderTankMb", ChunkLoaderMath.capacity(tier), 1_000, Integer.MAX_VALUE)));
             BUILDER.pop();
         }
         BUILDER.pop();
     }
+
+    private static final ModConfigSpec.IntValue LAMP_TANK = BUILDER
+            .comment("Flux tank of every Sun and Moon Lamp, whatever its tier (mB).")
+            .defineInRange("lampTankMb", FluxLampBlockEntity.CAPACITY, 1_000, Integer.MAX_VALUE);
 
     // Chunk loaders. The area and Flux cost of each tier are fixed in ChunkLoaderMath; only the
     // server's limits live here.
@@ -126,6 +158,32 @@ public final class AeroFluxConfig {
         return TIER_VALUES.get(tier).tankCapacityMb.get();
     }
 
+    /** A machine's Flux tank before Capacity Upgrades, in mB. */
+    public static int machineTank(Tier tier) {
+        return TIER_VALUES.get(tier).machineTankMb.get();
+    }
+
+    /** A converter's Flux tank, in mB. */
+    public static int converterTank(Tier tier) {
+        return TIER_VALUES.get(tier).converterTankMb.get();
+    }
+
+    /** What a converter's output buffer holds, in FE for the FE converter and AE for the AE one. */
+    public static int converterBuffer(Tier tier, ConverterType type) {
+        TierValues values = TIER_VALUES.get(tier);
+        return (type == ConverterType.AE ? values.converterBufferAe : values.converterBufferFe).get();
+    }
+
+    /** A chunk loader's Flux tank, in mB. */
+    public static int chunkLoaderTank(Tier tier) {
+        return TIER_VALUES.get(tier).chunkLoaderTankMb.get();
+    }
+
+    /** A Sun or Moon Lamp's Flux tank, in mB. */
+    public static int lampTank() {
+        return LAMP_TANK.get();
+    }
+
     /** Whether chunk loaders may load chunks at all on this server. */
     public static boolean chunkLoadersEnabled() {
         return CHUNK_LOADERS_ENABLED.get();
@@ -146,11 +204,16 @@ public final class AeroFluxConfig {
         return CHUNK_LOADERS_PER_DIMENSION.get();
     }
 
-    /** The three config entries that make up one tier. */
+    /** The config entries that make up one tier. */
     private record TierValues(
             ModConfigSpec.IntValue collectorRate,
             ModConfigSpec.IntValue collectorBufferBuckets,
-            ModConfigSpec.IntValue tankCapacityMb) {
+            ModConfigSpec.IntValue tankCapacityMb,
+            ModConfigSpec.IntValue machineTankMb,
+            ModConfigSpec.IntValue converterTankMb,
+            ModConfigSpec.IntValue converterBufferFe,
+            ModConfigSpec.IntValue converterBufferAe,
+            ModConfigSpec.IntValue chunkLoaderTankMb) {
     }
 
     /** Whether Sky Controllers work at all. */

@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.machine;
 
+import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
@@ -70,9 +71,9 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The outside world sees the machine through item and fluid capabilities that follow the face
  * settings (see {@link SidedItemHandler} and {@link SidedFluidHandler}); the player sees it through
- * its menu. Tier decides the speed, the Flux cost and the tank size, all through {@link MachineMath};
- * Speed and Capacity upgrades in the upgrade slots change those numbers through
- * {@link MachineUpgrades}. A {@link RedstoneControl} can hold the machine back: while it does, the
+ * its menu. Tier decides the speed and the Flux cost through {@link MachineMath}, and the tank size
+ * through the config ({@link StorageSizes#machine}); Speed and Capacity upgrades in the upgrade
+ * slots change those numbers through {@link MachineUpgrades}. A {@link RedstoneControl} can hold the machine back: while it does, the
  * machine keeps its progress, burns nothing and stays unlit.
  */
 public abstract class FluxMachineBlockEntity extends BlockEntity implements MenuProvider {
@@ -157,7 +158,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         this.machine = block.machine();
         this.sides = new SideConfigs(machine.resources());
         // A single slot, so the tank can only ever hold one kind of flux.
-        this.fluxTank = new FluidStacksResourceHandler(1, MachineMath.inputCapacity(tier)) {
+        this.fluxTank = new FluidStacksResourceHandler(1, StorageSizes.machine(tier)) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update, or a Capacity upgrade came out); it still takes nothing more, and probes such as
@@ -196,7 +197,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         private final ExtraTank spec;
 
         ExtraTankHandler(ExtraTank spec) {
-            super(1, MachineMath.inputCapacity(tier));
+            super(1, StorageSizes.machine(tier));
             this.spec = spec;
         }
 
@@ -519,7 +520,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     /** The size of the Flux tank in mB, with Capacity upgrades counted. */
     public int fluxCapacity() {
-        return MachineUpgrades.inputCapacity(tier, capacityUpgrades());
+        return StorageSizes.machine(tier, capacityUpgrades());
     }
 
     // --- Upgrades and redstone ---------------------------------------------------------------
