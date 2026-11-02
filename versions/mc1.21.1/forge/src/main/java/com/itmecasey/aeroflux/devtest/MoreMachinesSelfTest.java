@@ -71,6 +71,8 @@ final class MoreMachinesSelfTest {
     private static BlockPos breeder;
     private static BlockPos repairer;
     private static BlockPos spawner;
+    private static BlockPos armedSpawner;
+    private static BlockPos bareSpawner;
     private static BlockPos sunLamp;
 
     private MoreMachinesSelfTest() {
@@ -191,6 +193,18 @@ final class MoreMachinesSelfTest {
         machine(spawner).setFlux(new FluidStack(ModFluids.MOON_FLUX.get(), 8_000));
         machine(spawner).setStackIn(0, new ItemStack(Items.CHICKEN_SPAWN_EGG));
 
+        // Two blaze spawners: blaze rods only drop for a player kill, so only the one with a
+        // weapon may make any. Looting III makes a run of three blazes without a rod near impossible.
+        armedSpawner = machine(MachineType.SPAWNER, 8, 9, 0);
+        machine(armedSpawner).setFlux(new FluidStack(ModFluids.MOON_FLUX.get(), 8_000));
+        machine(armedSpawner).setStackIn(0, new ItemStack(Items.BLAZE_SPAWN_EGG));
+        ItemStack looting = new ItemStack(Items.IRON_SWORD);
+        looting.enchant(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING), 3);
+        machine(armedSpawner).setStackIn(1, looting);
+        bareSpawner = machine(MachineType.SPAWNER, 10, 9, 0);
+        machine(bareSpawner).setFlux(new FluidStack(ModFluids.MOON_FLUX.get(), 8_000));
+        machine(bareSpawner).setStackIn(0, new ItemStack(Items.BLAZE_SPAWN_EGG));
+
         // Sun Lamp: a bucket of Aero Flux.
         sunLamp = new BlockPos(13, Y, 5);
         level.setBlock(sunLamp, ModBlocks.lamp(LampKind.SUN, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
@@ -274,6 +288,13 @@ final class MoreMachinesSelfTest {
         SelfTest.check("spawner: a chicken egg filled the outputs with raw chicken", count(spawner, Items.CHICKEN) > 0);
         SelfTest.check("spawner: no chicken was put in the world",
                 level.getEntitiesOfClass(Chicken.class, new AABB(spawner).inflate(4)).isEmpty());
+        SelfTest.check("spawner: with a weapon the blazes die to a player and drop blaze rods",
+                count(armedSpawner, Items.BLAZE_ROD) > 0);
+        SelfTest.check("spawner: the weapon is still in its slot afterwards",
+                machine(armedSpawner).stackIn(1).is(Items.IRON_SWORD));
+        // It burned Flux, so it did run; a blaze killed by no one drops nothing.
+        SelfTest.check("spawner: without a weapon there is no player kill, so no blaze rods",
+                machine(bareSpawner).fluxAmount() < 8_000 && count(bareSpawner, Items.BLAZE_ROD) == 0);
     }
 
     private static void checkLamp() {
