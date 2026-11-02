@@ -14,8 +14,9 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 class PipeTexturesTest {
-    /** The generated textures, as the art tool writes them. */
-    private static final Path TEXTURES = Path.of("..", "assets-src", "aeroflux_pipes", "textures", "block");
+    /** The pipe textures as a build ships them; every build has the same set. */
+    private static final Path TEXTURES = Path.of("..", "versions", "mc26.1.2", "neoforge", "src", "main", "resources",
+            "assets", "aeroflux", "textures", "block");
 
     @Test
     void namesFollowTheArtsPattern() {
@@ -31,7 +32,9 @@ class PipeTexturesTest {
         assertEquals(names.size(), new HashSet<>(names).size(), "duplicate names");
         List<String> files;
         try (Stream<Path> list = Files.list(TEXTURES)) {
-            files = list.map(path -> path.getFileName().toString().replace(".png", "")).sorted().toList();
+            // Only the per-part textures: the folder also holds the item textures and pipe_node.
+            files = list.map(path -> path.getFileName().toString().replace(".png", ""))
+                    .filter(name -> name.matches("pipe_.+_(arm|core|plug).*")).sorted().toList();
         }
         assertEquals(names.stream().sorted().toList(), files);
     }
