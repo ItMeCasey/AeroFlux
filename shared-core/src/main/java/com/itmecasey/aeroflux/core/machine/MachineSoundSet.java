@@ -34,4 +34,12 @@ public final class MachineSoundSet {
             case MAGNET -> null;
         };
     }
+
+    /**
+     * Whether a sound event path (such as {@code machine.grinder.loop}) is one of the running
+     * loops, as opposed to the short start, stop and finish sounds.
+     */
+    public static boolean isLoop(String soundPath) {
+        return soundPath.startsWith("machine.") && soundPath.endsWith(".loop");
+    }
 }

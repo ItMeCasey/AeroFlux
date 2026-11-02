@@ -33,4 +33,11 @@ class MachineSoundSetTest {
         }
         assertTrue(used.containsAll(MachineSoundSet.LOOPS));
     }
+
+    @Test
+    void loopsAreToldFromTheShortSounds() {
+        assertTrue(MachineSoundSet.isLoop("machine.grinder.loop"));
+        assertTrue(!MachineSoundSet.isLoop("machine.start"));
+        assertTrue(!MachineSoundSet.isLoop("machine.done"));
+    }
 }
