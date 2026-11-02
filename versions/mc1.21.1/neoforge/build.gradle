@@ -137,6 +137,8 @@ dependencies {
     localRuntime "maven.modrinth:ae2:${ae2_version}"
     localRuntime "maven.modrinth:guideme:${guideme_version}"
 
+    compileOnly "maven.modrinth:mekanism:${mekanism_version}"
+    localRuntime "maven.modrinth:mekanism:${mekanism_version}"
     compileOnly "maven.modrinth:jei:${jei_version}"
     localRuntime "maven.modrinth:jei:${jei_version}"
 

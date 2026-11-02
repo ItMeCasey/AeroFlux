@@ -160,6 +160,8 @@ dependencies {
     modCompileOnly "maven.modrinth:ae2:${ae2_version}"
     modLocalRuntime "maven.modrinth:ae2:${ae2_version}"
     modLocalRuntime "maven.modrinth:guideme:${guideme_version}"
+    modCompileOnly "maven.modrinth:mekanism:${mekanism_version}"
+    modLocalRuntime "maven.modrinth:mekanism:${mekanism_version}"
     modCompileOnly "maven.modrinth:jei:${jei_version}"
     modLocalRuntime "maven.modrinth:jei:${jei_version}"
     modCompileOnly "maven.modrinth:kubejs:${kubejs_version}"

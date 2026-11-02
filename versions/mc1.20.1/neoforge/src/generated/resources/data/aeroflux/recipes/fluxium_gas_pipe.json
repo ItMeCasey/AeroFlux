@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "mekanism"
+    }
+  ],
+  "key": {
+    "B": {
+      "item": "aeroflux:moon_crystal"
+    },
+    "P": {
+      "item": "aeroflux:netherite_gas_pipe"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "item": "aeroflux:aero_crystal"
+    }
+  },
+  "pattern": [
+    "PTP",
+    "PSP",
+    "PBP"
+  ],
+  "result": {
+    "count": 6,
+    "item": "aeroflux:fluxium_gas_pipe"
+  },
+  "show_notification": true
+}

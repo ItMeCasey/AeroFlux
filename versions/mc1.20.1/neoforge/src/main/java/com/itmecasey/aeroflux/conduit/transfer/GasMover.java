@@ -1,18 +1,21 @@
 package com.itmecasey.aeroflux.conduit.transfer;
 
+import com.itmecasey.aeroflux.compat.mekanism.MekanismCompat;
 import net.minecraft.server.level.ServerLevel;
 
 /**
  * The gas network's mover.
  *
- * <p>Forge has no gas capability, so for now a gas network finds no endpoints and this
- * mover has nothing to do. Gas support arrives with a soft dependency on Mekanism: the endpoint
- * lookup will ask for Mekanism's gas handler capability and this class will plan and move gas the
- * same way {@link FluidMover} moves fluid, using {@link AmountMover}.
+ * <p>Forge has no gas capability of its own; gases come from Mekanism. Without Mekanism a gas
+ * network finds no endpoints and there is nothing to do. With it, {@link ChemicalMover} plans and
+ * moves gas the way {@link FluidMover} moves fluid. That class names Mekanism classes, so it is only
+ * reached once Mekanism is known to be installed.
  */
 final class GasMover implements ResourceMover {
     @Override
     public void run(ServerLevel level, LaneNetwork network, LaneState state) {
-        // Intentionally empty until the Mekanism gas capability is available.
+        if (MekanismCompat.loaded()) {
+            ChemicalMover.run(level, network, state);
+        }
     }
 }

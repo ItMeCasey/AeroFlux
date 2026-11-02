@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.devtest;
 
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.compat.mekanism.MekanismCompat;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.core.Tier;
@@ -145,6 +146,10 @@ final class TransferSelfTest {
         upgraded = fluidLine(230, 6, Tier.COPPER, 1, 20_000, ConnectionMode.IMPORT, ConnectionMode.EXPORT);
         mixed = fluidLine(230, 10, Tier.COPPER, 2, 20_000, ConnectionMode.IMPORT, ConnectionMode.EXPORT);
         gold = fluidLine(230, 14, Tier.GOLD, 1, 20_000, ConnectionMode.IMPORT, ConnectionMode.EXPORT);
+        // Gas pipes need Mekanism's gases; without Mekanism there is nothing to move.
+        if (MekanismCompat.loaded()) {
+            GasSelfTest.build(level, 238, 6);
+        }
         SelfTest.check("upgrades: a speed upgrade installs through the game's upgrade logic",
                 UpgradeItem.install(entity(upgraded.bundles().get(0)), PipeType.FLUID, PipeUpgrades.Kind.SPEED));
         UpgradeItem.install(entity(mixed.bundles().get(0)), PipeType.FLUID, PipeUpgrades.Kind.SPEED);
@@ -223,6 +228,9 @@ final class TransferSelfTest {
         }
         if (tick == CHECK_FLUID) {
             checkPlainFluid();
+            if (MekanismCompat.loaded()) {
+                GasSelfTest.check(level);
+            }
             checkGating();
             checkDistribution();
         }

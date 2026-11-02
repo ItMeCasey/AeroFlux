@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux.conduit.config;
 
+import com.itmecasey.aeroflux.compat.mekanism.MekanismCompat;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.conduit.EndpointUpgradeItem;
 import com.itmecasey.aeroflux.conduit.FluxWrenchItem;
@@ -369,10 +370,10 @@ public final class PipeConfigActions {
     }
 
     /**
-     * What a held stack would put into a filter of this pipe: the item's id for item pipes and
-     * the id of the fluid it contains for fluid pipes.
+     * What a held stack would put into a filter of this pipe: the item's id for item pipes, the id
+     * of the fluid it contains for fluid pipes and of the Mekanism gas it holds for gas pipes.
      *
-     * @return the id, or {@code null} if the stack is empty or holds no fluid
+     * @return the id, or {@code null} if the stack is empty or holds no fluid or gas
      */
     public static String filterId(PipeType type, ItemStack stack) {
         if (stack.isEmpty()) {
@@ -381,6 +382,9 @@ public final class PipeConfigActions {
         if (type == PipeType.FLUID) {
             FluidStack fluid = FluidUtil.getFluidContained(stack).orElse(FluidStack.EMPTY);
             return fluid.isEmpty() ? null : fluidId(fluid.getFluid());
+        }
+        if (type == PipeType.GAS) {
+            return MekanismCompat.gasIn(stack);
         }
         return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
     }

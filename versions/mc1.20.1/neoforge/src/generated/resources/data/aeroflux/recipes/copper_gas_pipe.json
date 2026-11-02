@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "mekanism"
+    }
+  ],
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "X": {
+      "item": "minecraft:glass_bottle"
+    }
+  },
+  "pattern": [
+    "CCC",
+    "DXD",
+    "CCC"
+  ],
+  "result": {
+    "count": 8,
+    "item": "aeroflux:copper_gas_pipe"
+  },
+  "show_notification": true
+}

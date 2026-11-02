@@ -430,8 +430,8 @@ public class ModRecipeProvider extends RecipeProvider {
     private void pipes() {
         Tier[] tiers = Tier.values();
         for (PipeType type : PipeType.values()) {
-            if (type == PipeType.DENSE_ME || type == PipeType.GAS) {
-                // Dense ME pipes are made from ME pipes below; gas pipes wait for the Mekanism hookup.
+            if (type == PipeType.DENSE_ME) {
+                // Dense ME pipes are made from ME pipes below.
                 continue;
             }
             ItemLike copperPipe = ModItems.pipe(type, Tier.COPPER).get();
@@ -474,11 +474,14 @@ public class ModRecipeProvider extends RecipeProvider {
     }
 
     /**
-     * Where a pipe's recipes go. ME pipes only matter with AE2, so their recipes load only when AE2
-     * is installed and stay out of the recipe book otherwise.
+     * Where a pipe's recipes go. ME pipes only matter with AE2 and gas pipes with Mekanism, so their
+     * recipes load only when that mod is installed and stay out of the recipe book otherwise.
      */
     private Consumer<FinishedRecipe> outputFor(PipeType type) {
-        return type == PipeType.ME || type == PipeType.DENSE_ME ? whenLoaded("ae2") : output;
+        if (type == PipeType.ME || type == PipeType.DENSE_ME) {
+            return whenLoaded("ae2");
+        }
+        return type == PipeType.GAS ? whenLoaded("mekanism") : output;
     }
 
     /**

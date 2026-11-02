@@ -1,18 +1,18 @@
 package com.itmecasey.aeroflux.conduit.transfer;
 
+import com.itmecasey.aeroflux.compat.mekanism.MekanismCompat;
 import net.minecraft.server.level.ServerLevel;
 
 /**
- * The gas network's mover.
- *
- * <p>Vanilla NeoForge has no gas capability, so for now a gas network finds no endpoints and this
- * mover has nothing to do. Gas support arrives with a soft dependency on Mekanism: the endpoint
- * lookup will ask for Mekanism's gas handler capability and this class will plan and move gas the
- * same way {@link FluidMover} moves fluid, using {@link AmountMover}.
+ * The gas network's mover. Gases and the other Mekanism chemicals only exist with Mekanism, so
+ * without it a gas network finds no endpoints and this does nothing; with it the work goes to
+ * {@link ChemicalMover}, which is only loaded then.
  */
 final class GasMover implements ResourceMover {
     @Override
     public void run(ServerLevel level, LaneNetwork network, LaneState state) {
-        // Intentionally empty until the Mekanism gas capability is available.
+        if (MekanismCompat.loaded()) {
+            ChemicalMover.run(level, network, state);
+        }
     }
 }
