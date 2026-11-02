@@ -28,9 +28,10 @@ public final class EnchantSettings {
         }
     }
 
+    // The config file watcher can report a reload after the server has unloaded the config; skip it then.
     @SubscribeEvent
     public static void configReloaded(ModConfigEvent.Reloading event) {
-        if (event.getConfig().getSpec() == AeroFluxConfig.SPEC) {
+        if (event.getConfig().getSpec() == AeroFluxConfig.SPEC && AeroFluxConfig.SPEC.isLoaded()) {
             EnchantRules.use(AeroFluxConfig.enchantSettings());
         }
     }
