@@ -28,6 +28,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -531,6 +532,11 @@ final class ScreenSelfTest {
         @Override
         public void closeContainer() {
             containerMenu = inventoryMenu;
+        }
+
+        @Override
+        public void displayClientMessage(Component message, boolean overlay) {
+            // There is no client to show it on, as with the menus above.
         }
     }
 

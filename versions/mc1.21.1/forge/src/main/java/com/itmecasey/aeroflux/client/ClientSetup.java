@@ -11,9 +11,11 @@ import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.client.screen.TankScreen;
+import com.itmecasey.aeroflux.client.sound.MachineSounds;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
+import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
@@ -43,6 +45,7 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_TANK.get(), FluxTankRenderer::new);
     }
 
     /** Teaches the model system the {@code aeroflux:conduit_bundle} model type. */
@@ -94,6 +97,8 @@ public final class ClientSetup {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_TWILIGHT_FLUX.get(), translucent);
             // The guidebook item opens its screen through here, so the item itself never names a screen.
             GuidebookItem.setOpener(GuideScreen::open);
+            // The machines' running sounds are client only, so the block gets its client tick from here.
+            FluxMachineBlock.setClientTicker(MachineSounds::tick);
         });
     }
 }

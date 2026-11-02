@@ -1,5 +1,7 @@
 package com.itmecasey.aeroflux.machine;
 
+import com.itmecasey.aeroflux.block.FluxParticles;
+import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.fluid.Buckets;
@@ -11,6 +13,7 @@ import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -54,6 +57,10 @@ public class FluxMachineBlock extends BaseEntityBlock {
                     .fieldOf("machine").forGetter(FluxMachineBlock::machine),
             propertiesCodec()
     ).apply(instance, FluxMachineBlock::new));
+
+    /** The machines' client tick; see {@link #setClientTicker}. Stays null on a server. */
+    @Nullable
+    private static BlockEntityTicker<FluxMachineBlockEntity> clientTicker;
 
     private final Tier tier;
     private final MachineType machine;
@@ -158,11 +165,30 @@ public class FluxMachineBlock extends BaseEntityBlock {
         }
     }
 
-    /** Only the server works, so only the server ticks. */
+    /**
+     * Sets what a machine does on the client each tick: start its running sound. The client setup
+     * sets it, so the server never loads any sound classes.
+     */
+    public static void setClientTicker(BlockEntityTicker<FluxMachineBlockEntity> ticker) {
+        clientTicker = ticker;
+    }
+
+    /** Only the server works; the client only plays the running sound. */
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide ? null
-                : createTickerHelper(type, ModBlockEntities.MACHINE.get(), FluxMachineBlockEntity::serverTick);
+        if (level.isClientSide) {
+            return clientTicker == null ? null : createTickerHelper(type, ModBlockEntities.MACHINE.get(), clientTicker);
+        }
+        return createTickerHelper(type, ModBlockEntities.MACHINE.get(), FluxMachineBlockEntity::serverTick);
+    }
+
+    /** A working machine gives off a mote now and then, in the color of the flux it runs on. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (state.getValue(LIT)) {
+            FluxType flux = machine.acceptedFlux().contains(FluxType.AERO) ? FluxType.AERO : FluxType.MOON;
+            FluxParticles.machine(level, pos, random, flux);
+        }
     }
 }

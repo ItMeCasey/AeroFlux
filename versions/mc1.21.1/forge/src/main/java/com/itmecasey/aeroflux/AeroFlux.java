@@ -10,6 +10,7 @@ import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import com.itmecasey.aeroflux.registry.ModMenus;
 import com.itmecasey.aeroflux.registry.ModRecipes;
+import com.itmecasey.aeroflux.registry.ModSounds;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -49,7 +50,10 @@ public class AeroFlux {
         ModMenus.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
+        ModSounds.register(modEventBus);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
+        // Sound and particle settings only matter where the game is drawn.
+        context.registerConfig(ModConfig.Type.CLIENT, AeroFluxClientConfig.SPEC);
         StorageSizesSync.register();
         // Forge checks the chunk loaders' saved tickets as the world loads; this hands it the check.
         ChunkLoaderTickets.register();

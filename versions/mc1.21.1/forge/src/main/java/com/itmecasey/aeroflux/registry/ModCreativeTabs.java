@@ -63,6 +63,7 @@ public final class ModCreativeTabs {
                             output.accept(ModBlocks.collector(tier).get());
                             output.accept(ModBlocks.tank(tier).get());
                         }
+                        output.accept(ModBlocks.CREATIVE_TANK.get());
                         for (MachineType machine : MachineType.values()) {
                             for (Tier tier : Tier.values()) {
                                 output.accept(ModBlocks.machine(machine, tier).get());

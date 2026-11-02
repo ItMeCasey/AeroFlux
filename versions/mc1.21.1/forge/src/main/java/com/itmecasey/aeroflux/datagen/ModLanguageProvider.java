@@ -57,6 +57,25 @@ public class ModLanguageProvider extends LanguageProvider {
         add("fluid_type." + AeroFlux.MODID + ".twilight_flux", "Twilight Flux");
     }
 
+    /** The machine sound subtitles and the creative-only blocks. */
+    private void addSoundAndCreativeTranslations() {
+        String subtitle = "subtitles." + AeroFlux.MODID + ".machine.";
+        add(subtitle + "furnace", "Flux Furnace running");
+        add(subtitle + "grinder", "Flux Grinder running");
+        add(subtitle + "smelter", "Alloy Smelter running");
+        add(subtitle + "sawmill", "Flux Sawmill running");
+        add(subtitle + "infuser", "Flux Infuser running");
+        add(subtitle + "enchanter", "Flux Enchanter running");
+        add(subtitle + "disenchanter", "Flux Disenchanter running");
+        add(subtitle + "grower", "Plant Grower running");
+        add(subtitle + "start", "Machine powers up");
+        add(subtitle + "stop", "Machine powers down");
+        add(subtitle + "done", "Machine finishes");
+
+        addBlock(ModBlocks.CREATIVE_TANK, "Creative Flux Tank");
+        add("message." + AeroFlux.MODID + ".creative_tank.flux", "Creative Flux Tank now gives %s");
+    }
+
     /** The flux badge and cost bar on the machine screens, and the collector and tank screens. */
     private void addFluxScreenTranslations() {
         add("gui.aeroflux.badge.name", "Flux type");
@@ -266,6 +285,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui.aeroflux.progress.left", "%s s left");
         add("gui.aeroflux.status.name", "Machine status");
         addFluxScreenTranslations();
+        addSoundAndCreativeTranslations();
 
         String status = "machine." + AeroFlux.MODID + ".status.";
         add(status + "idle", "Idle");

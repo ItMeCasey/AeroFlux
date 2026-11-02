@@ -21,11 +21,15 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -58,6 +62,7 @@ public class FluxCollectorBlockEntity extends BlockEntity implements MenuProvide
     private static final int PUSH_INTERVAL = 4;
     /** The most fluid moved to neighbors in one push, in mB. */
     private static final int PUSH_LIMIT = 4_000;
+    private static final String TAG_COLLECTING = "collecting";
 
     private final Tier tier;
     private final FluidTank buffer;
@@ -76,6 +81,13 @@ public class FluxCollectorBlockEntity extends BlockEntity implements MenuProvide
     private FluxType offered;
     /** True while the buffer still holds the other flux, so the offered one has to wait. */
     private boolean bufferLocked;
+    /**
+     * The flux it is collecting, as clients were last told, for the motes over its dish; null
+     * while it collects nothing. It only changes at dawn, dusk or when the sky or buffer changes,
+     * so it costs a block update now and then, never every tick.
+     */
+    @Nullable
+    private FluxType collecting;
 
     public FluxCollectorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COLLECTOR.get(), pos, state);
@@ -125,6 +137,11 @@ public class FluxCollectorBlockEntity extends BlockEntity implements MenuProvide
         }
 
         produce(level);
+        FluxType nowCollecting = lastRate > 0.0 ? offered : null;
+        if (nowCollecting != collecting) {
+            collecting = nowCollecting;
+            level.sendBlockUpdated(pos, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
 
         if (time % PUSH_INTERVAL == 0 && !buffer.isEmpty()) {
             pushToNeighbors(level, pos);
@@ -282,6 +299,12 @@ public class FluxCollectorBlockEntity extends BlockEntity implements MenuProvide
         CollectorMenu.writeOpenData(buf, worldPosition, tier);
     }
 
+    /** The flux it is collecting right now, or {@code null}; on a client, as the server last said. */
+    @Nullable
+    public FluxType collecting() {
+        return collecting;
+    }
+
     /** Collectors can be drained from any side but never filled. */
     @NotNull
     @Override
@@ -310,5 +333,31 @@ public class FluxCollectorBlockEntity extends BlockEntity implements MenuProvide
         super.loadAdditional(tag, registries);
         buffer.readFromNBT(tag);
         accumulator.setCarry(tag.getDouble("carry"));
+        collecting = fluxById(tag.getString(TAG_COLLECTING));
+    }
+
+    /** Clients only need to know what is being collected; the buffer reaches the screen through the menu. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        if (collecting != null) {
+            tag.putString(TAG_COLLECTING, collecting.id());
+        }
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Nullable
+    private static FluxType fluxById(String id) {
+        for (FluxType type : FluxType.values()) {
+            if (type.id().equals(id)) {
+                return type;
+            }
+        }
+        return null;
     }
 }

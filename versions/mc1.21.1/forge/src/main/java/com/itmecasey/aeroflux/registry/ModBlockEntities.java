@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
+import com.itmecasey.aeroflux.creative.CreativeFluxTankBlockEntity;
 import com.itmecasey.aeroflux.lamp.FluxLampBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineFactory;
@@ -44,6 +45,10 @@ public final class ModBlockEntities {
 
     public static final RegistryObject<BlockEntityType<FluxLampBlockEntity>> LAMP =
             BLOCK_ENTITIES.register("lamp", () -> BlockEntityType.Builder.of(FluxLampBlockEntity::new, blocksOf(ModBlocks.lamps())).build(null));
+
+    public static final RegistryObject<BlockEntityType<CreativeFluxTankBlockEntity>> CREATIVE_TANK =
+            BLOCK_ENTITIES.register("creative_flux_tank", () -> BlockEntityType.Builder.of(
+                    CreativeFluxTankBlockEntity::new, ModBlocks.CREATIVE_TANK.get()).build(null));
 
     private ModBlockEntities() {
     }

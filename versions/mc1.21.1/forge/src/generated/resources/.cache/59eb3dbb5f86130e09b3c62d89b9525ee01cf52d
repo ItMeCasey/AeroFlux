@@ -1,9 +1,10 @@
-// 1.21.1	2026-11-02T15:04:03.1316886	Loot Tables
+// 1.21.1	2026-11-02T17:39:18.0648863	Loot Tables
 7872a75964b885ebac2b833290d8e77a6384b5b2 data/aeroflux/loot_table/blocks/alloy_smelter.json
 377fa321f3f1590eda6e43893725970b2e553778 data/aeroflux/loot_table/blocks/animal_breeder.json
 f3f6753fd3c1a7f881f92b7a0db7e64b92014440 data/aeroflux/loot_table/blocks/chunk_loader.json
 d72da9ce963f39dcd2cfadd5b8d67c9d91f4bfee data/aeroflux/loot_table/blocks/copper_collector.json
 cc407de03b9d56196cd47c7640b0f8a454f32776 data/aeroflux/loot_table/blocks/copper_tank.json
+171af11f56f5b1a7da3ed226a5ccd805bb381ca5 data/aeroflux/loot_table/blocks/creative_flux_tank.json
 5acf4a977808d15635b557d320829c3c0b065928 data/aeroflux/loot_table/blocks/diamond_alloy_smelter.json
 5d21ba2d47a5b0d45086c367c4b75926c953603f data/aeroflux/loot_table/blocks/diamond_animal_breeder.json
 4acc6134930bf2932caad11bec7f7538c39a4143 data/aeroflux/loot_table/blocks/diamond_chunk_loader.json

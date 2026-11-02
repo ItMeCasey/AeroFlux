@@ -31,7 +31,9 @@ public final class EnchantSettings {
 
     @SubscribeEvent
     public static void configReloaded(ModConfigEvent.Reloading event) {
-        if (event.getConfig().getSpec() == AeroFluxConfig.SPEC) {
+        // Forge's file watcher can report a reload after the server has unloaded the file on
+        // shutdown; there is nothing to read then, and the rules no longer matter.
+        if (event.getConfig().getSpec() == AeroFluxConfig.SPEC && AeroFluxConfig.SPEC.isLoaded()) {
             EnchantRules.use(AeroFluxConfig.enchantSettings());
         }
     }
