@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/moon_spawner_base",
+  "textures": {
+    "side": "aeroflux:block/moon_spawner_side_diamond",
+    "back": "aeroflux:block/moon_spawner_back_diamond",
+    "top": "aeroflux:block/moon_spawner_top_diamond",
+    "bottom": "aeroflux:block/moon_spawner_bottom_diamond",
+    "front": "aeroflux:block/moon_spawner_front_diamond",
+    "particle": "aeroflux:block/moon_spawner_side_diamond"
+  }
+}

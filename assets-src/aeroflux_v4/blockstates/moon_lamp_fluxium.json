@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "aeroflux:block/moon_lamp_fluxium"
+    },
+    "lit=true": {
+      "model": "aeroflux:block/moon_lamp_active_fluxium"
+    }
+  }
+}

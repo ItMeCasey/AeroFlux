@@ -3,6 +3,7 @@ package com.itmecasey.aeroflux.datagen;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,9 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
             blocks.add(ModBlocks.chunkLoader(tier).get());
             for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
                 blocks.add(ModBlocks.converter(type, tier).get());
+            }
+            for (LampKind kind : LampKind.values()) {
+                blocks.add(ModBlocks.lamp(kind, tier).get());
             }
         }
         return blocks;

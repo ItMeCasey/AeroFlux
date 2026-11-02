@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
+import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.FaceRules;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
@@ -87,6 +88,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     private static final String TAG_UPGRADES = "upgrades";
     private static final String TAG_REDSTONE = "redstone";
     private static final String TAG_AUTO_INSERT = "auto_insert";
+    private static final String TAG_EXTRA_TANKS = "extra_tanks";
     private static final String TAG_AUTO_IMPORT = "auto_import";
     private static final String TAG_AUTO_EXPORT = "auto_export";
     private static final String TAG_REDSTONE_MODE = "mode";
@@ -127,6 +129,8 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     private final Tier tier;
     private final MachineType machine;
     private final FluidStacksResourceHandler fluxTank;
+    /** The tanks besides the Flux tank, one per {@link MachineType#extraTanks()}, in that order. */
+    private final List<FluidStacksResourceHandler> extraTanks = new ArrayList<>();
     private final MachineInventory inventory;
     private final SideConfigs sides;
     private final ProcessTimer timer = new ProcessTimer();
@@ -180,8 +184,42 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
                 setChanged();
             }
         };
+        for (ExtraTank spec : machine.extraTanks()) {
+            extraTanks.add(new ExtraTankHandler(spec));
+        }
         this.inventory = new MachineInventory(machine.inputSlots() + machine.outputSlots());
         this.upgrades = new MachineUpgradeSlots(MachineUpgrades.slots(tier), this::upgradesChanged);
+    }
+
+    /** An extra tank: one fluid only, as big as the Flux tank, and reporting itself full when overfull. */
+    private final class ExtraTankHandler extends FluidStacksResourceHandler {
+        private final ExtraTank spec;
+
+        ExtraTankHandler(ExtraTank spec) {
+            super(1, MachineMath.inputCapacity(tier));
+            this.spec = spec;
+        }
+
+        @Override
+        public boolean isValid(int index, FluidResource resource) {
+            return ExtraTanks.matches(spec, resource);
+        }
+
+        @Override
+        protected int getCapacity(int index, FluidResource resource) {
+            return fluxCapacity();
+        }
+
+        @Override
+        public long getCapacityAsLong(int index, FluidResource resource) {
+            return Math.max(super.getCapacityAsLong(index, resource), getAmountAsLong(index));
+        }
+
+        @Override
+        protected void onContentsChanged(int index, FluidStack previousContents) {
+            setChanged();
+            sleeping = false;
+        }
     }
 
     /** The slots: input slots take what the machine accepts, output slots take nothing from outside. */
@@ -237,6 +275,87 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     /** The Flux input tank. Menus and the machine itself use it directly; the outside world gets {@link #fluidHandler}. */
     public FluidStacksResourceHandler fluxTank() {
         return fluxTank;
+    }
+
+    /** The extra tank at an index of {@link MachineType#extraTanks()}. */
+    public FluidStacksResourceHandler extraTank(int index) {
+        return extraTanks.get(index);
+    }
+
+    public int extraTankCount() {
+        return extraTanks.size();
+    }
+
+    /** The index of the extra tank that holds this fluid id (such as {@code "minecraft:water"}), or -1. */
+    public int extraTankIndex(ExtraTank spec) {
+        return machine.extraTanks().indexOf(spec);
+    }
+
+    /** mB in an extra tank. */
+    public int extraAmount(int index) {
+        return extraTanks.get(index).getAmountAsInt(0);
+    }
+
+    /**
+     * Takes fluid out of an extra tank.
+     *
+     * @param simulate true to only find out how much would come out
+     * @return how much was (or would be) taken
+     */
+    protected int drainExtra(int index, int amount, boolean simulate) {
+        FluidStacksResourceHandler tank = extraTanks.get(index);
+        FluidResource held = tank.getResource(0);
+        if (held.isEmpty() || amount <= 0) {
+            return 0;
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int taken = tank.extract(0, held, amount, transaction);
+            if (!simulate) {
+                transaction.commit();
+            }
+            return taken;
+        }
+    }
+
+    /**
+     * Puts fluid into an extra tank, whatever the face settings say.
+     *
+     * @return how much went (or would go) in
+     */
+    protected int fillExtra(int index, FluidResource resource, int amount, boolean simulate) {
+        try (Transaction transaction = Transaction.openRoot()) {
+            int put = extraTanks.get(index).insert(0, resource, amount, transaction);
+            if (!simulate) {
+                transaction.commit();
+            }
+            return put;
+        }
+    }
+
+    /**
+     * Whether a pipe or a neighbor may put this stack into an input slot. The menu does not ask, so
+     * a player can always place items by hand. The Crafter only lets pipes top up its grid, and the
+     * Magnet's filter slot is set by hand only.
+     */
+    public boolean acceptsFromOutside(int slot, ItemStack stack) {
+        return true;
+    }
+
+    /**
+     * Runs every tick before the machine looks for work, for machines that do something besides
+     * their jobs (the Blender fills buckets, the Sky Controller counts down). Does nothing by default.
+     */
+    protected void tickAlways(Level level) {
+    }
+
+    /** A button only this kind of machine has (see {@link MachineConfigActions}); false if it means nothing here. */
+    public boolean machineButton(int buttonId) {
+        return false;
+    }
+
+    /** A setting only this kind of machine has, synced to its screen, such as the Magnet's whitelist. */
+    public int machineMode() {
+        return 0;
     }
 
     /** All slots, inputs first. Menus use it directly; the outside world gets {@link #itemHandler}. */
@@ -306,6 +425,16 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
                 ResourceHandler<FluidResource> into = fluidHandler(side);
                 if (from != null && into != null) {
                     ResourceHandlerUtil.move(from, into, resource -> true, MachineMath.autoFlux(tier), null);
+                }
+            }
+            if (autoExport && FaceRules.canExtract(PortRole.OUTPUT, mode(SideResource.FLUID, side))) {
+                for (ExtraTank spec : machine.extraTanks()) {
+                    ResourceHandler<FluidResource> to = level.getCapability(Capabilities.Fluid.BLOCK, next, back);
+                    ResourceHandler<FluidResource> out = fluidHandler(side);
+                    if (spec.output() && to != null && out != null) {
+                        ResourceHandlerUtil.move(out, to, resource -> ExtraTanks.matches(spec, resource),
+                                MachineMath.autoFlux(tier), null);
+                    }
                 }
             }
             if (autoExport && FaceRules.canExtract(PortRole.OUTPUT, mode(SideResource.ITEMS, side))) {
@@ -636,6 +765,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         if ((autoImport || autoExport) && level.getGameTime() % MachineMath.AUTO_INTERVAL == 0) {
             autoTransfer(level);
         }
+        tickAlways(level);
         if (!signalRead) {
             // First tick since placing or loading: the block only reports changes, so look once.
             readSignal(level);
@@ -775,7 +905,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
      * @param simulate true to only find out how much would come out
      * @return how much was (or would be) taken
      */
-    private int drainFlux(int amount, boolean simulate) {
+    protected int drainFlux(int amount, boolean simulate) {
         FluidResource held = fluxTank.getResource(0);
         if (held.isEmpty()) {
             return 0;
@@ -811,6 +941,12 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         super.saveAdditional(output);
         output.putInt(TAG_SCHEMA, SCHEMA_VERSION);
         fluxTank.serialize(output.child(TAG_FLUX));
+        if (!extraTanks.isEmpty()) {
+            ValueOutput tanksOutput = output.child(TAG_EXTRA_TANKS);
+            for (int i = 0; i < extraTanks.size(); i++) {
+                extraTanks.get(i).serialize(tanksOutput.child("tank" + i));
+            }
+        }
         inventory.serialize(output.child(TAG_ITEMS));
         output.putInt(TAG_PROGRESS, timer.progress());
         output.putInt(TAG_TOTAL, timer.total());
@@ -835,6 +971,11 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         // The upgrades and the redstone settings came later in version 1 and are simply missing
         // from older saves, which leaves an unupgraded machine that ignores redstone.
         input.child(TAG_FLUX).ifPresent(fluxTank::deserialize);
+        input.child(TAG_EXTRA_TANKS).ifPresent(tanksInput -> {
+            for (int i = 0; i < extraTanks.size(); i++) {
+                tanksInput.child("tank" + i).ifPresent(extraTanks.get(i)::deserialize);
+            }
+        });
         input.child(TAG_UPGRADES).ifPresent(upgrades::deserialize);
         input.child(TAG_REDSTONE).ifPresent(redstoneInput -> redstone.restore(
                 RedstoneMode.byId(redstoneInput.getStringOr(TAG_REDSTONE_MODE, RedstoneMode.ALWAYS.id())),

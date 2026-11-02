@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_repairer_base",
+  "textures": {
+    "side": "aeroflux:block/flux_repairer_side",
+    "back": "aeroflux:block/flux_repairer_back",
+    "top": "aeroflux:block/flux_repairer_top",
+    "bottom": "aeroflux:block/flux_repairer_bottom",
+    "front": "aeroflux:block/flux_repairer_front",
+    "particle": "aeroflux:block/flux_repairer_side"
+  }
+}

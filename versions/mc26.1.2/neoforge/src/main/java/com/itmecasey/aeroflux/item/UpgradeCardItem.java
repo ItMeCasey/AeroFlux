@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.block.FluxTankBlock;
 import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.Locale;
@@ -136,6 +137,9 @@ public class UpgradeCardItem extends Item {
         if (block instanceof FluxConverterBlock converter) {
             return converter.tier();
         }
+        if (block instanceof FluxLampBlock lamp) {
+            return lamp.tier();
+        }
         return null;
     }
 
@@ -154,6 +158,9 @@ public class UpgradeCardItem extends Item {
         }
         if (block instanceof FluxConverterBlock converter) {
             return ModBlocks.converter(converter.type(), up).get();
+        }
+        if (block instanceof FluxLampBlock lamp) {
+            return ModBlocks.lamp(lamp.kind(), up).get();
         }
         return ModBlocks.tank(up).get();
     }

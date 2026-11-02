@@ -7,6 +7,8 @@ import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.lamp.LampKind;
+import com.itmecasey.aeroflux.machine.SifterBlockEntity;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModItems;
@@ -84,6 +86,9 @@ public class ModRecipeProvider extends RecipeProvider {
         alloySmelter();
         infuser();
         plantGrower();
+        purifier();
+        sifter();
+        lamps();
     }
 
     // --- Crafting: materials -----------------------------------------------------------------
@@ -318,6 +323,18 @@ public class ModRecipeProvider extends RecipeProvider {
             // A composter is vanilla's bone meal machine; the glass is the growing chamber.
             case PLANT_GROWER -> new MachineParts(Items.COMPOSTER, tag(Tags.Items.GLASS_BLOCKS_COLORLESS),
                     tag(Tags.Items.GLASS_BLOCKS_COLORLESS), ModItems.FLUX_DUST.get());
+            case CRAFTER -> new MachineParts(Items.CRAFTING_TABLE, tag(Tags.Items.INGOTS_IRON), copper, ModItems.FLUX_DUST.get());
+            case PURIFIER -> new MachineParts(Items.CAULDRON, tag(Tags.Items.INGOTS_IRON), copper, ModItems.FLUX_DUST.get());
+            case SIFTER -> new MachineParts(Items.SCAFFOLDING, Ingredient.of(Items.STRING), copper, ModItems.FLUX_DUST.get());
+            case BLENDER -> new MachineParts(Items.CAULDRON, moonCrystal, Ingredient.of(ModItems.AERO_CRYSTAL.get()),
+                    ModItems.MOON_CRYSTAL.get());
+            case SKY_CONTROLLER -> new MachineParts(Items.DAYLIGHT_DETECTOR, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
+            case MAGNET -> new MachineParts(Items.HOPPER, Ingredient.of(Items.REDSTONE), tag(Tags.Items.INGOTS_IRON),
+                    ModItems.FLUX_DUST.get());
+            case BREEDER -> new MachineParts(Items.HAY_BLOCK, Ingredient.of(Items.WHEAT), copper, ModItems.FLUX_DUST.get());
+            // An anvil mends; the moon crystal and Fluxsteel make it run on experience.
+            case REPAIRER -> new MachineParts(Items.ANVIL, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
+            case SPAWNER -> new MachineParts(Items.CRYING_OBSIDIAN, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
         };
     }
 
@@ -638,16 +655,98 @@ public class ModRecipeProvider extends RecipeProvider {
         return new FluxRecipe.Input(ingredient, count);
     }
 
+    // --- Purifier ----------------------------------------------------------------------------
+
+    /** Water used by one purifying run. */
+    private static final int PURIFY_WATER = 50;
+
+    /** Ore washed into three times its raw material, half as much again as the Grinder gives. */
+    private void purifier() {
+        purify("iron", Tags.Items.ORES_IRON, Items.RAW_IRON, 3);
+        purify("gold", Tags.Items.ORES_GOLD, Items.RAW_GOLD, 3);
+        purify("copper", Tags.Items.ORES_COPPER, Items.RAW_COPPER, 3);
+        purify("coal", Tags.Items.ORES_COAL, Items.COAL, 3);
+        purify("diamond", Tags.Items.ORES_DIAMOND, Items.DIAMOND, 3);
+        purify("emerald", Tags.Items.ORES_EMERALD, Items.EMERALD, 3);
+        purify("lapis", Tags.Items.ORES_LAPIS, Items.LAPIS_LAZULI, 12);
+        purify("redstone", Tags.Items.ORES_REDSTONE, Items.REDSTONE, 12);
+        purify("quartz", Tags.Items.ORES_QUARTZ, Items.QUARTZ, 3);
+    }
+
+    private void purify(String name, TagKey<Item> ore, ItemLike product, int count) {
+        addFull(MachineType.PURIFIER, name + "_ore", List.of(in(tag(ore), 1)), List.of(out(product, count, 1.0F)),
+                STANDARD, 0, null, "", PURIFY_WATER);
+    }
+
+    // --- Sifter ------------------------------------------------------------------------------
+
+    /**
+     * A small built-in sieve set so the Sifter works without Ex Deorum or Ex Nihilo. As in those
+     * mods, one block rolls every recipe its mesh allows, so each mesh adds to the ones below it.
+     */
+    private void sifter() {
+        sift("gravel_string", Items.GRAVEL, "string", 0, out(Items.FLINT, 1, 0.25F), out(Items.WHEAT_SEEDS, 1, 0.05F));
+        sift("gravel_flint", Items.GRAVEL, "flint", 0, out(Items.IRON_NUGGET, 1, 0.15F), out(Items.COAL, 1, 0.08F));
+        sift("gravel_iron", Items.GRAVEL, "iron", 0, out(Items.GOLD_NUGGET, 1, 0.1F), out(Items.LAPIS_LAZULI, 1, 0.05F));
+        sift("gravel_diamond", Items.GRAVEL, "diamond", 0, out(Items.DIAMOND, 1, 0.01F), out(Items.EMERALD, 1, 0.01F));
+        sift("dirt_string", Items.DIRT, "string", 0, out(Items.WHEAT_SEEDS, 1, 0.2F), out(Items.BEETROOT_SEEDS, 1, 0.1F),
+                out(Items.PUMPKIN_SEEDS, 1, 0.05F), out(Items.MELON_SEEDS, 1, 0.05F));
+        sift("dirt_flint", Items.DIRT, "flint", 0, out(Items.POTATO, 1, 0.05F), out(Items.CARROT, 1, 0.05F),
+                out(Items.OAK_SAPLING, 1, 0.05F));
+        // Waterlogged: the clay and shards only wash out with water in the tank.
+        sift("sand_flint", Items.SAND, "flint", 50, out(Items.CLAY_BALL, 1, 0.5F), out(Items.GOLD_NUGGET, 1, 0.1F),
+                out(Items.PRISMARINE_SHARD, 1, 0.03F));
+        sift("sand_iron", Items.SAND, "iron", 0, out(Items.QUARTZ, 1, 0.05F), out(Items.CACTUS, 1, 0.05F));
+        sift("soul_sand_iron", Items.SOUL_SAND, "iron", 0, out(Items.QUARTZ, 1, 0.2F), out(Items.GLOWSTONE_DUST, 1, 0.1F),
+                out(Items.NETHER_WART, 1, 0.05F));
+        sift("soul_sand_diamond", Items.SOUL_SAND, "diamond", 0, out(Items.GHAST_TEAR, 1, 0.02F), out(Items.BLAZE_POWDER, 1, 0.05F));
+        sift("soul_soil_netherite", Items.SOUL_SOIL, "netherite", 0, out(Items.NETHERITE_SCRAP, 1, 0.01F),
+                out(Items.GOLD_NUGGET, 3, 0.2F));
+    }
+
+    private void sift(String name, ItemLike input, String mesh, int water, FluxRecipe.Output... outputs) {
+        addFull(MachineType.SIFTER, name, List.of(in(Ingredient.of(input), 1)), List.of(outputs),
+                SifterBlockEntity.SIFT_TICKS, 0, null, mesh, water);
+    }
+
+    // --- Lamps -------------------------------------------------------------------------------
+
+    /** A crystal in a copper cage over glass: aero crystal for the sun, moon crystal for the moon. */
+    private void lamps() {
+        Tier[] tiers = Tier.values();
+        for (LampKind kind : LampKind.values()) {
+            ItemLike crystal = kind == LampKind.SUN ? ModItems.AERO_CRYSTAL.get() : ModItems.MOON_CRYSTAL.get();
+            shaped(RecipeCategory.MISC, ModBlocks.lamp(kind, Tier.COPPER).get())
+                    .define('C', Tags.Items.INGOTS_COPPER)
+                    .define('G', Tags.Items.GLASS_BLOCKS_COLORLESS)
+                    .define('X', crystal)
+                    .define('D', ModItems.FLUX_DUST.get())
+                    .pattern("CGC")
+                    .pattern("GXG")
+                    .pattern("CDC")
+                    .unlockedBy(getHasName(crystal), has(crystal))
+                    .save(output);
+            for (int i = 1; i < tiers.length; i++) {
+                upgrade(ModBlocks.lamp(kind, tiers[i]).get(), ModBlocks.lamp(kind, tiers[i - 1]).get(), tiers[i]);
+            }
+        }
+    }
+
     private static FluxRecipe.Output out(ItemLike item, int count, float chance) {
         return new FluxRecipe.Output(new ItemStackTemplate(item.asItem(), count), chance);
     }
 
     private void add(MachineType machine, String name, List<FluxRecipe.Input> inputs, List<FluxRecipe.Output> outputs,
                      int time, int flux, @Nullable FluxType fluxType) {
+        addFull(machine, name, inputs, outputs, time, flux, fluxType, "", 0);
+    }
+
+    private void addFull(MachineType machine, String name, List<FluxRecipe.Input> inputs, List<FluxRecipe.Output> outputs,
+                         int time, int flux, @Nullable FluxType fluxType, String mesh, int water) {
         if (inputs.size() > machine.inputSlots() || outputs.size() > machine.outputSlots()) {
             throw new IllegalStateException("Recipe " + machine.id() + "/" + name + " needs more slots than the machine has");
         }
-        FluxRecipe recipe = new FluxRecipe(machine, inputs, outputs, time, flux, fluxType);
+        FluxRecipe recipe = new FluxRecipe(machine, inputs, outputs, time, flux, fluxType, mesh, water);
         ResourceKey<net.minecraft.world.item.crafting.Recipe<?>> id =
                 ResourceKey.create(Registries.RECIPE, Ids.mod(machine.id() + "/" + name));
         output.accept(id, recipe, null);

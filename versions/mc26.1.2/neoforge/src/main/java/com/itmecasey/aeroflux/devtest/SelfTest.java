@@ -89,6 +89,7 @@ public final class SelfTest {
         MachineSelfTest.setUp(level);
         MachineUpgradeSelfTest.setUp(level);
         ChunkLoaderSelfTest.setUp(level);
+        MoreMachinesSelfTest.setUp(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;
@@ -117,11 +118,14 @@ public final class SelfTest {
             MachineUpgradeSelfTest.tick();
             // The chunk loaders build in a layer of their own too, below the tool checks.
             ChunkLoaderSelfTest.tick();
+            // The second wave of machines builds in a layer of its own as well.
+            MoreMachinesSelfTest.tick();
         }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer, tool, screen and machine checks to finish too.
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
-                    && MachineSelfTest.finished() && MachineUpgradeSelfTest.finished() && ChunkLoaderSelfTest.finished()) {
+                    && MachineSelfTest.finished() && MachineUpgradeSelfTest.finished() && ChunkLoaderSelfTest.finished()
+                    && MoreMachinesSelfTest.finished()) {
                 finish();
             }
             return;
@@ -269,6 +273,11 @@ public final class SelfTest {
 
     private static void command(String command) {
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
+    }
+
+    /** Whether the collector checks, which need day and night on time, are done with the clock. */
+    static boolean collectorChecksDone() {
+        return phase == 2;
     }
 
     static void check(String name, boolean condition) {

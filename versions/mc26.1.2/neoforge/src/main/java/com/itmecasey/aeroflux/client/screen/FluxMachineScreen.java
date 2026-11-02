@@ -13,17 +13,20 @@ import com.itmecasey.aeroflux.core.conduit.BundleState;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.GlyphSidePanelLayout;
 import com.itmecasey.aeroflux.core.machine.MachineLayout;
 import com.itmecasey.aeroflux.core.machine.MachineStatus;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.core.machine.UpgradeStripLayout;
+import com.itmecasey.aeroflux.machine.ExtraTanks;
 import com.itmecasey.aeroflux.machine.FluxMachineMenu;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
@@ -61,6 +64,8 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
     private SideConfigPanel sidePanel;
     private UpgradeSlots upgradeSlots;
     private RedstoneButton redstoneButton;
+    /** One gauge per extra tank, in the order of {@link MachineType#extraTanks()}. */
+    private final List<FluxGauge> extraGauges = new ArrayList<>();
 
     protected FluxMachineScreen(M menu, Inventory inventory, Component title) {
         super(menu, inventory, title, menu.layout().width(), menu.layout().height());
@@ -81,7 +86,33 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
         if (menu.machine() == MachineType.PLANT_GROWER) {
             // The seed refill switch sits right under the seed slot it fills.
             MachineLayout.Rect seedSlot = MachineLayout.frameOf(layout.inputSlot(0));
-            addRenderableWidget(new AutoInsertButton(leftPos + seedSlot.x(), topPos + seedSlot.y() + seedSlot.height() + 2));
+            addRenderableWidget(new IconButton(leftPos + seedSlot.x(), topPos + seedSlot.y() + seedSlot.height() + 2,
+                    new ItemStack(Items.WHEAT_SEEDS), "gui.aeroflux.auto_insert", MachineConfigActions.AUTO_INSERT_BUTTON,
+                    () -> menu.autoInsert() ? Boolean.TRUE : Boolean.FALSE));
+        }
+        if (menu.machine() == MachineType.MAGNET) {
+            // The whitelist switch sits under the filter slot it belongs to.
+            MachineLayout.Rect filterSlot = MachineLayout.frameOf(layout.inputSlot(0));
+            addRenderableWidget(new IconButton(leftPos + filterSlot.x(), topPos + filterSlot.y() + filterSlot.height() + 2,
+                    new ItemStack(Items.HOPPER), "gui.aeroflux.magnet_mode", MachineConfigActions.MAGNET_MODE_BUTTON,
+                    () -> menu.machineMode() != 0 ? Boolean.TRUE : Boolean.FALSE));
+        }
+        if (menu.machine() == MachineType.SKY_CONTROLLER) {
+            // Three buttons in a row under the cooldown arrow; none of them stays on.
+            MachineLayout.Rect arrowSpot = layout.arrow();
+            int y = topPos + arrowSpot.y() + arrowSpot.height() + 6;
+            int x = leftPos + arrowSpot.x() + arrowSpot.width() / 2 - 29;
+            addRenderableWidget(new IconButton(x, y, new ItemStack(Items.SUNFLOWER), "gui.aeroflux.sky.day",
+                    MachineConfigActions.SKY_DAY_BUTTON, () -> null));
+            addRenderableWidget(new IconButton(x + 20, y, new ItemStack(Items.PHANTOM_MEMBRANE), "gui.aeroflux.sky.night",
+                    MachineConfigActions.SKY_NIGHT_BUTTON, () -> null));
+            addRenderableWidget(new IconButton(x + 40, y, new ItemStack(Items.WATER_BUCKET), "gui.aeroflux.sky.weather",
+                    MachineConfigActions.SKY_WEATHER_BUTTON, () -> null));
+        }
+        extraGauges.clear();
+        for (ExtraTank spec : menu.machine().extraTanks()) {
+            MachineLayout.Rect spot = layout.extraGauge(spec.output());
+            extraGauges.add(addRenderableWidget(new FluxGauge(leftPos + spot.x(), topPos + spot.y(), spot.width(), spot.height())));
         }
 
         MachineLayout.Rect gaugeRect = layout.gauge();
@@ -115,34 +146,44 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
     }
 
     /**
-     * The plant grower's "auto insert seeds" switch: a seed icon, outlined in green while it is on.
-     * While on, the grower moves seeds from its outputs back into its input by itself.
+     * A square button with an item for an icon, for the settings a single kind of machine has: the
+     * Plant Grower's seed refill, the Magnet's whitelist and the Sky Controller's three buttons. A
+     * switch is outlined in green while it is on; a plain button (whose state is {@code null}) is not.
+     * The tooltip is the name, then the matching {@code .on}, {@code .off} or {@code .tooltip} line.
      */
-    private final class AutoInsertButton extends AbstractButton {
+    private final class IconButton extends AbstractButton {
         private static final int SIZE = 18;
-        private final ItemStack icon = new ItemStack(Items.WHEAT_SEEDS);
+        private final ItemStack icon;
+        private final String key;
+        private final int buttonId;
+        private final Supplier<Boolean> state;
 
-        AutoInsertButton(int x, int y) {
-            super(x, y, SIZE, SIZE, Component.translatable("gui.aeroflux.auto_insert"));
+        IconButton(int x, int y, ItemStack icon, String key, int buttonId, Supplier<Boolean> state) {
+            super(x, y, SIZE, SIZE, Component.translatable(key));
+            this.icon = icon;
+            this.key = key;
+            this.buttonId = buttonId;
+            this.state = state;
         }
 
         @Override
         public void onPress(InputWithModifiers input) {
-            sendButton(MachineConfigActions.AUTO_INSERT_BUTTON);
+            sendButton(buttonId);
         }
 
         @Override
         protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-            boolean on = menu.autoInsert();
+            Boolean on = state.get();
             Panel.raised(graphics, getX(), getY(), SIZE, SIZE);
             graphics.item(icon, getX() + 1, getY() + 1);
-            if (on) {
+            if (Boolean.TRUE.equals(on)) {
                 graphics.outline(getX(), getY(), SIZE, SIZE, Glyphs.OPEN_COLOR);
             }
             if (isHovered()) {
                 graphics.fill(getX(), getY(), getX() + SIZE, getY() + SIZE, 0x40FFFFFF);
+                String detail = on == null ? key + ".tooltip" : on ? key + ".on" : key + ".off";
                 setTooltip(Tooltip.create(getMessage().copy().append(CommonComponents.NEW_LINE).append(
-                        Component.translatable(on ? "gui.aeroflux.auto_insert.on" : "gui.aeroflux.auto_insert.off"))));
+                        Component.translatable(detail))));
             }
         }
 
@@ -243,9 +284,15 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
         MachineStatus status = menu.status();
         gauge.update(menu.fluxAmount(), menu.fluxCapacity(), menu.fluxType(), menu.fluxPerTick(), status == MachineStatus.RUNNING);
         arrow.update(menu.progress(), menu.totalTime());
+        for (int i = 0; i < extraGauges.size(); i++) {
+            extraGauges.get(i).updateFluid(menu.extraAmount(i), menu.fluxCapacity(),
+                    ExtraTanks.fluid(menu.machine().extraTanks().get(i)));
+        }
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-        for (HoverInfo info : new HoverInfo[] {gauge, arrow, sidePanel, redstoneButton, upgradeSlots}) {
+        List<HoverInfo> infos = new ArrayList<>(List.of(gauge, arrow, sidePanel, redstoneButton, upgradeSlots));
+        infos.addAll(extraGauges);
+        for (HoverInfo info : infos) {
             List<Component> lines = info.tooltip(mouseX, mouseY);
             if (!lines.isEmpty()) {
                 graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);

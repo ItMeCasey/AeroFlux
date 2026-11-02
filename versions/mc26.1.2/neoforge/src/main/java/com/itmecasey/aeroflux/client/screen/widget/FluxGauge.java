@@ -29,6 +29,8 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
     private int amount;
     private int capacity = 1;
     private @Nullable FluxType type;
+    /** The fluid of an extra tank (water, Moon or Twilight Flux); when set it wins over {@link #type}. */
+    private @Nullable Fluid fixedFluid;
     private int usePerTick;
     private boolean working;
 
@@ -44,11 +46,30 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
      * @param working    whether the machine is burning it right now
      */
     public void update(int amount, int capacity, @Nullable FluxType type, int usePerTick, boolean working) {
+        this.fixedFluid = null;
         this.amount = amount;
         this.capacity = Math.max(1, capacity);
         this.type = type;
         this.usePerTick = usePerTick;
         this.working = working;
+    }
+
+    /** Shows an extra tank: always the same fluid, and no burn rate, since the machine uses it per job. */
+    public void updateFluid(int amount, int capacity, Fluid fluid) {
+        this.fixedFluid = fluid;
+        this.amount = amount;
+        this.capacity = Math.max(1, capacity);
+        this.type = null;
+        this.usePerTick = 0;
+        this.working = false;
+    }
+
+    /** The fluid drawn, or {@code null} for an empty Flux tank. */
+    private @Nullable Fluid shownFluid() {
+        if (fixedFluid != null) {
+            return fixedFluid;
+        }
+        return type == null ? null : ModFluids.fluidOf(type);
     }
 
     @Override
@@ -62,8 +83,8 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
         int innerHeight = height - 2;
         graphics.fill(innerX, innerY, innerX + innerWidth, innerY + innerHeight, GLASS);
 
-        if (type != null && amount > 0) {
-            Fluid fluid = ModFluids.fluidOf(type);
+        Fluid fluid = shownFluid();
+        if (fluid != null && amount > 0) {
             int filled = Math.max(1, (int) Math.round(FillLevel.fraction(amount, capacity) * innerHeight));
             FluidRenderUtil.drawTiled(graphics, FluidRenderUtil.stillSprite(fluid), FluidRenderUtil.tint(fluid),
                     innerX, innerY + innerHeight - filled, innerWidth, filled);
@@ -82,9 +103,10 @@ public class FluxGauge extends AbstractWidget implements HoverInfo {
         if (!isMouseOver(mouseX, mouseY)) {
             return List.of();
         }
-        Component name = type == null || amount <= 0
+        Fluid fluid = shownFluid();
+        Component name = fluid == null || amount <= 0
                 ? Component.translatable("gui.aeroflux.gauge.empty")
-                : FluidResource.of(ModFluids.fluidOf(type)).getHoverName();
+                : FluidResource.of(fluid).getHoverName();
         int percent = (int) Math.round(FillLevel.fraction(amount, capacity) * 100.0);
         List<Component> lines = new ArrayList<>();
         lines.add(name);

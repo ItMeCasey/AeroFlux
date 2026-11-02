@@ -18,6 +18,7 @@ import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.registry.ModBlocks;
+import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -57,6 +58,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /**
  * A development-only camera tour: it opens a fresh creative superflat world, builds the pipe
@@ -391,6 +393,23 @@ public final class ShotTour {
         }));
         shoot("screen_pipe_me", 10);
         then(2, () -> player().closeContainer());
+
+        // The newer machines: the Crafter's wide grid, the extra tank gauges and the machine buttons.
+        MachineType[] newer = {MachineType.CRAFTER, MachineType.PURIFIER, MachineType.SIFTER, MachineType.BLENDER,
+                MachineType.SKY_CONTROLLER, MachineType.MAGNET, MachineType.SPAWNER};
+        for (int i = 0; i < newer.length; i++) {
+            MachineType type = newer[i];
+            BlockPos pos = at(53 + i, 6);
+            placeBlock(ModBlocks.machine(type, Tier.GOLD).get().asItem(), pos);
+            then(SETTLE, () -> onServer(server -> {
+                if (server.overworld().getBlockEntity(pos) instanceof FluxMachineBlockEntity machine) {
+                    machine.setFlux(FluidResource.of(ModFluids.AERO_FLUX.get()), 2_000);
+                    serverPlayer(server).openMenu(machine, machine::writeOpenData);
+                }
+            }));
+            shoot("screen_" + type.id(), 10);
+            then(2, () -> player().closeContainer());
+        }
     }
 
     /** Sets the item mode of one face of a machine the way a click in the side-config window does. */

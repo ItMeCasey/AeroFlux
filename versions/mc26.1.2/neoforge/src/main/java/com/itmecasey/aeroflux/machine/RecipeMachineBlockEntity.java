@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.OutputChance;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.machine.recipe.MachineInput;
@@ -60,7 +61,24 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
                     .filter(imported -> imported.value().matches(input, server)).findFirst().orElse(null));
             lastRecipe = recipe;
         }
-        return recipe == null ? null : new RecipeJob(recipe);
+        // A recipe that needs water (the Purifier's) waits until the tank has enough.
+        if (recipe == null || !hasWater(recipe.value().water())) {
+            return null;
+        }
+        return new RecipeJob(recipe);
+    }
+
+    private int waterTank() {
+        return extraTankIndex(ExtraTank.WATER);
+    }
+
+    /** Whether the water tank holds enough for a run (always true for a run that needs none). */
+    private boolean hasWater(int needed) {
+        if (needed <= 0) {
+            return true;
+        }
+        int tank = waterTank();
+        return tank >= 0 && extraAmount(tank) >= needed;
     }
 
     @Override
@@ -121,6 +139,9 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             }
             for (int i = 0; i < slots.length; i++) {
                 consumeInput(slots[i], recipe.inputs().get(i).count());
+            }
+            if (recipe.water() > 0) {
+                drainExtra(waterTank(), recipe.water(), false);
             }
             RandomSource rolls = seededRolls != null ? seededRolls : level.getRandom();
             List<ItemStack> products = new ArrayList<>();

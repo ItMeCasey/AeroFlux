@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -33,6 +34,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SAWDUST.get());
                         output.accept(ModItems.AERO_FLUX_BUCKET.get());
                         output.accept(ModItems.MOON_FLUX_BUCKET.get());
+                        output.accept(ModItems.TWILIGHT_FLUX_BUCKET.get());
                         output.accept(ModItems.GUIDEBOOK.get());
                         output.accept(ModItems.FLUX_WRENCH.get());
                         output.accept(ModItems.CONDUIT_TOOL.get());
@@ -68,6 +70,9 @@ public final class ModCreativeTabs {
                         }
                         for (DeferredBlock<FluxConverterBlock> converter : ModBlocks.converters()) {
                             output.accept(converter.get());
+                        }
+                        for (DeferredBlock<FluxLampBlock> lamp : ModBlocks.lamps()) {
+                            output.accept(lamp.get());
                         }
                     })
                     .build());

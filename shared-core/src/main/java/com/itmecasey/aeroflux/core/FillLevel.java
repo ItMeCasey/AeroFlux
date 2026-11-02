@@ -40,6 +40,6 @@ public final class FillLevel {
      * flux it is, since a swap from Aero to Moon Flux at the same level still changes the color.
      */
     public static int syncKey(long amount, long capacity, FluxType type) {
-        return step(amount, capacity) * 2 + (type == FluxType.MOON ? 1 : 0);
+        return step(amount, capacity) * FluxType.values().length + type.ordinal();
     }
 }

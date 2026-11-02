@@ -41,6 +41,10 @@ public final class ModCapabilities {
         event.registerBlockEntity(Capabilities.Energy.BLOCK, ModBlockEntities.CONVERTER.get(),
                 FluxConverterBlockEntity::energyHandler);
 
+        // Lamps take their Flux on every side.
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ModBlockEntities.LAMP.get(),
+                (lamp, side) -> lamp.tank());
+
         // With AE2 installed, a bundle's ME pipe is a grid node AE2 can join.
         Ae2Compat.registerCapabilities(event);
     }

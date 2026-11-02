@@ -50,7 +50,7 @@ public class FluxTankBlockEntity extends BlockEntity {
 
             @Override
             public boolean isValid(int index, FluidResource resource) {
-                return ModFluids.isFlux(resource);
+                return ModFluids.isAnyFlux(resource);
             }
 
             @Override
@@ -72,7 +72,8 @@ public class FluxTankBlockEntity extends BlockEntity {
             return;
         }
         FluidResource held = tank.getResource(0);
-        FluxType type = held.getFluid().isSame(ModFluids.MOON_FLUX.get()) ? FluxType.MOON : FluxType.AERO;
+        FluxType found = ModFluids.fluxTypeOf(held);
+        FluxType type = found == null ? FluxType.AERO : found;
         int key = FillLevel.syncKey(tank.getAmountAsLong(0), tank.getCapacityAsLong(0, held), type);
         if (key != syncedKey) {
             syncedKey = key;

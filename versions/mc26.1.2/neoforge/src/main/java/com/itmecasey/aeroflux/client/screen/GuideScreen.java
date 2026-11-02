@@ -17,7 +17,7 @@ import net.minecraft.util.FormattedCharSequence;
 public class GuideScreen extends Screen {
     /** The pages, in reading order. */
     private static final List<String> PAGES = List.of(
-            "start", "flux", "collectors", "pipes", "machines", "upgrades", "chunk_loader", "dimensions");
+            "start", "flux", "collectors", "pipes", "machines", "more_machines", "upgrades", "chunk_loader", "dimensions");
     private static final int WIDTH = 230;
     private static final int HEIGHT = 200;
     private static final int MARGIN = 12;

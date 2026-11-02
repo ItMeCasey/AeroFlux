@@ -15,7 +15,14 @@ class MachineTypeTest {
             MachineLayout layout = MachineLayout.of(type.inputSlots(), type.outputSlots());
             assertEquals(type.inputSlots(), layout.inputCount());
             assertEquals(type.outputSlots(), layout.outputCount());
-            assertTrue(type.inputSlots() >= 1 && type.outputSlots() >= 1, type.id());
+            // Only the Sky Controller works with no slots, and only the Breeder has nothing to put out.
+            if (type != MachineType.SKY_CONTROLLER) {
+                assertTrue(type.inputSlots() >= 1, type.id());
+            }
+            if (type != MachineType.SKY_CONTROLLER && type != MachineType.BREEDER) {
+                assertTrue(type.outputSlots() >= 1, type.id());
+            }
+            assertTrue(type.extraTanks().size() <= 2, type.id());
         }
     }
 

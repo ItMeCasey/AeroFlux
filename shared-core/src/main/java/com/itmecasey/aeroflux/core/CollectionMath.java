@@ -131,6 +131,7 @@ public final class CollectionMath {
         return switch (type) {
             case AERO -> timeOfDay >= DAY_START && timeOfDay < DAY_END;
             case MOON -> timeOfDay >= NIGHT_START && timeOfDay < NIGHT_END;
+            case TWILIGHT -> false;
         };
     }
 }

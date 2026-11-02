@@ -14,6 +14,7 @@ import com.itmecasey.aeroflux.core.machine.FaceLabel;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.Locale;
@@ -33,9 +34,11 @@ public class ModLanguageProvider extends LanguageProvider {
         addItem(ModItems.FLUX_DUST, "Flux Dust");
         addItem(ModItems.AERO_FLUX_BUCKET, "Aero Flux Bucket");
         addItem(ModItems.MOON_FLUX_BUCKET, "Moon Flux Bucket");
+        addItem(ModItems.TWILIGHT_FLUX_BUCKET, "Twilight Flux Bucket");
 
         addBlock(ModBlocks.AERO_FLUX, "Aero Flux");
         addBlock(ModBlocks.MOON_FLUX, "Moon Flux");
+        addBlock(ModBlocks.TWILIGHT_FLUX, "Twilight Flux");
 
         for (Tier tier : Tier.values()) {
             String name = displayName(tier);
@@ -50,6 +53,7 @@ public class ModLanguageProvider extends LanguageProvider {
         // Fluid type names show in fluid gauges and tooltips from other mods.
         add("fluid_type." + AeroFlux.MODID + ".aero_flux", "Aero Flux");
         add("fluid_type." + AeroFlux.MODID + ".moon_flux", "Moon Flux");
+        add("fluid_type." + AeroFlux.MODID + ".twilight_flux", "Twilight Flux");
     }
 
     /** Names of the machines and the new items, and every text of the machine screens. */
@@ -123,6 +127,22 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui." + AeroFlux.MODID + ".converter.buffer.ae", "AE buffer");
         add("gui." + AeroFlux.MODID + ".auto_insert", "Auto insert seeds");
         add("gui." + AeroFlux.MODID + ".chunk_loader.show_area", "Show Area");
+        for (LampKind kind : LampKind.values()) {
+            for (Tier tier : Tier.values()) {
+                addBlock(ModBlocks.lamp(kind, tier), tier == Tier.COPPER ? kind.displayName() : displayName(tier) + " " + kind.displayName());
+            }
+        }
+        add("gui." + AeroFlux.MODID + ".magnet_mode", "Filter mode");
+        add("gui." + AeroFlux.MODID + ".magnet_mode.on", "Whitelist: only the item in the filter slot is pulled in. Click for blacklist.");
+        add("gui." + AeroFlux.MODID + ".magnet_mode.off", "Blacklist: everything but the item in the filter slot is pulled in. Click for whitelist.");
+        add("gui." + AeroFlux.MODID + ".sky.day", "Day");
+        add("gui." + AeroFlux.MODID + ".sky.day.tooltip", "Moves the clock to morning. Costs Aero Flux.");
+        add("gui." + AeroFlux.MODID + ".sky.night", "Night");
+        add("gui." + AeroFlux.MODID + ".sky.night.tooltip", "Moves the clock to nightfall. Costs Moon Flux from the second tank.");
+        add("gui." + AeroFlux.MODID + ".sky.weather", "Clear / Rain");
+        add("gui." + AeroFlux.MODID + ".sky.weather.tooltip", "Stops the rain, or starts it. Costs Aero Flux.");
+        add("guide." + AeroFlux.MODID + ".more_machines.title", "More Machines");
+        add("guide." + AeroFlux.MODID + ".more_machines.body", "Crafter: lay a recipe in its grid; it keeps one item in each slot and crafts with the rest. Purifier: ore and water into three times the raw metal. Sifter: its tier is its mesh. Blender: Aero and Moon Flux into Twilight Flux.\nSky Controller: day, night and rain at a button. Magnet: pulls dropped items in. Breeder, Repairer and Moon Spawner do what their names say. Sun and Moon Lamps keep monsters away and help plants grow.");
         add("screen." + AeroFlux.MODID + ".side_config.auto_import", "Auto Import");
         add("screen." + AeroFlux.MODID + ".side_config.auto_import.tooltip",
                 "Pulls items and Flux from the blocks next to every Import or Both face, no pipe needed.");

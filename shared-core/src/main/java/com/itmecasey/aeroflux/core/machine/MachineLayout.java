@@ -43,9 +43,17 @@ public final class MachineLayout {
     private static final int MIDDLE_Y = 44;
     private static final int INPUT_X = 48;
     private static final int OUTPUT_X = 114;
+    /** Where the last input column goes when there are three of them (the Crafter's grid). */
+    private static final int WIDE_INPUT_X = 66;
+    /** How far the arrow and outputs move right to make room for that third column. */
+    private static final int WIDE_SHIFT = WIDE_INPUT_X - INPUT_X;
 
     private static final Rect GAUGE = new Rect(MARGIN, 17, 18, 56);
     private static final Rect ARROW = new Rect(72, 36, 24, 16);
+    /** The gauge of an extra input tank, between the Flux gauge and the input slots. */
+    private static final Rect EXTRA_INPUT_GAUGE = new Rect(29, 17, 14, 56);
+    /** The gauge of an extra output tank, near the right edge past the output slots. */
+    private static final Rect EXTRA_OUTPUT_GAUGE = new Rect(154, 17, 14, 56);
     private static final Rect STATUS = new Rect(30, 72, 138, 10);
     private static final int TITLE_X = MARGIN;
     private static final int TITLE_Y = 7;
@@ -55,9 +63,13 @@ public final class MachineLayout {
     private final List<Point> inputs = new ArrayList<>();
     private final List<Point> outputs = new ArrayList<>();
 
+    private final int shift;
+
     private MachineLayout(int inputCount, int outputCount) {
-        place(inputs, inputCount, INPUT_X, -SLOT);
-        place(outputs, outputCount, OUTPUT_X, SLOT);
+        // More than two columns of inputs push the arrow and outputs to the right.
+        this.shift = inputCount > 2 * SLOTS_PER_COLUMN ? WIDE_SHIFT : 0;
+        place(inputs, inputCount, INPUT_X + shift, -SLOT);
+        place(outputs, outputCount, OUTPUT_X + shift, SLOT);
     }
 
     /** The layout for a machine with the given number of input and output slots. */
@@ -83,7 +95,12 @@ public final class MachineLayout {
 
     /** The progress arrow. */
     public Rect arrow() {
-        return ARROW;
+        return new Rect(ARROW.x() + shift, ARROW.y(), ARROW.width(), ARROW.height());
+    }
+
+    /** The gauge of an extra tank: input tanks sit left of the inputs, output tanks at the right edge. */
+    public Rect extraGauge(boolean output) {
+        return output ? EXTRA_OUTPUT_GAUGE : EXTRA_INPUT_GAUGE;
     }
 
     /** The status lamp and text line. */

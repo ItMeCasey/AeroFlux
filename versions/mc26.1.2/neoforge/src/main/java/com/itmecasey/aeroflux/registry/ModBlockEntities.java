@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
+import com.itmecasey.aeroflux.lamp.FluxLampBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineFactory;
 import java.util.Collection;
@@ -48,6 +49,10 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluxConverterBlockEntity>> CONVERTER =
             BLOCK_ENTITIES.register("converter", () -> new BlockEntityType<>(
                     FluxConverterBlockEntity::new, blocksOf(ModBlocks.converters())));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluxLampBlockEntity>> LAMP =
+            BLOCK_ENTITIES.register("lamp", () -> new BlockEntityType<>(
+                    FluxLampBlockEntity::new, blocksOf(ModBlocks.lamps())));
 
     private ModBlockEntities() {
     }

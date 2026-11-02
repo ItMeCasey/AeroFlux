@@ -114,7 +114,10 @@ public class FluxCollectorBlockEntity extends BlockEntity {
 
         FluidResource held = buffer.getResource(0);
         for (FluxType type : FluxType.values()) {
-            Fluid fluid = type == FluxType.AERO ? ModFluids.AERO_FLUX.get() : ModFluids.MOON_FLUX.get();
+            if (!type.collected()) {
+                continue;
+            }
+            Fluid fluid = ModFluids.fluidOf(type);
             if (!held.isEmpty() && !held.getFluid().isSame(fluid)) {
                 continue;
             }

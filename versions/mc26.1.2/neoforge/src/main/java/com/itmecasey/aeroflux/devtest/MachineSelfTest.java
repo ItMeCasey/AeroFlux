@@ -281,7 +281,7 @@ final class MachineSelfTest {
                 names &= BuiltInRegistries.BLOCK.getKey(block).getPath().equals(expected);
                 items &= block.asItem() != Items.AIR && BuiltInRegistries.ITEM.getKey(block.asItem()).getPath().equals(expected);
             }
-            BlockPos pos = new BlockPos(15, Y + 10, 1 + type.ordinal());
+            BlockPos pos = new BlockPos(15 - type.ordinal() / 14, Y + 10, 1 + type.ordinal() % 14);
             BlockState state = ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState();
             level.setBlock(pos, state, Block.UPDATE_ALL);
             drops &= Block.getDrops(state, level, pos, level.getBlockEntity(pos)).stream()
@@ -442,7 +442,7 @@ final class MachineSelfTest {
         // Which machines take which fluid.
         boolean flux = true;
         for (MachineType type : MachineType.values()) {
-            BlockPos at = new BlockPos(14, Y + 12, 1 + type.ordinal());
+            BlockPos at = new BlockPos(14 - type.ordinal() / 14, Y + 12, 1 + type.ordinal() % 14);
             level.setBlock(at, ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
             FluxMachineBlockEntity machine = machine(at);
             flux &= machine.acceptsFlux(FluidResource.of(ModFluids.AERO_FLUX.get())) == type.acceptedFlux().contains(FluxType.AERO);
@@ -700,7 +700,8 @@ final class MachineSelfTest {
         // One menu per machine type has the right slots and a sensible layout.
         boolean slots = true;
         for (MachineType type : MachineType.values()) {
-            BlockPos at = new BlockPos(1 + type.ordinal() * 2, Y, 7);
+            // Seven to a row, in a layer of their own, so every machine fits in the loaded chunk.
+            BlockPos at = new BlockPos(1 + (type.ordinal() % 7) * 2, Y + 8, 7 + (type.ordinal() / 7) * 2);
             level.setBlock(at, ModBlocks.machine(type, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
             player.setPos(at.getX() + 0.5, at.getY(), at.getZ() - 1.5);
             MachineMenu menu = new MachineMenu(2, player.getInventory(), machine(at));
@@ -708,7 +709,7 @@ final class MachineSelfTest {
                     && menu.stillValid(player)
                     && menu.machine() == type;
         }
-        SelfTest.check("menu: all eight machines open a menu with their own slot counts", slots);
+        SelfTest.check("menu: every machine opens a menu with its own slot counts", slots);
         player.closeContainer();
     }
 

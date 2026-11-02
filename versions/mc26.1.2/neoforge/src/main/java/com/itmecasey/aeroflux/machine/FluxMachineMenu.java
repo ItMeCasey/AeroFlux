@@ -58,7 +58,12 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
     private static final int DATA_AUTO_INSERT = DATA_SIDES + SideResource.values().length;
     /** Bit 0 Auto Import, bit 1 Auto Export. */
     private static final int DATA_AUTO_IO = DATA_AUTO_INSERT + 1;
-    private static final int DATA_COUNT = DATA_AUTO_IO + 1;
+    /** Two slots per extra tank, for up to two extra tanks. */
+    private static final int DATA_EXTRA = DATA_AUTO_IO + 1;
+    private static final int MAX_EXTRA_TANKS = 2;
+    /** A setting only this kind of machine has; see {@link FluxMachineBlockEntity#machineMode}. */
+    private static final int DATA_MODE = DATA_EXTRA + 2 * MAX_EXTRA_TANKS;
+    private static final int DATA_COUNT = DATA_MODE + 1;
 
     /** How far from the machine a player may be and keep the screen open, like a chest. */
     private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
@@ -221,6 +226,16 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
         return (data.get(DATA_AUTO_IO) & 2) != 0;
     }
 
+    /** mB in an extra tank, as last synced. */
+    public int extraAmount(int index) {
+        return SplitInt.join(data.get(DATA_EXTRA + 2 * index), data.get(DATA_EXTRA + 2 * index + 1));
+    }
+
+    /** A setting only this kind of machine has, such as the Magnet's whitelist, as last synced. */
+    public int machineMode() {
+        return data.get(DATA_MODE);
+    }
+
     /** Whether the redstone mode is holding the machine back, as last synced. */
     public boolean redstoneDisabled() {
         return data.get(DATA_REDSTONE_DISABLED) != 0;
@@ -364,6 +379,17 @@ public abstract class FluxMachineMenu extends AbstractContainerMenu {
                     }
                     if (index == DATA_AUTO_IO) {
                         yield (machine.autoImport() ? 1 : 0) | (machine.autoExport() ? 2 : 0);
+                    }
+                    if (index == DATA_MODE) {
+                        yield machine.machineMode();
+                    }
+                    if (index >= DATA_EXTRA && index < DATA_MODE) {
+                        int tank = (index - DATA_EXTRA) / 2;
+                        if (tank >= machine.extraTankCount()) {
+                            yield 0;
+                        }
+                        int amount = machine.extraAmount(tank);
+                        yield (index - DATA_EXTRA) % 2 == 0 ? SplitInt.low(amount) : SplitInt.high(amount);
                     }
                     int resource = index - DATA_SIDES;
                     yield resource >= 0 && resource < SideResource.values().length

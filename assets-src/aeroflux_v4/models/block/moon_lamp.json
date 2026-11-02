@@ -1,0 +1,12 @@
+{
+  "parent": "aeroflux:block/moon_lamp_base",
+  "textures": {
+    "base": "aeroflux:block/moon_lamp_base",
+    "basetop": "aeroflux:block/moon_lamp_basetop",
+    "cap": "aeroflux:block/moon_lamp_cap",
+    "captop": "aeroflux:block/moon_lamp_captop",
+    "post": "aeroflux:block/moon_lamp_post",
+    "crystal": "aeroflux:block/moon_lamp_crystal",
+    "particle": "aeroflux:block/moon_lamp_base"
+  }
+}

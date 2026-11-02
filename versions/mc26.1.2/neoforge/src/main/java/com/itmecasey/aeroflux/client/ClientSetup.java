@@ -109,6 +109,7 @@ public final class ClientSetup {
     public static void registerFluidModels(RegisterFluidModelsEvent event) {
         event.register(fluidModel(FluxType.AERO), ModFluids.AERO_FLUX.get(), ModFluids.FLOWING_AERO_FLUX.get());
         event.register(fluidModel(FluxType.MOON), ModFluids.MOON_FLUX.get(), ModFluids.FLOWING_MOON_FLUX.get());
+        event.register(fluidModel(FluxType.TWILIGHT), ModFluids.TWILIGHT_FLUX.get(), ModFluids.FLOWING_TWILIGHT_FLUX.get());
     }
 
     private static FluidModel.Unbaked fluidModel(FluxType flux) {

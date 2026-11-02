@@ -15,6 +15,7 @@ import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.item.UpgradeCardItem;
+import com.itmecasey.aeroflux.lamp.LampKind;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
@@ -51,11 +52,14 @@ public final class ModItems {
     public static final DeferredItem<GuidebookItem> GUIDEBOOK = ITEMS.registerItem("guidebook",
             GuidebookItem::new, properties -> properties.stacksTo(1));
 
-    public static final DeferredItem<BucketItem> AERO_FLUX_BUCKET =ITEMS.registerItem("aero_flux_bucket",
+    public static final DeferredItem<BucketItem> AERO_FLUX_BUCKET = ITEMS.registerItem("aero_flux_bucket",
             properties -> new BucketItem(ModFluids.AERO_FLUX.get(), properties), ModItems::bucketProperties);
 
     public static final DeferredItem<BucketItem> MOON_FLUX_BUCKET = ITEMS.registerItem("moon_flux_bucket",
             properties -> new BucketItem(ModFluids.MOON_FLUX.get(), properties), ModItems::bucketProperties);
+
+    public static final DeferredItem<BucketItem> TWILIGHT_FLUX_BUCKET = ITEMS.registerItem("twilight_flux_bucket",
+            properties -> new BucketItem(ModFluids.TWILIGHT_FLUX.get(), properties), ModItems::bucketProperties);
 
     /** One item per pipe type and tier. The untiered ME pipes have a single entry, under copper. */
     private static final Map<PipeType, Map<Tier, DeferredItem<PipeItem>>> PIPES = new EnumMap<>(PipeType.class);
@@ -113,6 +117,9 @@ public final class ModItems {
             ITEMS.registerSimpleBlockItem(ModBlocks.chunkLoader(tier));
             for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
                 ITEMS.registerSimpleBlockItem(ModBlocks.converter(type, tier));
+            }
+            for (LampKind kind : LampKind.values()) {
+                ITEMS.registerSimpleBlockItem(ModBlocks.lamp(kind, tier));
             }
         }
     }

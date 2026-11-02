@@ -17,6 +17,15 @@ public final class MachineConfigActions {
     /** The Auto Import and Auto Export switches in the side window. */
     public static final int AUTO_IMPORT_BUTTON = 601;
     public static final int AUTO_EXPORT_BUTTON = 602;
+    /** The Sky Controller's three buttons. */
+    public static final int SKY_DAY_BUTTON = 610;
+    public static final int SKY_NIGHT_BUTTON = 611;
+    public static final int SKY_WEATHER_BUTTON = 612;
+    /** The Magnet's whitelist and blacklist switch. */
+    public static final int MAGNET_MODE_BUTTON = 620;
+    /** Buttons from here up to 699 belong to one kind of machine; see {@link FluxMachineBlockEntity#machineButton}. */
+    private static final int MACHINE_BUTTONS = 610;
+    private static final int MACHINE_BUTTONS_END = 700;
 
     private MachineConfigActions() {
     }
@@ -52,6 +61,9 @@ public final class MachineConfigActions {
         if (buttonId == AUTO_INSERT_BUTTON) {
             machine.toggleAutoInsert();
             return true;
+        }
+        if (buttonId >= MACHINE_BUTTONS && buttonId < MACHINE_BUTTONS_END) {
+            return !machine.isRemoved() && machine.machineButton(buttonId);
         }
         if (buttonId == AUTO_IMPORT_BUTTON) {
             machine.toggleAutoImport();

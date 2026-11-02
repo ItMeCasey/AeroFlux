@@ -28,7 +28,20 @@ public final class ModFluids {
     public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> FLOWING_MOON_FLUX =
             FLUIDS.register("flowing_moon_flux", () -> new BaseFlowingFluid.Flowing(moonProperties()));
 
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Source> TWILIGHT_FLUX =
+            FLUIDS.register("twilight_flux", () -> new BaseFlowingFluid.Source(twilightProperties()));
+    public static final DeferredHolder<Fluid, BaseFlowingFluid.Flowing> FLOWING_TWILIGHT_FLUX =
+            FLUIDS.register("flowing_twilight_flux", () -> new BaseFlowingFluid.Flowing(twilightProperties()));
+
     private ModFluids() {
+    }
+
+    /**
+     * Whether a tank may store this resource: any of the three fluxes. Machines and collectors
+     * ask {@link #isFlux} instead, since Twilight Flux is not a fuel.
+     */
+    public static boolean isAnyFlux(FluidResource resource) {
+        return fluxTypeOf(resource) != null;
     }
 
     /** Whether the resource is Aero Flux or Moon Flux, source or flowing. */
@@ -47,12 +60,19 @@ public final class ModFluids {
         if (fluid.isSame(AERO_FLUX.get())) {
             return FluxType.AERO;
         }
-        return fluid.isSame(MOON_FLUX.get()) ? FluxType.MOON : null;
+        if (fluid.isSame(MOON_FLUX.get())) {
+            return FluxType.MOON;
+        }
+        return fluid.isSame(TWILIGHT_FLUX.get()) ? FluxType.TWILIGHT : null;
     }
 
     /** The source fluid of a flux. */
     public static Fluid fluidOf(FluxType type) {
-        return type == FluxType.AERO ? AERO_FLUX.get() : MOON_FLUX.get();
+        return switch (type) {
+            case AERO -> AERO_FLUX.get();
+            case MOON -> MOON_FLUX.get();
+            case TWILIGHT -> TWILIGHT_FLUX.get();
+        };
     }
 
     // The properties are built inside the suppliers, after every registry holder exists,
@@ -67,6 +87,12 @@ public final class ModFluids {
         return new BaseFlowingFluid.Properties(ModFluidTypes.MOON_FLUX, MOON_FLUX, FLOWING_MOON_FLUX)
                 .block(ModBlocks.MOON_FLUX)
                 .bucket(ModItems.MOON_FLUX_BUCKET);
+    }
+
+    private static BaseFlowingFluid.Properties twilightProperties() {
+        return new BaseFlowingFluid.Properties(ModFluidTypes.TWILIGHT_FLUX, TWILIGHT_FLUX, FLOWING_TWILIGHT_FLUX)
+                .block(ModBlocks.TWILIGHT_FLUX)
+                .bucket(ModItems.TWILIGHT_FLUX_BUCKET);
     }
 
     /** Hooks this registry into the mod event bus; call once from the mod constructor. */

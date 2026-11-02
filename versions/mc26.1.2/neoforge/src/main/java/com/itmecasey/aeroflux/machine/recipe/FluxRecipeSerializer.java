@@ -34,9 +34,12 @@ public final class FluxRecipeSerializer {
                 Codec.intRange(1, 1_000_000).optionalFieldOf("time", 200).forGetter(FluxRecipe::time),
                 Codec.intRange(0, 1_000_000).optionalFieldOf("flux", 0).forGetter(FluxRecipe::flux),
                 Codec.STRING.optionalFieldOf("flux_type").forGetter(recipe ->
-                        Optional.ofNullable(recipe.fluxType()).map(type -> type.name().toLowerCase(Locale.ROOT)))
-        ).apply(instance, (inputs, outputs, time, flux, fluxType) ->
-                new FluxRecipe(machine, inputs, outputs, time, flux, fluxType.map(FluxRecipeSerializer::parseFlux).orElse(null))));
+                        Optional.ofNullable(recipe.fluxType()).map(type -> type.name().toLowerCase(Locale.ROOT))),
+                Codec.STRING.optionalFieldOf("mesh", "").forGetter(FluxRecipe::mesh),
+                Codec.intRange(0, 1_000_000).optionalFieldOf("water", 0).forGetter(FluxRecipe::water)
+        ).apply(instance, (inputs, outputs, time, flux, fluxType, mesh, water) ->
+                new FluxRecipe(machine, inputs, outputs, time, flux, fluxType.map(FluxRecipeSerializer::parseFlux).orElse(null),
+                        mesh, water)));
 
         StreamCodec<RegistryFriendlyByteBuf, FluxRecipe> streamCodec = StreamCodec.of(
                 FluxRecipeSerializer::write,
@@ -62,6 +65,8 @@ public final class FluxRecipeSerializer {
         buf.writeVarInt(recipe.time());
         buf.writeVarInt(recipe.flux());
         ByteBufCodecs.VAR_INT.encode(buf, recipe.fluxType() == null ? -1 : recipe.fluxType().ordinal());
+        buf.writeUtf(recipe.mesh());
+        buf.writeVarInt(recipe.water());
     }
 
     private static FluxRecipe read(MachineType machine, RegistryFriendlyByteBuf buf) {
@@ -80,7 +85,9 @@ public final class FluxRecipeSerializer {
         int time = buf.readVarInt();
         int flux = buf.readVarInt();
         int type = ByteBufCodecs.VAR_INT.decode(buf);
+        String mesh = buf.readUtf();
+        int water = buf.readVarInt();
         return new FluxRecipe(machine, inputs, outputs, time, flux,
-                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type]);
+                type < 0 || type >= FluxType.values().length ? null : FluxType.values()[type], mesh, water);
     }
 }

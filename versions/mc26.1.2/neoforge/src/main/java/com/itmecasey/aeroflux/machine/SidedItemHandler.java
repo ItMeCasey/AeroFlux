@@ -56,13 +56,14 @@ final class SidedItemHandler implements ResourceHandler<ItemResource> {
     @Override
     public boolean isValid(int index, ItemResource resource) {
         return machine.isInputSlot(index) && FaceRules.canInsert(PortRole.INPUT, mode())
-                && machine.inventory().isValid(index, resource);
+                && machine.inventory().isValid(index, resource) && machine.acceptsFromOutside(index, resource.toStack(1));
     }
 
     @Override
     public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
         Objects.checkIndex(index, size());
-        if (!machine.isInputSlot(index) || !FaceRules.canInsert(PortRole.INPUT, mode())) {
+        if (!machine.isInputSlot(index) || !FaceRules.canInsert(PortRole.INPUT, mode())
+                || !machine.acceptsFromOutside(index, resource.toStack(1))) {
             return 0;
         }
         return machine.inventory().insert(index, resource, amount, transaction);

@@ -31,12 +31,13 @@ public class ModModelProvider extends ModelProvider {
     // and items listed below are expected from the generator.
     @Override
     protected Stream<? extends Holder<Block>> getKnownBlocks() {
-        return Stream.of(ModBlocks.AERO_FLUX, ModBlocks.MOON_FLUX);
+        return Stream.of(ModBlocks.AERO_FLUX, ModBlocks.MOON_FLUX, ModBlocks.TWILIGHT_FLUX);
     }
 
     @Override
     protected Stream<? extends Holder<Item>> getKnownItems() {
-        return Stream.of(ModItems.FLUX_DUST, ModItems.SAWDUST, ModItems.AERO_FLUX_BUCKET, ModItems.MOON_FLUX_BUCKET);
+        return Stream.of(ModItems.FLUX_DUST, ModItems.SAWDUST, ModItems.AERO_FLUX_BUCKET, ModItems.MOON_FLUX_BUCKET,
+                ModItems.TWILIGHT_FLUX_BUCKET);
     }
 
     @Override
@@ -46,9 +47,11 @@ public class ModModelProvider extends ModelProvider {
 
         fluidBlock(blockModels, ModBlocks.AERO_FLUX.get());
         fluidBlock(blockModels, ModBlocks.MOON_FLUX.get());
+        fluidBlock(blockModels, ModBlocks.TWILIGHT_FLUX.get());
 
         fluidBucket(itemModels, ModItems.AERO_FLUX_BUCKET.get(), ModFluids.AERO_FLUX.get());
         fluidBucket(itemModels, ModItems.MOON_FLUX_BUCKET.get(), ModFluids.MOON_FLUX.get());
+        fluidBucket(itemModels, ModItems.TWILIGHT_FLUX_BUCKET.get(), ModFluids.TWILIGHT_FLUX.get());
     }
 
     /**

@@ -63,6 +63,43 @@ public final class AeroFluxConfig {
         BUILDER.pop();
     }
 
+    // The machines that reach into the world: what a server may want to limit or switch off.
+    static {
+        BUILDER.comment("Sky Controller, Moon Spawner and Animal Breeder.").push("worldMachines");
+    }
+
+    private static final ModConfigSpec.BooleanValue SKY_CONTROLLER_ENABLED = BUILDER
+            .comment("When false, Sky Controllers do nothing when their buttons are pressed.")
+            .define("skyControllerEnabled", true);
+
+    private static final ModConfigSpec.IntValue SKY_DAY_COST = BUILDER
+            .comment("Aero Flux one press of Day costs (mB).")
+            .defineInRange("skyDayCost", 500, 0, 1_000_000);
+
+    private static final ModConfigSpec.IntValue SKY_NIGHT_COST = BUILDER
+            .comment("Moon Flux one press of Night costs (mB).")
+            .defineInRange("skyNightCost", 500, 0, 1_000_000);
+
+    private static final ModConfigSpec.IntValue SKY_WEATHER_COST = BUILDER
+            .comment("Aero Flux one press of Clear/Rain costs (mB).")
+            .defineInRange("skyWeatherCost", 250, 0, 1_000_000);
+
+    private static final ModConfigSpec.BooleanValue SPAWNER_ENABLED = BUILDER
+            .comment("When false, Moon Spawners stay idle.")
+            .define("spawnerEnabled", true);
+
+    private static final ModConfigSpec.IntValue SPAWNER_MAX_MOBS = BUILDER
+            .comment("Most mobs one Moon Spawner cycle rolls loot for. Higher tiers roll more, up to this.")
+            .defineInRange("spawnerMaxMobsPerCycle", 4, 1, 64);
+
+    private static final ModConfigSpec.IntValue BREEDER_ANIMAL_CAP = BUILDER
+            .comment("An Animal Breeder stops feeding once this many animals of the fed kind are in its range.")
+            .defineInRange("breederAnimalCap", 24, 2, 1_000);
+
+    static {
+        BUILDER.pop();
+    }
+
     /** The finished spec, registered with the mod container in the mod constructor. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -114,5 +151,40 @@ public final class AeroFluxConfig {
             ModConfigSpec.IntValue collectorRate,
             ModConfigSpec.IntValue collectorBufferBuckets,
             ModConfigSpec.IntValue tankCapacityMb) {
+    }
+
+    /** Whether Sky Controllers work at all. */
+    public static boolean skyControllerEnabled() {
+        return SKY_CONTROLLER_ENABLED.get();
+    }
+
+    /** Aero Flux a press of Day costs, in mB. */
+    public static int skyDayCost() {
+        return SKY_DAY_COST.get();
+    }
+
+    /** Moon Flux a press of Night costs, in mB. */
+    public static int skyNightCost() {
+        return SKY_NIGHT_COST.get();
+    }
+
+    /** Aero Flux a press of Clear/Rain costs, in mB. */
+    public static int skyWeatherCost() {
+        return SKY_WEATHER_COST.get();
+    }
+
+    /** Whether Moon Spawners work at all. */
+    public static boolean spawnerEnabled() {
+        return SPAWNER_ENABLED.get();
+    }
+
+    /** The most mobs one Moon Spawner cycle rolls loot for. */
+    public static int spawnerMaxMobsPerCycle() {
+        return SPAWNER_MAX_MOBS.get();
+    }
+
+    /** How many animals of one kind a breeder's range may hold before it stops feeding them. */
+    public static int breederAnimalCap() {
+        return BREEDER_ANIMAL_CAP.get();
     }
 }

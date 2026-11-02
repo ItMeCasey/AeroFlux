@@ -59,6 +59,8 @@ public class FluxRecipe implements Recipe<MachineInput> {
     private final int time;
     private final int flux;
     private final @Nullable FluxType fluxType;
+    private final String mesh;
+    private final int water;
 
     /**
      * @param machine  which machine this recipe is for; it picks the recipe type
@@ -70,6 +72,17 @@ public class FluxRecipe implements Recipe<MachineInput> {
      */
     public FluxRecipe(MachineType machine, List<Input> inputs, List<Output> outputs, int time, int flux,
                       @Nullable FluxType fluxType) {
+        this(machine, inputs, outputs, time, flux, fluxType, "", 0);
+    }
+
+    /**
+     * @param mesh  the sieve mesh the recipe needs (Sifter only), such as "flint"; empty for any
+     * @param water mB of water one run takes from the machine's water tank (Purifier and Sifter)
+     */
+    public FluxRecipe(MachineType machine, List<Input> inputs, List<Output> outputs, int time, int flux,
+                      @Nullable FluxType fluxType, String mesh, int water) {
+        this.mesh = mesh;
+        this.water = water;
         this.machine = machine;
         this.inputs = List.copyOf(inputs);
         this.outputs = List.copyOf(outputs);
@@ -102,6 +115,16 @@ public class FluxRecipe implements Recipe<MachineInput> {
 
     public @Nullable FluxType fluxType() {
         return fluxType;
+    }
+
+    /** The sieve mesh a Sifter needs for this recipe; empty for any. */
+    public String mesh() {
+        return mesh;
+    }
+
+    /** mB of water one run uses; 0 for none. */
+    public int water() {
+        return water;
     }
 
     /**

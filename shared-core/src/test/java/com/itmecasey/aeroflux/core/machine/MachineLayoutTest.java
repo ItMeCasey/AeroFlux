@@ -207,4 +207,26 @@ class MachineLayoutTest {
         assertEquals(SidePanelLayout.Part.NOTHING, layout.hit(0, 0).part());
         assertEquals(SidePanelLayout.Part.NOTHING, layout.hit(-5, 500).part());
     }
+
+    @Test
+    void nineInputsMoveTheArrowAndOutputsRight() {
+        MachineLayout layout = MachineLayout.of(9, 2);
+        int gaugeRight = layout.gauge().x() + layout.gauge().width();
+        for (int i = 0; i < 9; i++) {
+            assertTrue(MachineLayout.frameOf(layout.inputSlot(i)).x() > gaugeRight);
+            assertTrue(layout.inputSlot(i).x() < layout.arrow().x());
+        }
+        assertTrue(layout.outputSlot(0).x() > layout.arrow().x() + layout.arrow().width());
+        assertTrue(MachineLayout.frameOf(layout.outputSlot(1)).x() + MachineLayout.SLOT <= MachineLayout.WIDTH);
+    }
+
+    @Test
+    void extraGaugesFitBetweenTheirNeighbors() {
+        MachineLayout layout = MachineLayout.of(1, 6);
+        MachineLayout.Rect left = layout.extraGauge(false);
+        assertTrue(left.x() >= layout.gauge().x() + layout.gauge().width());
+        assertTrue(left.x() + left.width() <= MachineLayout.frameOf(layout.inputSlot(0)).x());
+        MachineLayout.Rect right = layout.extraGauge(true);
+        assertTrue(right.x() + right.width() <= MachineLayout.WIDTH - 2);
+    }
 }
