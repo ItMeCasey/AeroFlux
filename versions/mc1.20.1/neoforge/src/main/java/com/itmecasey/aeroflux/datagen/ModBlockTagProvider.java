@@ -25,7 +25,8 @@ public class ModBlockTagProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider registries) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
-                .add(ModBlocks.CONDUIT_BUNDLE.get());
+                .add(ModBlocks.CONDUIT_BUNDLE.get())
+                .add(ModBlocks.CREATIVE_TANK.get());
 
         for (Tier tier : Tier.values()) {
             tag(BlockTags.MINEABLE_WITH_PICKAXE)

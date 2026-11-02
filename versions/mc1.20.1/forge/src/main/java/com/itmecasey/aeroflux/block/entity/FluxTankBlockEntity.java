@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>A broken tank keeps its flux: the loot table copies the saved fluid into the item's
  * {@code BlockEntityTag}, and vanilla's {@code BlockItem} loads it back into the tank it places.
  */
-public class FluxTankBlockEntity extends BlockEntity implements MenuProvider {
+public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, TankView {
     private final Tier tier;
     private final FluidTank tank;
     /** Counts what goes in and out, for the in and out rates on the tank's screen. */
@@ -81,6 +81,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     /** The tank itself, exposed to pipes and containers through the fluid capability. */
+    @Override
     public FluidTank tank() {
         return tank;
     }

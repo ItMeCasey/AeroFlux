@@ -64,6 +64,7 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
                 blocks.add(ModBlocks.lamp(kind, tier).get());
             }
         }
+        blocks.add(ModBlocks.CREATIVE_TANK.get());
         return blocks;
     }
 }

@@ -23,6 +23,7 @@ import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.registry.ModSounds;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +43,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -105,6 +108,8 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     /** An idle machine looks for new work this often instead of every tick. */
     private static final int IDLE_CHECK_INTERVAL = 10;
+    /** The start, stop and done sounds are cues, kept a little under full volume. */
+    private static final float ONE_SHOT_VOLUME = 0.5F;
 
     /**
      * One piece of work: the thing the inputs are being turned into right now. A subclass makes a
@@ -891,6 +896,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             drainFlux(cost, false);
             if (timer.advance()) {
                 job.complete();
+                playSound(level, ModSounds.MACHINE_DONE.get());
                 timer.reset();
                 activeKey = null;
                 redstone.jobFinished();
@@ -967,12 +973,20 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     /**
      * Switches the block's {@link FluxMachineBlock#LIT} state to match whether the machine is
      * working. Only a real change touches the world, so a steady machine costs no block updates.
+     * The change is also when the start or stop sound plays; the running loop is the client's
+     * business (it follows the same property).
      */
     private void showWorking(Level level, boolean working) {
         BlockState state = getBlockState();
         if (state.hasProperty(FluxMachineBlock.LIT) && state.getValue(FluxMachineBlock.LIT) != working) {
             level.setBlock(worldPosition, state.setValue(FluxMachineBlock.LIT, working), Block.UPDATE_ALL);
+            playSound(level, working ? ModSounds.MACHINE_START.get() : ModSounds.MACHINE_STOP.get());
         }
+    }
+
+    /** Plays one of the shared one-shot machine sounds at the machine, for everyone nearby. */
+    private void playSound(Level level, SoundEvent sound) {
+        level.playSound(null, worldPosition, sound, SoundSource.BLOCKS, ONE_SHOT_VOLUME, 1.0F);
     }
 
     /**
