@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.conduit.PipeItem;
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.conduit.tool.ConduitToolItem;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
@@ -25,6 +26,21 @@ public final class ModItems {
 
     /** Crafted from glowstone dust, quartz and redstone; the base ingredient for crystals and alloys. */
     public static final DeferredItem<Item> FLUX_DUST = ITEMS.registerSimpleItem("flux_dust");
+
+    /** Quartz and Flux Dust, infused with Moon Flux; the Aero half of the crystal pair. */
+    public static final DeferredItem<Item> AERO_CRYSTAL = ITEMS.registerSimpleItem("aero_crystal");
+
+    /** Amethyst and Flux Dust, infused with Moon Flux. */
+    public static final DeferredItem<Item> MOON_CRYSTAL = ITEMS.registerSimpleItem("moon_crystal");
+
+    /** Iron and Flux Dust, made in the Alloy Smelter. */
+    public static final DeferredItem<Item> FLUXSTEEL_INGOT = ITEMS.registerSimpleItem("fluxsteel_ingot");
+
+    /** Gold and an Aero Crystal, made in the Alloy Smelter. */
+    public static final DeferredItem<Item> AEROGOLD_INGOT = ITEMS.registerSimpleItem("aerogold_ingot");
+
+    /** The Sawmill's byproduct: a log or plank sometimes leaves a pile of it behind. */
+    public static final DeferredItem<Item> SAWDUST = ITEMS.registerSimpleItem("sawdust");
 
     public static final DeferredItem<BucketItem> AERO_FLUX_BUCKET = ITEMS.register("aero_flux_bucket",
             () -> new BucketItem(ModFluids.AERO_FLUX.get(), bucketProperties()));
@@ -69,6 +85,9 @@ public final class ModItems {
         for (Tier tier : Tier.values()) {
             ITEMS.registerSimpleBlockItem(ModBlocks.collector(tier));
             ITEMS.registerSimpleBlockItem(ModBlocks.tank(tier));
+            for (MachineType machine : MachineType.values()) {
+                ITEMS.registerSimpleBlockItem(ModBlocks.machine(machine, tier));
+            }
         }
     }
 

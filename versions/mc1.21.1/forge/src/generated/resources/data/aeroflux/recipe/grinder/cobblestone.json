@@ -1,0 +1,19 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:cobblestone"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 1,
+        "id": "minecraft:gravel"
+      }
+    }
+  ],
+  "time": 100
+}

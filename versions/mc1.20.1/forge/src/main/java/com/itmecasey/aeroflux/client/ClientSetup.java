@@ -3,7 +3,9 @@ package com.itmecasey.aeroflux.client;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.client.model.BundleGeometryLoader;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModMenus;
@@ -29,10 +31,15 @@ public final class ClientSetup {
         event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
     }
 
-    /** Pairs the pipe menu with its screen. */
+    /** Pairs the pipe menu and the eight machine menus with their screens. */
     @SubscribeEvent
     public static void registerScreens(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> MenuScreens.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new));
+        event.enqueueWork(() -> {
+            MenuScreens.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
+            for (MachineType machine : MachineType.values()) {
+                MenuScreens.register(ModMenus.machine(machine).get(), MachineScreen::new);
+            }
+        });
     }
 
     /** Teaches the model system the {@code aeroflux:conduit_bundle} model type. */

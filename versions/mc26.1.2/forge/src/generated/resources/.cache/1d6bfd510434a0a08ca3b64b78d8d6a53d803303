@@ -1,3 +1,3 @@
-// 26.1.2	2026-11-01T10:21:16.0189692	Tags for minecraft:block mod id aeroflux
-2312c5062aa51df84b92406a29d012d376c28768 data/minecraft/tags/block/mineable/pickaxe.json
-3086b21a5f32a6d68d76700ff7f1e030726e70c7 data/minecraft/tags/block/needs_stone_tool.json
+// 26.1.2	2026-11-02T02:26:11.8030262	Tags for minecraft:block mod id aeroflux
+9cee74d29bc022a069afc8c6d18d6a2ff74cd562 data/minecraft/tags/block/mineable/pickaxe.json
+ce6cc81c21e47c1da44c0da343ee4a8ee9058b37 data/minecraft/tags/block/needs_stone_tool.json

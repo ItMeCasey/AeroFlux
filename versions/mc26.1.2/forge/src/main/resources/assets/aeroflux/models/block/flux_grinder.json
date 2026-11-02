@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "aeroflux:block/grinder_front",
+    "side": "aeroflux:block/machine_metal_side",
+    "top": "aeroflux:block/grinder_top",
+    "particle": "aeroflux:block/machine_metal_side"
+  }
+}

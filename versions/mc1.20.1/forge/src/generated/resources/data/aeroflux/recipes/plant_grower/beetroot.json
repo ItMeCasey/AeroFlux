@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:beetroot_seeds"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "item": "minecraft:beetroot"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:beetroot_seeds"
+    }
+  ],
+  "time": 400
+}

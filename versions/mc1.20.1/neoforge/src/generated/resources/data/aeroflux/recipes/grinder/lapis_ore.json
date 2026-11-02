@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "forge:ores/lapis"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 8,
+      "item": "minecraft:lapis_lazuli"
+    }
+  ],
+  "time": 200
+}

@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "forge:ores/copper"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "item": "minecraft:raw_copper"
+    }
+  ],
+  "time": 200
+}

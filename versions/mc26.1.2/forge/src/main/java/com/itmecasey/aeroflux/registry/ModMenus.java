@@ -2,6 +2,10 @@ package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.conduit.config.PipeConfigMenu;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.machine.MachineMenu;
+import java.util.EnumMap;
+import java.util.Map;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
@@ -18,7 +22,22 @@ public final class ModMenus {
     public static final RegistryObject<MenuType<PipeConfigMenu>> PIPE_CONFIG =
             MENUS.register("pipe_config", () -> IForgeMenuType.create(PipeConfigMenu::fromNetwork));
 
+    /** One menu type per machine, all built by {@link MachineMenu}; each has its own screen registration. */
+    private static final Map<MachineType, RegistryObject<MenuType<MachineMenu>>> MACHINES =
+            new EnumMap<>(MachineType.class);
+
+    static {
+        for (MachineType machine : MachineType.values()) {
+            MACHINES.put(machine, MENUS.register(machine.id(), () -> IForgeMenuType.create(MachineMenu::fromNetwork)));
+        }
+    }
+
     private ModMenus() {
+    }
+
+    /** The menu type of a machine. */
+    public static RegistryObject<MenuType<MachineMenu>> machine(MachineType machine) {
+        return MACHINES.get(machine);
     }
 
     /** Hooks this registry into the mod event bus group; call once from the mod constructor. */

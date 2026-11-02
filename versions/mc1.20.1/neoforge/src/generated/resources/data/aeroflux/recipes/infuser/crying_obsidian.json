@@ -1,0 +1,23 @@
+{
+  "type": "aeroflux:infuser",
+  "flux": 1000,
+  "flux_type": "moon",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:obsidian"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "aeroflux:flux_dust"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": "minecraft:crying_obsidian"
+    }
+  ],
+  "time": 200
+}

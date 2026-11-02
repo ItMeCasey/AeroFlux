@@ -4,6 +4,8 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
+import com.itmecasey.aeroflux.machine.MachineFactory;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +29,11 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluxTankBlockEntity>> TANK =
             BLOCK_ENTITIES.register("tank", () -> new BlockEntityType<>(
                     FluxTankBlockEntity::new, blocksOf(ModBlocks.tanks())));
+
+    /** One block entity type for every machine and tier; {@link MachineFactory} picks the behavior from the block. */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluxMachineBlockEntity>> MACHINE =
+            BLOCK_ENTITIES.register("machine", () -> new BlockEntityType<>(
+                    MachineFactory::create, blocksOf(ModBlocks.machines())));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ConduitBundleBlockEntity>> CONDUIT_BUNDLE =
             BLOCK_ENTITIES.register("conduit_bundle", () -> new BlockEntityType<>(

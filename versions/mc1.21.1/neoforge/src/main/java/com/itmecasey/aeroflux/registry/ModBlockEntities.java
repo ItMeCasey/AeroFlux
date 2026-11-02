@@ -4,6 +4,8 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
+import com.itmecasey.aeroflux.machine.MachineFactory;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -25,6 +27,12 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluxTankBlockEntity>> TANK =
             BLOCK_ENTITIES.register("tank", () -> BlockEntityType.Builder
                     .of(FluxTankBlockEntity::new, ModBlocks.tanks().stream().map(DeferredBlock::get).toArray(Block[]::new))
+                    .build(null));
+
+    /** One block entity type for every machine and tier; {@link MachineFactory} picks the behavior from the block. */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluxMachineBlockEntity>> MACHINE =
+            BLOCK_ENTITIES.register("machine", () -> BlockEntityType.Builder
+                    .of(MachineFactory::create, ModBlocks.machines().stream().map(DeferredBlock::get).toArray(Block[]::new))
                     .build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ConduitBundleBlockEntity>> CONDUIT_BUNDLE =

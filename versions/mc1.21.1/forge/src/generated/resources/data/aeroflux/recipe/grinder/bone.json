@@ -1,0 +1,19 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:bone"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 6,
+        "id": "minecraft:bone_meal"
+      }
+    }
+  ],
+  "time": 100
+}

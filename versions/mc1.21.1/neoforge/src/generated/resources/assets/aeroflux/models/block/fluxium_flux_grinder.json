@@ -1,0 +1,9 @@
+{
+  "parent": "aeroflux:block/flux_grinder",
+  "textures": {
+    "front": "aeroflux:block/grinder_front_fluxium",
+    "particle": "aeroflux:block/machine_metal_side_fluxium",
+    "side": "aeroflux:block/machine_metal_side_fluxium",
+    "top": "aeroflux:block/grinder_top_fluxium"
+  }
+}

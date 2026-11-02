@@ -1,0 +1,26 @@
+{
+  "type": "aeroflux:sawmill",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "minecraft:crimson_stems"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 6,
+        "id": "minecraft:crimson_planks"
+      }
+    },
+    {
+      "chance": 0.25,
+      "item": {
+        "count": 1,
+        "id": "aeroflux:sawdust"
+      }
+    }
+  ],
+  "time": 100
+}

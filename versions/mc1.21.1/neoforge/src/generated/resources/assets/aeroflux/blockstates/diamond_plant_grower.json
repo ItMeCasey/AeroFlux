@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "aeroflux:block/diamond_plant_grower",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "aeroflux:block/diamond_plant_grower"
+    },
+    "facing=south": {
+      "model": "aeroflux:block/diamond_plant_grower",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "aeroflux:block/diamond_plant_grower",
+      "y": 270
+    }
+  }
+}

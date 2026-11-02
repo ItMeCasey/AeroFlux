@@ -1,0 +1,18 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "c:ores/redstone"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 8,
+        "id": "minecraft:redstone"
+      }
+    }
+  ]
+}

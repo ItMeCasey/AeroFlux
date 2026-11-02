@@ -523,7 +523,7 @@ final class ScreenSelfTest {
      * opens no menu and closes by just dropping back to the inventory menu, which is all the
      * checks here need. Clicks, held items and positions behave like a real player's.
      */
-    private static final class TestPlayer extends ServerPlayer {
+    static final class TestPlayer extends ServerPlayer {
         TestPlayer(ServerLevel level) {
             super(level.getServer(), level, new GameProfile(UUID.nameUUIDFromBytes("aeroflux-selftest".getBytes()), "[AeroFlux]"),
                     ClientInformation.createDefault());

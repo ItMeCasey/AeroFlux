@@ -1,0 +1,27 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:melon_seeds"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:melon_slice"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "count": 1,
+        "id": "minecraft:melon_seeds"
+      }
+    }
+  ],
+  "time": 400
+}

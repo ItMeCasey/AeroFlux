@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.conduit.PipeItem;
 import com.itmecasey.aeroflux.conduit.UpgradeItem;
 import com.itmecasey.aeroflux.conduit.tool.ConduitToolItem;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
@@ -28,6 +29,22 @@ public final class ModItems {
     /** Crafted from glowstone dust, quartz and redstone; the base ingredient for crystals and alloys. */
     public static final RegistryObject<Item> FLUX_DUST =
             ITEMS.register("flux_dust", () -> new Item(new Item.Properties()));
+
+    /** Quartz and Flux Dust, infused with Moon Flux; the Aero half of the crystal pair. */
+    public static final RegistryObject<Item> AERO_CRYSTAL =
+            ITEMS.register("aero_crystal", () -> new Item(new Item.Properties()));
+
+    /** Amethyst and Flux Dust, infused with Moon Flux. */
+    public static final RegistryObject<Item> MOON_CRYSTAL =
+            ITEMS.register("moon_crystal", () -> new Item(new Item.Properties()));
+
+    /** Iron and Flux Dust, made in the Alloy Smelter. */
+    public static final RegistryObject<Item> FLUXSTEEL_INGOT =
+            ITEMS.register("fluxsteel_ingot", () -> new Item(new Item.Properties()));
+
+    /** Gold and an Aero Crystal, made in the Alloy Smelter. */
+    public static final RegistryObject<Item> AEROGOLD_INGOT =
+            ITEMS.register("aerogold_ingot", () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<BucketItem> AERO_FLUX_BUCKET = ITEMS.register("aero_flux_bucket",
             () -> new BucketItem(ModFluids.AERO_FLUX, bucketProperties()));
@@ -73,6 +90,9 @@ public final class ModItems {
         for (Tier tier : Tier.values()) {
             registerBlockItem(tier.id() + "_collector", ModBlocks.collector(tier));
             registerBlockItem(tier.id() + "_tank", ModBlocks.tank(tier));
+            for (MachineType machine : MachineType.values()) {
+                registerBlockItem(ModBlocks.machineBlockName(machine, tier), ModBlocks.machine(machine, tier));
+            }
         }
     }
 

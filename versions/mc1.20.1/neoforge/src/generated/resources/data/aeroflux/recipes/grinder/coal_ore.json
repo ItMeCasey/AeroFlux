@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "forge:ores/coal"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "item": "minecraft:coal"
+    }
+  ],
+  "time": 200
+}

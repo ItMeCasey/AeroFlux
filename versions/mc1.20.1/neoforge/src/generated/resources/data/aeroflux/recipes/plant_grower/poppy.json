@@ -1,0 +1,18 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:poppy"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "item": "minecraft:poppy"
+    }
+  ],
+  "time": 400
+}

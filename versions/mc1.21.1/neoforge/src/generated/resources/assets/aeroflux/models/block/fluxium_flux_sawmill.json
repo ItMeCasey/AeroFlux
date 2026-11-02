@@ -1,0 +1,10 @@
+{
+  "parent": "aeroflux:block/flux_sawmill",
+  "textures": {
+    "blade": "aeroflux:block/machine_metal_side_fluxium",
+    "front": "aeroflux:block/sawmill_front_fluxium",
+    "particle": "aeroflux:block/machine_wood_side_fluxium",
+    "side": "aeroflux:block/machine_wood_side_fluxium",
+    "top": "aeroflux:block/sawmill_top_fluxium"
+  }
+}

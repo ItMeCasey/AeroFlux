@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.core.FluxType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.bus.api.IEventBus;
@@ -8,6 +9,7 @@ import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The source and flowing fluids for Aero Flux and Moon Flux. Each pair is tied together by a
@@ -33,6 +35,24 @@ public final class ModFluids {
     public static boolean isFlux(FluidResource resource) {
         Fluid fluid = resource.getFluid();
         return fluid.isSame(AERO_FLUX.get()) || fluid.isSame(MOON_FLUX.get());
+    }
+
+    /** Which flux a resource is, or {@code null} for any other fluid. */
+    public static @Nullable FluxType fluxTypeOf(FluidResource resource) {
+        return fluxTypeOf(resource.getFluid());
+    }
+
+    /** Which flux a fluid is, or {@code null} for any other fluid. */
+    public static @Nullable FluxType fluxTypeOf(Fluid fluid) {
+        if (fluid.isSame(AERO_FLUX.get())) {
+            return FluxType.AERO;
+        }
+        return fluid.isSame(MOON_FLUX.get()) ? FluxType.MOON : null;
+    }
+
+    /** The source fluid of a flux. */
+    public static Fluid fluidOf(FluxType type) {
+        return type == FluxType.AERO ? AERO_FLUX.get() : MOON_FLUX.get();
     }
 
     // The properties are built inside the suppliers, after every registry holder exists,

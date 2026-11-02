@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,9 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
         for (Tier tier : Tier.values()) {
             blocks.add(ModBlocks.collector(tier).get());
             blocks.add(ModBlocks.tank(tier).get());
+            for (MachineType machine : MachineType.values()) {
+                blocks.add(ModBlocks.machine(machine, tier).get());
+            }
         }
         return blocks;
     }

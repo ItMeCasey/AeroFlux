@@ -34,7 +34,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
  *
  * <p>Results are written to the log as {@code AEROFLUX-SELFTEST PASS/FAIL <name>}, followed by a
  * summary line, and the server then stops. The transfer scenarios (pipes moving fluid, items and
- * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}.
+ * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}. The machines and their screens' menus are in {@link MachineSelfTest}.
  */
 @EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SelfTest {
@@ -78,6 +78,7 @@ public final class SelfTest {
         TransferSelfTest.setUp(level);
         ToolSelfTest.setUp(level);
         ScreenSelfTest.setUp(level);
+        MachineSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -97,9 +98,14 @@ public final class SelfTest {
         if (ToolSelfTest.finished()) {
             ScreenSelfTest.tick();
         }
+        // The machine checks follow the screen checks: they build many blocks and need the chunk to themselves.
+        if (ScreenSelfTest.finished()) {
+            MachineSelfTest.tick();
+        }
         if (phase == 2) {
             // The collector checks are done; wait for the transfer and tool checks to finish too.
-            if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()) {
+            if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
+                    && MachineSelfTest.finished()) {
                 finish();
             }
             return;

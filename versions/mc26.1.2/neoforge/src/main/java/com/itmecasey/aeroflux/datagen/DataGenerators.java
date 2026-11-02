@@ -26,10 +26,11 @@ public final class DataGenerators {
         event.createProvider(ModModelProvider::new);
     }
 
-    /** Registers the server-side providers: block tags and loot tables. */
+    /** Registers the server-side providers: recipes, block tags and loot tables. */
     @SubscribeEvent
     public static void gatherServerData(GatherDataEvent.Server event) {
         event.createProvider(ModBlockTagProvider::new);
+        event.createProvider(ModRecipeProvider.Runner::new);
         event.createProvider((output, lookupProvider) -> new LootTableProvider(output, Set.of(), List.of(
                 new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK)),
                 lookupProvider));

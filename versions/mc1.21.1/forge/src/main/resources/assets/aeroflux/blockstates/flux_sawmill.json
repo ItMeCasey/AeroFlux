@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "aeroflux:block/flux_sawmill"
+    },
+    "facing=east": {
+      "model": "aeroflux:block/flux_sawmill",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "aeroflux:block/flux_sawmill",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "aeroflux:block/flux_sawmill",
+      "y": 270
+    }
+  }
+}

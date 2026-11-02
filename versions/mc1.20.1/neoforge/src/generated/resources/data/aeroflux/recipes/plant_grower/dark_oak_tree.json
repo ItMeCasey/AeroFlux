@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:dark_oak_sapling"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:dark_oak_log"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:dark_oak_sapling"
+    }
+  ],
+  "time": 600
+}

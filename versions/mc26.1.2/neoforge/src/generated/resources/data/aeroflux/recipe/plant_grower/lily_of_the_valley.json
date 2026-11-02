@@ -1,0 +1,18 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "moon",
+  "inputs": [
+    {
+      "ingredient": "minecraft:lily_of_the_valley"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:lily_of_the_valley"
+      }
+    }
+  ],
+  "time": 400
+}

@@ -4,8 +4,11 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.client.model.BundleUnbakedModel;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.machine.MachineRecipes;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModMenus;
@@ -15,6 +18,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
 import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -49,6 +53,15 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
+        for (MachineType machine : MachineType.values()) {
+            event.register(ModMenus.machine(machine).get(), MachineScreen::new);
+        }
+    }
+
+    /** Keeps the machine recipes the server sends, so the menus can judge items on the client too. */
+    @SubscribeEvent
+    public static void onRecipesReceived(RecipesReceivedEvent event) {
+        MachineRecipes.receive(event.getRecipeMap());
     }
 
     @SubscribeEvent

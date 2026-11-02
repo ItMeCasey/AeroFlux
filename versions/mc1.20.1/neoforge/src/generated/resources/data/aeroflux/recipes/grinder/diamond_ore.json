@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "forge:ores/diamond"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "item": "minecraft:diamond"
+    }
+  ],
+  "time": 200
+}

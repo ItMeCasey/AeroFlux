@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:sawmill",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:bamboo_block"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 6,
+      "item": "minecraft:bamboo_planks"
+    },
+    {
+      "chance": 0.25,
+      "count": 2,
+      "item": "minecraft:stick"
+    }
+  ],
+  "time": 100
+}

@@ -1,0 +1,19 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:sandstone"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 4,
+        "id": "minecraft:sand"
+      }
+    }
+  ],
+  "time": 100
+}

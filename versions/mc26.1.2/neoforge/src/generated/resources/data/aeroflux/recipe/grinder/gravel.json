@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": "minecraft:gravel"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "id": "minecraft:sand"
+      }
+    },
+    {
+      "chance": 0.25,
+      "item": {
+        "id": "minecraft:flint"
+      }
+    }
+  ],
+  "time": 100
+}

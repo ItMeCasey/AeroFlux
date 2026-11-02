@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:infuser",
+  "flux": 500,
+  "flux_type": "moon",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:amethyst_shard"
+      }
+    },
+    {
+      "ingredient": {
+        "item": "aeroflux:flux_dust"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "item": "aeroflux:moon_crystal"
+    }
+  ]
+}

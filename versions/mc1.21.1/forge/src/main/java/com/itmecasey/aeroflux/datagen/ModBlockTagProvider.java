@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
@@ -30,6 +31,10 @@ public class ModBlockTagProvider extends BlockTagsProvider {
             tag(BlockTags.NEEDS_STONE_TOOL)
                     .add(ModBlocks.collector(tier).get())
                     .add(ModBlocks.tank(tier).get());
+            for (MachineType machine : MachineType.values()) {
+                tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.machine(machine, tier).get());
+                tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.machine(machine, tier).get());
+            }
         }
     }
 }

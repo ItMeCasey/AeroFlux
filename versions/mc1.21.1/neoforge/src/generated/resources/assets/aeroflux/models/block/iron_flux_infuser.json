@@ -1,0 +1,9 @@
+{
+  "parent": "aeroflux:block/flux_infuser",
+  "textures": {
+    "crystal": "aeroflux:block/moon_glow",
+    "particle": "aeroflux:block/infuser_side_iron",
+    "side": "aeroflux:block/infuser_side_iron",
+    "top": "aeroflux:block/infuser_top_iron"
+  }
+}

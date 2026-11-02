@@ -2,6 +2,8 @@ package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
@@ -19,6 +21,17 @@ public class ModBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         fluidBlock(ModBlocks.AERO_FLUX.get(), "aero_flux");
         fluidBlock(ModBlocks.MOON_FLUX.get(), "moon_flux");
+
+        // The first-tier machine blocks have their blockstates and models delivered with the art
+        // (assets-src). The higher tiers face the same way and share the first tier's model.
+        for (MachineType machine : MachineType.values()) {
+            ModelFile model = models().getExistingFile(modLoc("block/" + machine.blockId()));
+            for (Tier tier : Tier.values()) {
+                if (tier != Tier.COPPER) {
+                    horizontalBlock(ModBlocks.machine(machine, tier).get(), model);
+                }
+            }
+        }
     }
 
     /**

@@ -2,6 +2,9 @@ package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.material.Fluid;
@@ -20,6 +23,15 @@ public class ModItemModelProvider extends ItemModelProvider {
         flatItem("flux_dust");
         fluidBucket("aero_flux_bucket", ModFluids.AERO_FLUX.get());
         fluidBucket("moon_flux_bucket", ModFluids.MOON_FLUX.get());
+
+        // Higher-tier machines show the first tier's block model; the first tier's item model ships with the art.
+        for (MachineType machine : MachineType.values()) {
+            for (Tier tier : Tier.values()) {
+                if (tier != Tier.COPPER) {
+                    withExistingParent(ModBlocks.machineBlockName(machine, tier), modLoc("block/" + machine.blockId()));
+                }
+            }
+        }
     }
 
     /** Registers a flat item model that uses the texture {@code item/<name>}. */

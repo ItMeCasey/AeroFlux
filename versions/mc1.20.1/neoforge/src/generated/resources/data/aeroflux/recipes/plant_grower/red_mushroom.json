@@ -1,0 +1,18 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "moon",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:red_mushroom"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:red_mushroom"
+    }
+  ],
+  "time": 400
+}

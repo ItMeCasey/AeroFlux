@@ -557,7 +557,7 @@ final class ScreenSelfTest {
     }
 
     /** What the menu believes the other side holds for one slot: the last stack it sent. */
-    private static final class SentSlot implements RemoteSlot {
+    static final class SentSlot implements RemoteSlot {
         private ItemStack sent = ItemStack.EMPTY;
 
         @Override
@@ -580,7 +580,7 @@ final class ScreenSelfTest {
      * A server player that was never connected. Menus, inventories and block clicks work as
      * for any player; only what would be sent over the network is answered locally.
      */
-    private static final class TestPlayer extends ServerPlayer {
+    static final class TestPlayer extends ServerPlayer {
         TestPlayer(ServerLevel level) {
             super(level.getServer(), level, new GameProfile(UUID.randomUUID(), "aeroflux-screen-test"),
                     ClientInformation.createDefault());

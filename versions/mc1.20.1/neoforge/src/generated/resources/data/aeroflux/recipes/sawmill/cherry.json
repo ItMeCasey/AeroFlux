@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:sawmill",
+  "inputs": [
+    {
+      "ingredient": {
+        "tag": "minecraft:cherry_logs"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 6,
+      "item": "minecraft:cherry_planks"
+    },
+    {
+      "chance": 0.25,
+      "count": 2,
+      "item": "minecraft:stick"
+    }
+  ],
+  "time": 100
+}

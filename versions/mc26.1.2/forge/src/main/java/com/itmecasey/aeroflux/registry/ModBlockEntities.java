@@ -4,6 +4,8 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
+import com.itmecasey.aeroflux.machine.MachineFactory;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -26,6 +28,11 @@ public final class ModBlockEntities {
     public static final RegistryObject<BlockEntityType<FluxTankBlockEntity>> TANK =
             BLOCK_ENTITIES.register("tank", () -> new BlockEntityType<>(FluxTankBlockEntity::new,
                     validBlocks(ModBlocks.tanks())));
+
+    /** One block entity type for every machine and tier; {@link MachineFactory} picks the behavior from the block. */
+    public static final RegistryObject<BlockEntityType<FluxMachineBlockEntity>> MACHINE =
+            BLOCK_ENTITIES.register("machine", () -> new BlockEntityType<>(MachineFactory::create,
+                    validBlocks(ModBlocks.machines())));
 
     public static final RegistryObject<BlockEntityType<ConduitBundleBlockEntity>> CONDUIT_BUNDLE =
             BLOCK_ENTITIES.register("conduit_bundle", () -> new BlockEntityType<>(ConduitBundleBlockEntity::new,

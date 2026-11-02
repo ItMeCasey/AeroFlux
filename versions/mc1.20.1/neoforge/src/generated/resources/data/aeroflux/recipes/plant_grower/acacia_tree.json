@@ -1,0 +1,22 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": {
+        "item": "minecraft:acacia_sapling"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "count": 3,
+      "item": "minecraft:acacia_log"
+    },
+    {
+      "chance": 0.5,
+      "item": "minecraft:acacia_sapling"
+    }
+  ],
+  "time": 600
+}

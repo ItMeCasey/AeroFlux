@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -23,6 +24,10 @@ public final class ModCreativeTabs {
                     .icon(() -> ModItems.FLUX_DUST.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         output.accept(ModItems.FLUX_DUST.get());
+                        output.accept(ModItems.AERO_CRYSTAL.get());
+                        output.accept(ModItems.MOON_CRYSTAL.get());
+                        output.accept(ModItems.FLUXSTEEL_INGOT.get());
+                        output.accept(ModItems.AEROGOLD_INGOT.get());
                         output.accept(ModItems.AERO_FLUX_BUCKET.get());
                         output.accept(ModItems.MOON_FLUX_BUCKET.get());
                         output.accept(ModItems.FLUX_WRENCH.get());
@@ -42,6 +47,11 @@ public final class ModCreativeTabs {
                         for (Tier tier : Tier.values()) {
                             output.accept(ModBlocks.collector(tier).get());
                             output.accept(ModBlocks.tank(tier).get());
+                        }
+                        for (MachineType machine : MachineType.values()) {
+                            for (Tier tier : Tier.values()) {
+                                output.accept(ModBlocks.machine(machine, tier).get());
+                            }
                         }
                     })
                     .build());

@@ -1,0 +1,24 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": "minecraft:spruce_sapling"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:spruce_log"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:spruce_sapling"
+      }
+    }
+  ],
+  "time": 600
+}

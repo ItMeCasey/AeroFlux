@@ -3,7 +3,9 @@ package com.itmecasey.aeroflux.client;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.client.model.BundleGeometryLoader;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
+import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
+import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluidTypes;
@@ -44,6 +46,9 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);
+        for (MachineType machine : MachineType.values()) {
+            event.register(ModMenus.machine(machine).get(), MachineScreen::new);
+        }
     }
 
     /** Teaches the model system the {@code aeroflux:conduit_bundle} model type. */

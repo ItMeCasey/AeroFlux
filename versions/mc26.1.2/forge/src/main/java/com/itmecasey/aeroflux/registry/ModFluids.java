@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.core.FluxType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
@@ -31,6 +32,19 @@ public final class ModFluids {
     /** Whether the fluid is Aero Flux or Moon Flux, source or flowing. */
     public static boolean isFlux(Fluid fluid) {
         return fluid.isSame(AERO_FLUX.get()) || fluid.isSame(MOON_FLUX.get());
+    }
+
+    /** Which flux a fluid is, or {@code null} for any other fluid. */
+    public static FluxType fluxTypeOf(Fluid fluid) {
+        if (fluid.isSame(AERO_FLUX.get())) {
+            return FluxType.AERO;
+        }
+        return fluid.isSame(MOON_FLUX.get()) ? FluxType.MOON : null;
+    }
+
+    /** The source fluid of a flux. */
+    public static Fluid fluidOf(FluxType type) {
+        return type == FluxType.AERO ? AERO_FLUX.get() : MOON_FLUX.get();
     }
 
     // The properties are built inside the suppliers, after every registry object exists,

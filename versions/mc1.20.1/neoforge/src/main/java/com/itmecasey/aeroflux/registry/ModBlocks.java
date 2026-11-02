@@ -7,8 +7,12 @@ import com.itmecasey.aeroflux.conduit.ConduitBundleBlock;
 import com.itmecasey.aeroflux.conduit.PipeNodeBlock;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.machine.FluxMachineBlock;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.world.level.block.Block;
@@ -29,6 +33,7 @@ public final class ModBlocks {
 
     private static final Map<Tier, RegistryObject<FluxCollectorBlock>> COLLECTORS = new EnumMap<>(Tier.class);
     private static final Map<Tier, RegistryObject<FluxTankBlock>> TANKS = new EnumMap<>(Tier.class);
+    private static final Map<MachineType, Map<Tier, RegistryObject<FluxMachineBlock>>> MACHINES = new EnumMap<>(MachineType.class);
 
     /** The in-world block for Aero Flux; behaves like water apart from the glow. */
     public static final RegistryObject<LiquidBlock> AERO_FLUX =
@@ -63,6 +68,14 @@ public final class ModBlocks {
             TANKS.put(tier, BLOCKS.register(tier.id() + "_tank",
                     () -> new FluxTankBlock(tier, tankProperties())));
         }
+        for (MachineType machine : MachineType.values()) {
+            Map<Tier, RegistryObject<FluxMachineBlock>> byTier = new EnumMap<>(Tier.class);
+            for (Tier tier : Tier.values()) {
+                byTier.put(tier, BLOCKS.register(machineBlockName(machine, tier),
+                        () -> new FluxMachineBlock(tier, machine, factoryProperties(machine))));
+            }
+            MACHINES.put(machine, byTier);
+        }
     }
 
     private ModBlocks() {
@@ -86,6 +99,43 @@ public final class ModBlocks {
     /** All tank blocks, lowest tier first. */
     public static Collection<RegistryObject<FluxTankBlock>> tanks() {
         return TANKS.values();
+    }
+
+    /**
+     * The registry name of a machine block. The first tier keeps the bare name the art is
+     * delivered under ({@code flux_furnace}); the others put the tier in front
+     * ({@code iron_flux_furnace}) and share the same model.
+     */
+    public static String machineBlockName(MachineType machine, Tier tier) {
+        return tier == Tier.COPPER ? machine.blockId() : tier.id() + "_" + machine.blockId();
+    }
+
+    /** The block of one machine at one tier. */
+    public static RegistryObject<FluxMachineBlock> machine(MachineType machine, Tier tier) {
+        return MACHINES.get(machine).get(tier);
+    }
+
+    /** Every machine block, grouped by machine and then lowest tier first. */
+    public static List<RegistryObject<FluxMachineBlock>> machines() {
+        List<RegistryObject<FluxMachineBlock>> all = new ArrayList<>();
+        for (Map<Tier, RegistryObject<FluxMachineBlock>> byTier : MACHINES.values()) {
+            all.addAll(byTier.values());
+        }
+        return all;
+    }
+
+    /**
+     * The furnace, grinder and alloy smelter models are plain cubes; the others have parts that
+     * do not fill the block, so they must not hide the faces of their neighbors.
+     */
+    private static BlockBehaviour.Properties factoryProperties(MachineType machine) {
+        BlockBehaviour.Properties properties = BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(3.0F, 6.0F)
+                .sound(SoundType.METAL)
+                .requiresCorrectToolForDrops();
+        boolean cube = machine == MachineType.FURNACE || machine == MachineType.GRINDER || machine == MachineType.ALLOY_SMELTER;
+        return cube ? properties : properties.noOcclusion();
     }
 
     private static BlockBehaviour.Properties machineProperties() {

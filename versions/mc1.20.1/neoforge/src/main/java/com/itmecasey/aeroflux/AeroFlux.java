@@ -7,6 +7,7 @@ import com.itmecasey.aeroflux.registry.ModFluidTypes;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
 import com.itmecasey.aeroflux.registry.ModMenus;
+import com.itmecasey.aeroflux.registry.ModRecipes;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -43,6 +44,7 @@ public class AeroFlux {
         ModBlockEntities.register(modEventBus);
         ModItems.register(modEventBus);
         ModMenus.register(modEventBus);
+        ModRecipes.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
 

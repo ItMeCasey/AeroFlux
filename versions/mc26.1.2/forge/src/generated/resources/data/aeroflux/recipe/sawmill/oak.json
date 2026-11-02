@@ -1,0 +1,24 @@
+{
+  "type": "aeroflux:sawmill",
+  "inputs": [
+    {
+      "ingredient": "#minecraft:oak_logs"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 6,
+        "id": "minecraft:oak_planks"
+      }
+    },
+    {
+      "chance": 0.25,
+      "item": {
+        "count": 2,
+        "id": "minecraft:stick"
+      }
+    }
+  ],
+  "time": 100
+}
