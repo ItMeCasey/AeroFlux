@@ -18,8 +18,10 @@ import java.util.List;
  * KubeJS support: a recipe schema for each recipe machine, so packs can write
  * {@code event.recipes.aeroflux.grinder([{ingredient: '#c:ores/iron'}], [{item: '2x minecraft:raw_iron'}, {item: 'minecraft:gravel', chance: 0.1}], 200)}.
  * The keys follow the recipe files exactly: {@code inputs}, {@code outputs}, {@code time}, and the
- * optional {@code flux} and {@code flux_type}. KubeJS finds this class through
- * {@code kubejs.plugins.txt} and only when KubeJS is installed.
+ * optional {@code flux}, {@code flux_type}, {@code mesh} (the Sifter's mesh, any mesh when left out)
+ * and {@code water} (mB per run for the Purifier and Sifter), so a script can chain
+ * {@code .mesh('iron').water(100)}. New keys go on the end so positional calls keep working.
+ * KubeJS finds this class through {@code kubejs.plugins.txt} and only when KubeJS is installed.
  */
 public class AeroFluxKubeJSPlugin implements KubeJSPlugin {
     /** One input: an ingredient and how many of it a run uses (1 when left out). */
@@ -37,11 +39,13 @@ public class AeroFluxKubeJSPlugin implements KubeJSPlugin {
     private static final RecipeKey<?> TIME = NumberComponent.INT.otherKey("time").optional(200);
     private static final RecipeKey<?> FLUX = NumberComponent.INT.otherKey("flux").defaultOptional();
     private static final RecipeKey<?> FLUX_TYPE = StringComponent.STRING.otherKey("flux_type").defaultOptional();
+    private static final RecipeKey<?> MESH = StringComponent.STRING.otherKey("mesh").defaultOptional();
+    private static final RecipeKey<?> WATER = NumberComponent.intRange(0, 1_000_000).otherKey("water").defaultOptional();
 
     @Override
     public void registerRecipeSchemas(RecipeSchemaRegistry registry) {
         RecipeNamespace namespace = registry.namespace(AeroFlux.MODID);
-        RecipeSchema schema = new RecipeSchema(INPUTS, OUTPUTS, TIME, FLUX, FLUX_TYPE);
+        RecipeSchema schema = new RecipeSchema(INPUTS, OUTPUTS, TIME, FLUX, FLUX_TYPE, MESH, WATER);
         for (MachineType machine : MachineType.values()) {
             if (machine.hasOwnRecipes()) {
                 namespace.register(machine.id(), schema);
