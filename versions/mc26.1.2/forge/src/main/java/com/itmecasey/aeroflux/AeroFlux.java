@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux;
 
 import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
+import com.itmecasey.aeroflux.compat.smwti.AeroFluxSmwtiPlugin;
 import com.itmecasey.aeroflux.datagen.DataGenerators;
 import com.itmecasey.aeroflux.machine.configurator.ConfiguratorPayload;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
@@ -16,6 +17,7 @@ import com.itmecasey.aeroflux.registry.ModSounds;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
@@ -60,6 +62,10 @@ public final class AeroFlux {
         context.registerConfig(ModConfig.Type.CLIENT, AeroFluxClientConfig.SPEC);
         StorageSizesSync.register();
         ConfiguratorPayload.register();
+        if (ModList.isLoaded("smwti")) {
+            // Show Me What This Is is optional: its lines are only registered when it is there.
+            AeroFluxSmwtiPlugin.register();
+        }
 
         LOGGER.info("AeroFlux loaded (Forge 26.1.2)");
     }

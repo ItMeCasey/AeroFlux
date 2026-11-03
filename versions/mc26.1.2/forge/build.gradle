@@ -80,6 +80,10 @@ dependencies {
     compileOnly "maven.modrinth:badpackets:${badpackets_version}"
     runtimeOnly "maven.modrinth:wthit:${wthit_version}"
     runtimeOnly "maven.modrinth:badpackets:${badpackets_version}"
+
+    // SMWTI (Show Me What This Is), a look-at overlay of ours. Only its API is compiled against, from
+    // the jar in libs (built by SMWTI's apiJar task); the overlay itself is an optional dependency.
+    compileOnly files('libs/smwti-forge-26.1.2-2026.11.1-api.jar')
 }
 
 // mods.toml and pack.mcmeta are templates: this fills in their ${} values from gradle.properties
