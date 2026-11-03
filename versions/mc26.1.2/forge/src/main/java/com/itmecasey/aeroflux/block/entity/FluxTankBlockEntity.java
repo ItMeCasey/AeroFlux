@@ -19,6 +19,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -31,6 +32,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraftforge.common.capabilities.Capability;
@@ -43,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds the fluid of a {@link FluxTankBlock}: Aero Flux or Moon Flux, never both at once.
+ * Holds the fluid of a {@link FluxTankBlock}: any fluid, but only one kind at a time.
  *
  * <p>Clients draw the fluid level inside the glass, so they are sent the tank whenever its
  * picture changes (see {@link FillLevel}); a tank being filled does not resend every tick. Its
@@ -62,7 +64,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         super(ModBlockEntities.TANK.get(), pos, state);
         this.tier = ((FluxTankBlock) state.getBlock()).tier();
         int capacity = StorageSizes.tank(tier);
-        this.tank = new FluxFluidTank(capacity, stack -> ModFluids.isAnyFlux(stack.getFluid())) {
+        this.tank = new FluxFluidTank(capacity, stack -> !stack.isEmpty()) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
              * update); it still takes nothing more, and probes such as Jade, which refuse a fill above
@@ -117,9 +119,14 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         return tank.getCapacity();
     }
 
-    /** The flux in the tank, or {@code null} if it is empty. */
+    /** The flux in the tank, or {@code null} if it is empty or holds some other fluid. */
     public @Nullable FluxType storedFlux() {
         return tank.isEmpty() ? null : ModFluids.fluxTypeOf(tank.getFluid().getFluid());
+    }
+
+    /** The fluid in the tank, whatever it is, or {@code null} if the tank is empty. */
+    public @Nullable Fluid storedFluid() {
+        return tank.isEmpty() ? null : tank.getFluid().getFluid();
     }
 
     /** mB that went in during the last finished second. */
@@ -152,9 +159,8 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         if (level == null || level.isClientSide()) {
             return;
         }
-        FluxType found = ModFluids.fluxTypeOf(tank.getFluid().getFluid());
-        FluxType type = found == null ? FluxType.AERO : found;
-        int key = FillLevel.syncKey(tank.getFluidAmount(), tank.getCapacity(), type);
+        int fluidId = tank.isEmpty() ? -1 : BuiltInRegistries.FLUID.getId(tank.getFluid().getFluid());
+        int key = FillLevel.syncKey(tank.getFluidAmount(), tank.getCapacity(), fluidId);
         if (key != syncedKey) {
             syncedKey = key;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -166,7 +172,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         return FillLevel.comparatorSignal(tank.getFluidAmount(), tank.getCapacity());
     }
 
-    /** A broken tank keeps its flux on the item (the loot table copies this component). */
+    /** A broken tank keeps its fluid on the item (the loot table copies this component). */
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder components) {
         super.collectImplicitComponents(components);
@@ -175,12 +181,12 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         }
     }
 
-    /** Placing a tank item that carries flux fills the new tank with it. */
+    /** Placing a tank item that carries fluid fills the new tank with it. */
     @Override
     protected void applyImplicitComponents(DataComponentGetter components) {
         super.applyImplicitComponents(components);
         TankContents carried = components.get(ModDataComponents.TANK_FLUID.get());
-        if (carried != null && ModFluids.isAnyFlux(carried.fluid())) {
+        if (carried != null) {
             tank.setFluid(carried.toStack());
         }
     }

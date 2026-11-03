@@ -26,6 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -66,9 +67,10 @@ public final class LookInfo {
      *
      * @param amount   mB held
      * @param capacity mB it can hold
-     * @param type     the kind of Flux, or {@code null} when it is empty
+     * @param type     the kind of Flux, or {@code null} when it is empty or holds some other fluid
+     * @param fluid    whatever fluid it holds (a Flux Tank takes any), or {@code null} when it is empty
      */
-    public record Flux(long amount, long capacity, @Nullable FluxType type) {
+    public record Flux(long amount, long capacity, @Nullable FluxType type, @Nullable Fluid fluid) {
     }
 
     /** The Flux a block entity holds, or {@code null} for blocks that hold none. */
@@ -89,7 +91,7 @@ public final class LookInfo {
         }
         FluidStack held = handler.getFluidInTank(0);
         return new Flux(held.getAmount(), handler.getTankCapacity(0),
-                held.isEmpty() ? null : ModFluids.fluxTypeOf(held.getFluid()));
+                held.isEmpty() ? null : ModFluids.fluxTypeOf(held.getFluid()), held.isEmpty() ? null : held.getFluid());
     }
 
     /** One line per pipe in the bundle, by its item name, which carries the tier. */

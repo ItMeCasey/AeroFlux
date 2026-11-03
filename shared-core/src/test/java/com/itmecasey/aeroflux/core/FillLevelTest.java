@@ -65,4 +65,12 @@ class FillLevelTest {
         assertEquals(15, FillLevel.comparatorSignal(CAPACITY, CAPACITY));
         assertEquals(15, FillLevel.comparatorSignal(CAPACITY * 2, CAPACITY), "an overfull tank still reads 15");
     }
+
+    @Test
+    void aTankThatHoldsAnyFluidResendsWhenTheFluidChanges() {
+        int water = FillLevel.syncKey(7_000, CAPACITY, 3);
+        assertEquals(water, FillLevel.syncKey(7_900, CAPACITY, 3), "same step, same fluid");
+        assertNotEquals(water, FillLevel.syncKey(7_000, CAPACITY, 4), "another fluid");
+        assertNotEquals(water, FillLevel.syncKey(9_000, CAPACITY, 3), "next step");
+    }
 }

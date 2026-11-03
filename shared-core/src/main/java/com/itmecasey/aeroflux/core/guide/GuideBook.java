@@ -49,7 +49,7 @@ public final class GuideBook {
                             "Collectors need open sky above them. Each tier collects faster and holds more; clear weather and a bright moon speed them up.\n"
                                     + "Right-click one to see its screen: the buffer, the rate now, and a sky panel that names what blocks the sky."),
                     new Page("tanks", "tanks", "Tanks",
-                            "Tanks store one fluid at a time and show their fill level from outside. Pipe Flux from collectors into tanks, and from tanks into machines.\n"
+                            "Tanks store any one fluid at a time, Flux or not, drawn with its own texture, and show their fill level from outside. Pipe Flux from collectors into tanks, and from tanks into machines.\n"
                                     + "A tank keeps its Flux when you break it: the amount rides on the dropped item and fills the tank again when placed. The Creative Flux Tank never runs dry and is only for creative mode."),
                     new Page("dimensions", "datapacks", "Other Dimensions",
                             "By default only the Overworld has Flux to collect. Data packs can change that per dimension, including how fast collectors run and whether chunk loaders are allowed there."))),

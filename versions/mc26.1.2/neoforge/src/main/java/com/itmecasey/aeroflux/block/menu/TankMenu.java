@@ -7,6 +7,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.SplitInt;
 import com.itmecasey.aeroflux.registry.ModMenus;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15,6 +16,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.material.Fluid;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -28,7 +30,8 @@ public class TankMenu extends AbstractContainerMenu {
     private static final int DATA_TYPE = 4;
     private static final int DATA_IN = 5;        // two slots
     private static final int DATA_OUT = 7;       // two slots
-    private static final int DATA_COUNT = 9;
+    private static final int DATA_FLUID = 9;     // the fluid's id in the fluid registry, plus one; 0 when empty
+    private static final int DATA_COUNT = 10;
 
     private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
 
@@ -85,6 +88,12 @@ public class TankMenu extends AbstractContainerMenu {
         return stored <= 0 || stored > FluxType.values().length ? null : FluxType.values()[stored - 1];
     }
 
+    /** The fluid in the tank, whatever it is, or {@code null} if it is empty. */
+    public @Nullable Fluid fluid() {
+        int stored = data.get(DATA_FLUID);
+        return stored <= 0 ? null : BuiltInRegistries.FLUID.byId(stored - 1);
+    }
+
     /** mB that went in during the last second. */
     public int inLastSecond() {
         return SplitInt.join(data.get(DATA_IN), data.get(DATA_IN + 1));
@@ -130,6 +139,7 @@ public class TankMenu extends AbstractContainerMenu {
                 case DATA_CAPACITY -> SplitInt.low(tank.capacity());
                 case DATA_CAPACITY + 1 -> SplitInt.high(tank.capacity());
                 case DATA_TYPE -> tank.storedFlux() == null ? 0 : tank.storedFlux().ordinal() + 1;
+                case DATA_FLUID -> tank.storedFluid() == null ? 0 : BuiltInRegistries.FLUID.getId(tank.storedFluid()) + 1;
                 case DATA_IN -> SplitInt.low(clamp(tank.inLastWindow()));
                 case DATA_IN + 1 -> SplitInt.high(clamp(tank.inLastWindow()));
                 case DATA_OUT -> SplitInt.low(clamp(tank.outLastWindow()));

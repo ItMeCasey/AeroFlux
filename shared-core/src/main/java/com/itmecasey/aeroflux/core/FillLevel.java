@@ -53,4 +53,15 @@ public final class FillLevel {
     public static int syncKey(long amount, long capacity, FluxType type) {
         return step(amount, capacity) * FluxType.values().length + type.ordinal();
     }
+
+    /**
+     * Like {@link #syncKey(long, long, FluxType)} for a tank that holds any fluid: the step plus the fluid's
+     * id in the game's fluid registry, so a swap from water to lava at the same level is resent too.
+     */
+    public static int syncKey(long amount, long capacity, int fluidId) {
+        return step(amount, capacity) * FLUID_IDS + Math.floorMod(fluidId, FLUID_IDS);
+    }
+
+    /** Room for fluid ids in a sync key; far more than any pack registers. */
+    private static final int FLUID_IDS = 65_536;
 }

@@ -13,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 
 /**
  * The One Probe support. The probe asks on the server, so the lines come straight from
@@ -43,7 +44,8 @@ public final class AeroFluxProbeProvider implements IProbeInfoProvider, Function
         // The One Probe cannot read 26.1's fluid handlers on its own, so the Flux level is drawn here.
         LookInfo.Flux flux = LookInfo.flux(entity);
         if (flux != null) {
-            int color = flux.type() == null ? 0xFF808080 : 0xFF000000 | flux.type().tint();
+            int color = flux.fluid() == null ? 0xFF808080
+                    : 0xFF000000 | (flux.type() != null ? flux.type().tint() : IClientFluidTypeExtensions.of(flux.fluid()).getTintColor());
             info.progress(flux.amount(), flux.capacity(), info.defaultProgressStyle()
                     .suffix(" / " + flux.capacity() + " mB")
                     .filledColor(color)

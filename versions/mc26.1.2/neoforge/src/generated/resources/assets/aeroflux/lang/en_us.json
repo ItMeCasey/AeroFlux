@@ -417,7 +417,7 @@
   "guide.aeroflux.sounds.title": "Sounds and Settings",
   "guide.aeroflux.start.body": "AeroFlux gathers Flux from the sky: Aero Flux from the sun by day and Moon Flux from the moon by night. Both are fluids that power every AeroFlux machine.\nChopping trees shakes loose Sawdust now and then; two make a Flux Dust. Then build a Flux Collector, a Flux Tank and a Copper Furnace.",
   "guide.aeroflux.start.title": "Welcome to AeroFlux",
-  "guide.aeroflux.tanks.body": "Tanks store one fluid at a time and show their fill level from outside. Pipe Flux from collectors into tanks, and from tanks into machines.\nA tank keeps its Flux when you break it: the amount rides on the dropped item and fills the tank again when placed. The Creative Flux Tank never runs dry and is only for creative mode.",
+  "guide.aeroflux.tanks.body": "Tanks store any one fluid at a time, Flux or not, drawn with its own texture, and show their fill level from outside. Pipe Flux from collectors into tanks, and from tanks into machines.\nA tank keeps its Flux when you break it: the amount rides on the dropped item and fills the tank again when placed. The Creative Flux Tank never runs dry and is only for creative mode.",
   "guide.aeroflux.tanks.title": "Tanks",
   "guide.aeroflux.tiers.body": "Every block comes in six tiers: copper, iron, gold, diamond, netherite and fluxium. An Upgrade Card raises a placed machine, collector, tank or converter one tier and keeps everything in it: sneak and use it on the block.",
   "guide.aeroflux.tiers.title": "Tiers and Upgrade Cards",

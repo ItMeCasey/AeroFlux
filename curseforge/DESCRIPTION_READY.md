@@ -16,7 +16,7 @@ Both glow a little in the dark, and you can carry either one in a bucket.
 
 A collector works on its own. Set it somewhere with open sky and it gathers sun by day and moon by night, all in one block. Rain slows the sun down, and a full moon gives you the most moonlight. There are six tiers, from Copper up to Fluxium. Each tier is faster and holds more.
 
-Tanks are made of glass, so you can see the liquid rising inside. Bigger tiers hold a lot more, and a tank keeps its contents when you pick it up and move it.
+Tanks are made of glass, so you can see the liquid rising inside, and they take any fluid, one at a time, not only Flux. Bigger tiers hold a lot more, and a tank keeps its contents when you pick it up and move it.
 
 ## Machines
 

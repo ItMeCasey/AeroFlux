@@ -7,7 +7,6 @@ import com.itmecasey.aeroflux.compat.LookInfo;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
-import com.itmecasey.aeroflux.registry.ModFluids;
 import java.util.ArrayList;
 import java.util.List;
 import mcp.mobius.waila.api.ICommonRegistrar;
@@ -65,8 +64,8 @@ public class AeroFluxWthitCommonPlugin implements IWailaCommonPlugin {
             LookInfo.Flux flux = LookInfo.flux(entity);
             if (flux != null) {
                 data.add(FluidData.class, result -> {
-                    FluidStack held = flux.type() == null ? FluidStack.EMPTY
-                            : new FluidStack(ModFluids.fluidOf(flux.type()), (int) Math.min(Integer.MAX_VALUE, flux.amount()));
+                    FluidStack held = flux.fluid() == null ? FluidStack.EMPTY
+                            : new FluidStack(flux.fluid(), (int) Math.min(Integer.MAX_VALUE, flux.amount()));
                     result.add(ForgeFluidData.of(1).add(held, flux.amount(), flux.capacity()));
                 });
             }

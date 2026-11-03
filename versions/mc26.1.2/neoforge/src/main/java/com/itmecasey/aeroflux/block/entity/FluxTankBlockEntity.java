@@ -14,6 +14,7 @@ import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -56,7 +58,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         super(ModBlockEntities.TANK.get(), pos, state);
         this.tier = ((FluxTankBlock) state.getBlock()).tier();
         int capacity = StorageSizes.tank(tier);
-        // A single slot, so the tank can only ever hold one kind of flux.
+        // A single slot, so the tank holds one fluid at a time; any fluid will do.
         this.tank = new FluidStacksResourceHandler(1, capacity) {
             /**
              * Never less than what the tank holds. A tank can end up overfull (its block shrank in an
@@ -70,7 +72,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
 
             @Override
             public boolean isValid(int index, FluidResource resource) {
-                return ModFluids.isAnyFlux(resource);
+                return !resource.isEmpty();
             }
 
             @Override
@@ -104,10 +106,16 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         return (int) Math.min(Integer.MAX_VALUE, tank.getCapacityAsLong(0, tank.getResource(0)));
     }
 
-    /** The flux in the tank, or {@code null} if it is empty. */
+    /** The flux in the tank, or {@code null} if it is empty or holds some other fluid. */
     public @Nullable FluxType storedFlux() {
         FluidResource held = tank.getResource(0);
         return held.isEmpty() ? null : ModFluids.fluxTypeOf(held);
+    }
+
+    /** The fluid in the tank, whatever it is, or {@code null} if the tank is empty. */
+    public @Nullable Fluid storedFluid() {
+        FluidResource held = tank.getResource(0);
+        return held.isEmpty() ? null : held.getFluid();
     }
 
     /** mB that went in during the last finished second. */
@@ -141,9 +149,8 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
             return;
         }
         FluidResource held = tank.getResource(0);
-        FluxType found = ModFluids.fluxTypeOf(held);
-        FluxType type = found == null ? FluxType.AERO : found;
-        int key = FillLevel.syncKey(tank.getAmountAsLong(0), tank.getCapacityAsLong(0, held), type);
+        int fluidId = held.isEmpty() ? -1 : BuiltInRegistries.FLUID.getId(held.getFluid());
+        int key = FillLevel.syncKey(tank.getAmountAsLong(0), tank.getCapacityAsLong(0, held), fluidId);
         if (key != syncedKey) {
             syncedKey = key;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -171,7 +178,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
     protected void applyImplicitComponents(DataComponentGetter components) {
         super.applyImplicitComponents(components);
         FluidStack carried = components.getOrDefault(ModDataComponents.TANK_FLUID.get(), SimpleFluidContent.EMPTY).copy();
-        if (!carried.isEmpty() && ModFluids.isAnyFlux(FluidResource.of(carried))) {
+        if (!carried.isEmpty()) {
             tank.set(0, FluidResource.of(carried), carried.getAmount());
         }
     }

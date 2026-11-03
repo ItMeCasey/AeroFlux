@@ -16,6 +16,7 @@ import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -28,13 +29,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds the fluid of a {@link FluxTankBlock}: Aero Flux or Moon Flux, never both at once.
+ * Holds the fluid of a {@link FluxTankBlock}: Flux, water or any other fluid, one kind at a time.
  *
  * <p>Clients draw the fluid level inside the glass, so they are sent the tank whenever its
  * picture changes (see {@link FillLevel}); a tank being filled does not resend every tick. Its
@@ -52,7 +54,8 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         super(ModBlockEntities.TANK.get(), pos, state);
         this.tier = ((FluxTankBlock) state.getBlock()).tier();
         int capacity = StorageSizes.tank(tier);
-        this.tank = new FluxFluidTank(capacity, stack -> ModFluids.isAnyFlux(stack.getFluid())) {
+        // A single slot, so the tank holds one fluid at a time; any fluid will do.
+        this.tank = new FluxFluidTank(capacity, stack -> !stack.isEmpty()) {
             @Override
             public int fill(FluidStack resource, FluidAction action) {
                 int filled = super.fill(resource, action);
@@ -116,10 +119,16 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         return tank.getCapacity();
     }
 
-    /** The flux in the tank, or {@code null} if it is empty. */
+    /** The flux in the tank, or {@code null} if it is empty or holds some other fluid. */
     @Nullable
     public FluxType storedFlux() {
         return tank.isEmpty() ? null : ModFluids.fluxTypeOf(tank.getFluid().getFluid());
+    }
+
+    /** The fluid in the tank, whatever it is, or {@code null} if the tank is empty. */
+    @Nullable
+    public Fluid storedFluid() {
+        return tank.isEmpty() ? null : tank.getFluid().getFluid();
     }
 
     /** mB that went in during the last finished second. */
@@ -152,9 +161,8 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
         if (level == null || level.isClientSide) {
             return;
         }
-        FluxType found = ModFluids.fluxTypeOf(tank.getFluid().getFluid());
-        FluxType type = found == null ? FluxType.AERO : found;
-        int key = FillLevel.syncKey(tank.getFluidAmount(), tank.getCapacity(), type);
+        int fluidId = tank.isEmpty() ? -1 : BuiltInRegistries.FLUID.getId(tank.getFluid().getFluid());
+        int key = FillLevel.syncKey(tank.getFluidAmount(), tank.getCapacity(), fluidId);
         if (key != syncedKey) {
             syncedKey = key;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
@@ -180,7 +188,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
     protected void applyImplicitComponents(BlockEntity.DataComponentInput components) {
         super.applyImplicitComponents(components);
         FluidStack carried = components.getOrDefault(ModDataComponents.TANK_FLUID.get(), SimpleFluidContent.EMPTY).copy();
-        if (!carried.isEmpty() && ModFluids.isAnyFlux(carried.getFluid())) {
+        if (!carried.isEmpty()) {
             // Setting the fluid directly skips onContentsChanged, so the clients are told here.
             tank.setFluid(carried);
             syncIfPictureChanged();

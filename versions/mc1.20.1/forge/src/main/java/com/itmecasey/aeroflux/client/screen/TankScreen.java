@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.client.screen;
 
 import com.itmecasey.aeroflux.block.menu.TankMenu;
+import com.itmecasey.aeroflux.client.render.FluidRenderUtil;
 import com.itmecasey.aeroflux.client.screen.widget.FluxGauge;
 import com.itmecasey.aeroflux.client.screen.widget.Glyphs;
 import com.itmecasey.aeroflux.client.screen.widget.Panel;
@@ -13,6 +14,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
 
 /**
  * A tank's screen: a tall Flux gauge on the left and, beside it, what the tank holds, how full it
@@ -59,7 +62,13 @@ public class TankScreen extends AbstractContainerScreen<TankMenu> {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        gauge.update(menu.amount(), menu.capacity(), menu.fluxType(), 0, false);
+        Fluid held = menu.fluid();
+        if (held == null) {
+            gauge.update(menu.amount(), menu.capacity(), null, 0, false);
+        } else {
+            // Whatever the tank holds is drawn with its own texture, flux or not.
+            gauge.updateFluid(menu.amount(), menu.capacity(), held);
+        }
         super.render(graphics, mouseX, mouseY, partialTick);
         List<Component> lines = gauge.tooltip(mouseX, mouseY);
         if (!lines.isEmpty()) {
@@ -73,15 +82,17 @@ public class TankScreen extends AbstractContainerScreen<TankMenu> {
         graphics.fill(leftPos + 2, topPos + 2, leftPos + imageWidth - 2, topPos + 5, accent);
         Panel.sunken(graphics, leftPos + INFO_X, topPos + CONTENT_Y, INFO_WIDTH, GAUGE_HEIGHT, INFO_FACE);
 
-        FluxType type = menu.fluxType();
+        Fluid fluid = menu.fluid();
         int amount = menu.amount();
         int capacity = Math.max(1, menu.capacity());
-        boolean empty = type == null || amount <= 0;
+        boolean empty = fluid == null || amount <= 0;
+        // The two flux colors are the mod's own; any other fluid is shown in the tint it has in the world.
+        FluxType type = menu.fluxType();
+        int color = empty ? 0 : type != null ? 0xFF000000 | type.tint() : FluidRenderUtil.tint(fluid) | 0xFF000000;
 
         // What it holds, then how much of how much.
-        Component contents = empty ? Component.translatable("gui.aeroflux.gauge.empty")
-                : Component.translatable("fluid_type.aeroflux." + type.id() + "_flux");
-        row(graphics, 0, "fluid", empty ? Glyphs.OFF_COLOR : 0xFF000000 | type.tint(), contents, empty ? MUTED : TEXT);
+        Component contents = empty ? Component.translatable("gui.aeroflux.gauge.empty") : new FluidStack(fluid, 1).getDisplayName();
+        row(graphics, 0, "fluid", empty ? Glyphs.OFF_COLOR : color, contents, empty ? MUTED : TEXT);
         row(graphics, 1, "upgrade_capacity", TEXT,
                 Component.translatable("gui.aeroflux.gauge.amount", format(amount), format(capacity)), TEXT);
 
@@ -93,7 +104,7 @@ public class TankScreen extends AbstractContainerScreen<TankMenu> {
         Panel.sunken(graphics, barX, barY, barWidth, BAR_HEIGHT, BAR_FACE);
         int filled = (int) Math.round(FillLevel.fraction(amount, capacity) * (barWidth - 2));
         if (filled > 0 && !empty) {
-            graphics.fill(barX + 1, barY + 1, barX + 1 + filled, barY + BAR_HEIGHT - 1, 0xFF000000 | type.tint());
+            graphics.fill(barX + 1, barY + 1, barX + 1 + filled, barY + BAR_HEIGHT - 1, color);
         }
         String percentText = Component.translatable("gui.aeroflux.tank.percent", percent).getString();
         graphics.drawString(font, percentText, leftPos + INFO_X + INFO_WIDTH - 5 - font.width(percentText), barY - 1, TEXT, false);

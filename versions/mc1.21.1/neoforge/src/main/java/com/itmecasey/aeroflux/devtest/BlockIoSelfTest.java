@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.devtest;
 
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.block.menu.TankMenu;
 import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
 import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.Tier;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -115,6 +117,36 @@ final class BlockIoSelfTest {
         // The flux is on the item, so the copy of the block data on it must not carry it twice.
         SelfTest.check("tanks: the block entity does not keep a second copy of the flux in its item data",
                 placed.components().get(ModDataComponents.TANK_FLUID.get()) == null);
+        checkAnyFluid();
+    }
+
+    /** A tank takes any fluid, one at a time, and a broken tank carries it like it carries flux. */
+    private static void checkAnyFluid() {
+        BlockPos pos = new BlockPos(2, Y, 7);
+        level.setBlock(pos, ModBlocks.tank(Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
+        FluxTankBlockEntity tank = (FluxTankBlockEntity) level.getBlockEntity(pos);
+        fill(tank.tank(), Fluids.WATER, TANK_FLUX);
+        SelfTest.check("tanks: a tank takes water, not only flux",
+                tank.amount() == TANK_FLUX && tank.storedFluid() == Fluids.WATER && tank.storedFlux() == null);
+        fill(tank.tank(), Fluids.LAVA, TANK_FLUX);
+        SelfTest.check("tanks: it holds one fluid at a time, so lava is refused while it holds water",
+                tank.amount() == TANK_FLUX && tank.storedFluid() == Fluids.WATER);
+        BlockState state = level.getBlockState(pos);
+        List<ItemStack> drops = Block.getDrops(state, level, pos, tank);
+        SimpleFluidContent carried = drops.size() == 1
+                ? drops.get(0).getOrDefault(ModDataComponents.TANK_FLUID.get(), SimpleFluidContent.EMPTY)
+                : SimpleFluidContent.EMPTY;
+        SelfTest.check("tanks: a broken tank keeps water on the item",
+                carried.getAmount() == TANK_FLUX && carried.is(Fluids.WATER));
+        BlockPos again = new BlockPos(3, Y, 7);
+        level.setBlock(again, state, Block.UPDATE_ALL);
+        FluxTankBlockEntity placed = (FluxTankBlockEntity) level.getBlockEntity(again);
+        placed.applyComponentsFromItemStack(drops.get(0));
+        SelfTest.check("tanks: a placed tank item fills the new tank with its water",
+                placed.amount() == TANK_FLUX && placed.storedFluid() == Fluids.WATER);
+        // The screen learns the fluid through the menu's data.
+        TankMenu menu = new TankMenu(0, null, placed);
+        SelfTest.check("tanks: the menu tells the screen which fluid the tank holds", menu.fluid() == Fluids.WATER);
     }
 
     private static void checkComparators() {
