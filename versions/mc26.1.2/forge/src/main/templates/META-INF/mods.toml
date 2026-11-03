@@ -28,9 +28,16 @@ description='''${mod_description}'''
     ordering="NONE"
     side="BOTH"
 
-# Optional mods. This build has no recipe viewer, look-at tooltip, AE2 or Mekanism support yet,
-# so only the sieve mods are listed: the Sifter runs their sieve recipes and is only craftable
-# with one installed.
+# Optional mods. WTHIT is the only look-at tooltip mod with a Forge build for this Minecraft version;
+# the recipe viewers, Jade, The One Probe, KubeJS and AE2 have none yet, so they are not listed. The sieve
+# mods are: the Sifter runs their sieve recipes and is only craftable with one installed.
+[[dependencies.${mod_id}]]
+    modId="wthit"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
 [[dependencies.${mod_id}]]
     modId="exdeorum"
     mandatory=false

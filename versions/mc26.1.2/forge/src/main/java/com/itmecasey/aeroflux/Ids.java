@@ -11,4 +11,9 @@ public final class Ids {
     public static Identifier mod(String path) {
         return Identifier.fromNamespaceAndPath(AeroFlux.MODID, path);
     }
+
+    /** An identifier in any namespace. */
+    public static Identifier of(String namespace, String path) {
+        return Identifier.fromNamespaceAndPath(namespace, path);
+    }
 }

@@ -32,6 +32,7 @@ public final class DataGenerators {
 
         generator.addProvider(event.includeServer(), new ModRecipeProvider.Runner(output, lookupProvider));
         generator.addProvider(event.includeServer(), new ModBlockTagProvider(output, lookupProvider, existingFileHelper));
+        generator.addProvider(event.includeServer(), new ModFluidTagProvider(output, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(), List.of(
                 new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK)),
                 lookupProvider));

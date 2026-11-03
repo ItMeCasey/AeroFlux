@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.conduit;
 
 import com.itmecasey.aeroflux.client.model.BundleModelData;
 import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
+import com.itmecasey.aeroflux.conduit.transfer.PipeFluidInlet;
 import com.itmecasey.aeroflux.conduit.transfer.TransferEngine;
 import com.itmecasey.aeroflux.conduit.transfer.TransferNetworks;
 import com.itmecasey.aeroflux.core.Tier;
@@ -29,6 +30,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +53,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     private EndpointSettings endpoints = new EndpointSettings();
     /** The redstone level this bundle outputs at each face (indexed like {@link Face}); 0 where it exports nothing. */
     private final int[] redstoneOutput = new int[6];
+    /** The fluid inlets handed out to other mods, one slot per side; see {@link #getCapability}. */
+    private final LazyOptional<IFluidHandler>[] inlets = newInlets();
     /** The AE2 grid node of the ME pipe, when AE2 is installed and there is one; see {@link Ae2Compat}. */
     private @Nullable Object meLink;
 
@@ -137,12 +144,53 @@ public class ConduitBundleBlockEntity extends BlockEntity {
         setChanged();
         if (level != null) {
             TransferNetworks.topologyChanged(level);
+            // Which faces take fluid from other mods' pipes follows the faces' modes.
+            dropInlets();
             syncMeLink();
             clearStaleRedstone();
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL);
             level.updateNeighborsAt(worldPosition, state.getBlock(), null);
         }
+    }
+
+    /**
+     * A fluid pipe's Open and Import faces take fluid from other mods' pipes and pumps (see
+     * {@link PipeFluidInlet}). The views are handed out per face and rebuilt when the faces change.
+     */
+    @NotNull
+    @Override
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability, @Nullable Direction side) {
+        if (capability == ForgeCapabilities.FLUID_HANDLER && side != null) {
+            int index = side.get3DDataValue();
+            if (inlets[index] == null) {
+                IFluidHandler inlet = PipeFluidInlet.forSide(this, side);
+                inlets[index] = inlet == null ? LazyOptional.empty() : LazyOptional.of(() -> inlet);
+            }
+            return inlets[index].cast();
+        }
+        return super.getCapability(capability, side);
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        dropInlets();
+    }
+
+    /** Tells everyone holding an inlet that it is gone and forgets them, so the next query builds fresh ones. */
+    private void dropInlets() {
+        for (int i = 0; i < inlets.length; i++) {
+            if (inlets[i] != null) {
+                inlets[i].invalidate();
+                inlets[i] = null;
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static LazyOptional<IFluidHandler>[] newInlets() {
+        return new LazyOptional[6];
     }
 
     /** Called when the block entity goes away (broken or unloaded); the transfer engine forgets this position. */

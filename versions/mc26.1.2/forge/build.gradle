@@ -73,6 +73,13 @@ dependencies {
     // is installed and never otherwise. FTB Chunks has no Forge build for this Minecraft version, so
     // claims made with it are only honored through the standard permission events.
     compileOnly("maven.modrinth:open-parties-and-claims:${opac_version}") { transitive = false }
+
+    // WTHIT, a look-at tooltip mod. Bad Packets is the library it needs. Jade, The One Probe, JEI, REI,
+    // KubeJS and AE2 have no Forge build for this Minecraft version, so nothing else is compiled against.
+    compileOnly "maven.modrinth:wthit:${wthit_version}"
+    compileOnly "maven.modrinth:badpackets:${badpackets_version}"
+    runtimeOnly "maven.modrinth:wthit:${wthit_version}"
+    runtimeOnly "maven.modrinth:badpackets:${badpackets_version}"
 }
 
 // mods.toml and pack.mcmeta are templates: this fills in their ${} values from gradle.properties
