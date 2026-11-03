@@ -8,6 +8,7 @@ import com.itmecasey.aeroflux.client.model.PlantGrowerModel;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
 import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
 import com.itmecasey.aeroflux.client.screen.CollectorScreen;
+import com.itmecasey.aeroflux.client.screen.ConfiguratorScreen;
 import com.itmecasey.aeroflux.client.screen.ConverterScreen;
 import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
@@ -17,6 +18,7 @@ import com.itmecasey.aeroflux.client.sound.MachineSounds;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
+import com.itmecasey.aeroflux.machine.configurator.FluxConfiguratorItem;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
@@ -54,6 +56,7 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         GuidebookItem.setOpener(GuideScreen::open);
+        FluxConfiguratorItem.setOpener(ConfiguratorScreen::open);
         FluxMachineBlock.setClientTicker(MachineSounds::tick);
         event.enqueueWork(() -> {
             MenuScreens.register(ModMenus.PIPE_CONFIG.get(), PipeConfigScreen::new);

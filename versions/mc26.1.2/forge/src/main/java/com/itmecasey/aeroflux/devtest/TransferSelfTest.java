@@ -24,7 +24,6 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneLampBlock;
@@ -255,10 +254,10 @@ final class TransferSelfTest {
             return;
         }
         if (!built) {
-            // In 26.1 a block entity also waits for the chunk's entities to finish loading, which
-            // happens on its own schedule after the chunk starts ticking.
+            // In 26.1 block entities and scheduled ticks also wait for the chunk's entities and
+            // its entity-ticking status, which arrive on their own schedule after it starts ticking.
             BlockPos probe = new BlockPos(2, 210, 2);
-            if (level.shouldTickBlocksAt(probe) && level.areEntitiesLoaded(ChunkPos.pack(probe))) {
+            if (SelfTest.blockEntitiesTick(level, probe)) {
                 build();
                 built = true;
             }

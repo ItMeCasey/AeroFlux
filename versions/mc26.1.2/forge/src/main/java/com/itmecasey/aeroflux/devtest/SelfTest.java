@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -38,7 +39,7 @@ import net.minecraftforge.fml.common.Mod;
  *
  * <p>Results are written to the log as {@code AEROFLUX-SELFTEST PASS/FAIL <name>}, followed by a
  * summary line, and the server then stops. The transfer scenarios (pipes moving fluid, items and
- * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}. The machines and their screens' menus are in {@link MachineSelfTest}, and machine upgrades and redstone control in {@link MachineUpgradeSelfTest}. The chunk loaders are in {@link ChunkLoaderSelfTest}.
+ * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}. The machines and their screens' menus are in {@link MachineSelfTest}, and machine upgrades and redstone control in {@link MachineUpgradeSelfTest}. The chunk loaders are in {@link ChunkLoaderSelfTest}, and the Flux Configurator in {@link ConfiguratorSelfTest}.
  */
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SelfTest {
@@ -94,6 +95,7 @@ public final class SelfTest {
         EnchantConfigSelfTest.setUp(level);
         FluxScreenSelfTest.setUp(level);
         PolishSelfTest.setUp(level);
+        ConfiguratorSelfTest.setUp(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;
@@ -132,6 +134,8 @@ public final class SelfTest {
             MachineExtrasSelfTest.tick();
             // The tank, comparator, hopper and dropper checks build in a layer of their own too.
             BlockIoSelfTest.tick();
+            // So do the Flux Configurator checks.
+            ConfiguratorSelfTest.tick();
         }
         // The enchanting config checks change global settings, so they wait until the machine checks,
         // which test the defaults, are done.
@@ -144,7 +148,7 @@ public final class SelfTest {
                     && MachineSelfTest.finished() && MachineUpgradeSelfTest.finished() && ChunkLoaderSelfTest.finished()
                     && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished() && BlockIoSelfTest.finished()
                     && EnchantConfigSelfTest.finished() && FluxScreenSelfTest.finished()
-                    && PolishSelfTest.finished()) {
+                    && PolishSelfTest.finished() && ConfiguratorSelfTest.finished()) {
                 finish();
             }
             return;
@@ -285,6 +289,18 @@ public final class SelfTest {
     /** Whether the collector checks, which need day and night on time, are done with the clock. */
     static boolean collectorChecksDone() {
         return phase == 2;
+    }
+
+    /**
+     * Whether everything at {@code pos} ticks yet. In 26.1 a block entity waits for both the chunk
+     * to tick and its entities to finish loading, and scheduled block ticks (a redstone lamp
+     * switching off, say) wait for the chunk to be entity-ticking. Those arrive on their own
+     * schedules, sometimes seconds after the chunk first starts ticking, so a check timed from
+     * the first would sometimes find its machines, collectors or lamps not yet running.
+     */
+    static boolean blockEntitiesTick(ServerLevel level, BlockPos pos) {
+        return level.shouldTickBlocksAt(pos) && level.areEntitiesLoaded(ChunkPos.pack(pos))
+                && level.isPositionEntityTicking(pos);
     }
 
     static void check(String name, boolean condition) {

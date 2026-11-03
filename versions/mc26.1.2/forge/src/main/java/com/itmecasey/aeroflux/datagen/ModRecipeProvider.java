@@ -134,7 +134,8 @@ public class ModRecipeProvider extends RecipeProvider {
 
     /**
      * The plan puts the wrench in the hand-made bootstrap set, so it takes only copper and dust. The
-     * Conduit Tool is the plan's Fluxsteel tool and comes after the Alloy Smelter. The two pipe
+     * Conduit Tool is the plan's Fluxsteel tool and comes after the Alloy Smelter; the Flux
+     * Configurator comes earlier, once the player has a Moon Crystal. The two pipe
      * upgrades use the plan's ingredients: Aero Crystal, redstone and gold for Speed; Moon Crystal,
      * iron and quartz for Capacity.
      */
@@ -159,6 +160,19 @@ public class ModRecipeProvider extends RecipeProvider {
                 .pattern(" A ")
                 .pattern(" F ")
                 .unlockedBy(getHasName(ModItems.FLUXSTEEL_INGOT.get()), has(ModItems.FLUXSTEEL_INGOT.get()))
+                .save(output);
+        // The Configurator is for setting up a row of machines, which players do well before
+        // Fluxsteel, so it is copper, glass and redstone around the Moon Crystal its art shows.
+        shaped(RecipeCategory.TOOLS, ModItems.FLUX_CONFIGURATOR.get())
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('G', Tags.Items.GLASS_PANES)
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('M', ModItems.MOON_CRYSTAL.get())
+                .define('D', ModItems.FLUX_DUST.get())
+                .pattern("CGC")
+                .pattern("RMR")
+                .pattern("CDC")
+                .unlockedBy(getHasName(ModItems.MOON_CRYSTAL.get()), has(ModItems.MOON_CRYSTAL.get()))
                 .save(output);
 
         shaped(RecipeCategory.MISC, ModItems.SPEED_UPGRADE.get())
