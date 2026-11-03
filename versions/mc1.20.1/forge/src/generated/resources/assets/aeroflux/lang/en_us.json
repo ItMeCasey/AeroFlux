@@ -383,7 +383,7 @@
   "guide.aeroflux.dimensions.title": "Other Dimensions",
   "guide.aeroflux.dust.body": "Flux Dust is the first material: craft two Sawdust into one, or put Sawdust in an Infuser with Aero Flux for one dust each. Four dust around a quartz or an amethyst make an Aero or Moon Crystal by hand.\nThe Infuser makes crystals faster, from one dust and Moon Flux. The Alloy Smelter turns them into Fluxsteel and Aerogold.",
   "guide.aeroflux.dust.title": "Dust and Crystals",
-  "guide.aeroflux.farming.body": "Plant Grower: seeds or saplings and the soil they like, grown without a field. Any mod's crop works. Breeder: feeds the animals around it so they breed.\nSifter: a block and a mesh from Ex Deorum or Ex Nihilo Sequentia; the mesh decides the drops.",
+  "guide.aeroflux.farming.body": "Plant Grower: a seed or sapling in the top slot and a soil block in the one below, which is never used up. Crops want farmland; saplings, flowers and the rest take dirt or grass. Any mod's crop works.\nEssence farmland from Mystical Agriculture gives a chance of an extra seed. Breeder: feeds animals so they breed. Sifter: a block and a mesh from Ex Deorum or Ex Nihilo Sequentia.",
   "guide.aeroflux.farming.title": "Farming Machines",
   "guide.aeroflux.flux.body": "A collector makes Aero Flux in daylight and Moon Flux at night, faster in clear weather and, for Moon Flux, on brighter moon phases. A collector holds one kind at a time.\nMost machines take either kind; the Infuser, the enchanting machines and a few others need Moon Flux. The Blender mixes both into Twilight Flux for the top recipes.",
   "guide.aeroflux.flux.title": "Aero and Moon Flux",

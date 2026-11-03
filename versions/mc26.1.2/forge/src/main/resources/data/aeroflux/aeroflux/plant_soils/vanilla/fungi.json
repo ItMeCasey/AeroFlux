@@ -1,0 +1,5 @@
+{
+  "plants": ["minecraft:crimson_fungus", "minecraft:warped_fungus", "minecraft:crimson_roots", "minecraft:warped_roots"],
+  "soils": ["#minecraft:nylium", "#minecraft:dirt", "minecraft:soul_soil"],
+  "replaces_default": true
+}

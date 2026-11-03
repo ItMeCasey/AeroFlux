@@ -394,6 +394,7 @@ final class GuardSelfTest {
         growerUnowned = guarded(MachineType.PLANT_GROWER, 14, 11, null, FluxType.AERO);
         for (BlockPos grower : new BlockPos[] {growerOk, growerDenied, growerUnowned}) {
             machineAt(grower).setStackIn(0, new ItemStack(Items.WHEAT_SEEDS, 8));
+            machineAt(grower).setStackIn(1, new ItemStack(Items.FARMLAND));
         }
         itemOk = drop(magnetOk);
         itemDenied = drop(magnetDenied);

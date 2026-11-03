@@ -43,8 +43,8 @@ public final class MachineInputs {
             case BLENDER -> stack.is(Items.BUCKET);
             case SKY_CONTROLLER -> false;
             case SIFTER -> sifts(level, slot, stack);
-            // Any crop or sapling grows, recipe or not (see PlantGrowth).
-            case PLANT_GROWER -> PlantGrowth.grows(stack) || usedByARecipe(machine, level, stack);
+            // Any crop or sapling grows, recipe or not (see PlantGrowth); the second slot holds its soil.
+            case PLANT_GROWER -> slot == 0 ? PlantGrowth.grows(stack) || usedByARecipe(machine, level, stack) : isSoil(level, stack);
             case BREEDER -> isBreedingFood(stack);
             case REPAIRER -> slot == 0 ? stack.isDamageableItem() : stack.is(Items.EXPERIENCE_BOTTLE);
             case SPAWNER -> slot == 0 ? stack.getItem() instanceof SpawnEggItem : stack.isDamageableItem();
@@ -81,6 +81,14 @@ public final class MachineInputs {
                 || stack.is(Items.SLIME_BALL) || stack.is(Items.TROPICAL_FISH_BUCKET) || stack.is(Items.COD)
                 || stack.is(Items.SALMON) || stack.is(Items.BAMBOO) || stack.is(Items.WARPED_FUNGUS)
                 || stack.is(Items.CRIMSON_FUNGUS) || stack.is(Items.SPIDER_EYE) || stack.is(Items.TORCHFLOWER);
+    }
+
+    /**
+     * Whether a stack may go in the Plant Grower's soil slot. The server knows the soil rules; the
+     * client has only the tags, so it lets any block through and the server's answer counts.
+     */
+    private static boolean isSoil(Level level, ItemStack stack) {
+        return level instanceof ServerLevel ? PlantSoils.isSoil(stack) : stack.getItem() instanceof BlockItem;
     }
 
     private static boolean smelts(Level level, ItemStack stack) {

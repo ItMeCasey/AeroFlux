@@ -34,7 +34,7 @@ Every machine runs on Flux. Which kind it wants depends on the job.
 - **Disenchanter:** takes them back off.
 
 **Either one**
-- **Plant Grower:** helps crops along. It uses sunlight by day and moonlight by night.
+- **Plant Grower:** grows crops and saplings from seeds, with a soil block in its second slot (farmland for crops, dirt for the rest). It uses sunlight by day and moonlight by night.
 - **Flux Chunk Loader:** keeps the area around it loaded while you're away, so your collectors keep working.
 
 ## Pipes

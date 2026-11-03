@@ -172,6 +172,10 @@ final class MachineExtrasSelfTest {
         if (!input.isEmpty()) {
             machine.setStackIn(0, input);
         }
+        if (type == MachineType.PLANT_GROWER) {
+            // Every plant these tests grow is a sapling or a bush, which stands on dirt.
+            machine.setStackIn(1, new ItemStack(Items.DIRT));
+        }
         return pos;
     }
 

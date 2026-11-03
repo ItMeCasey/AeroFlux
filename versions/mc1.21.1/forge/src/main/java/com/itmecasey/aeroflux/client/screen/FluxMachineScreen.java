@@ -102,9 +102,9 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
         redstoneButton = addRenderableWidget(new RedstoneButton(leftPos + buttonRect.x(), topPos + buttonRect.y(),
                 buttonRect.width(), menu::redstoneMode, this::sendButton));
         if (menu.machine() == MachineType.PLANT_GROWER) {
-            // The seed refill switch sits right under the seed slot it fills.
-            MachineLayout.Rect seedSlot = MachineLayout.frameOf(layout.inputSlot(0));
-            addRenderableWidget(new IconButton(leftPos + seedSlot.x(), topPos + seedSlot.y() + seedSlot.height() + 2,
+            // The seed refill switch sits under the column of input slots, the seed above the soil.
+            MachineLayout.Rect lastInput = MachineLayout.frameOf(layout.inputSlot(menu.machine().inputSlots() - 1));
+            addRenderableWidget(new IconButton(leftPos + lastInput.x(), topPos + lastInput.y() + lastInput.height() + 2,
                     new ItemStack(Items.WHEAT_SEEDS), "gui.aeroflux.auto_insert", MachineConfigActions.AUTO_INSERT_BUTTON,
                     () -> menu.autoInsert() ? Boolean.TRUE : Boolean.FALSE));
         }

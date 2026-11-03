@@ -1,0 +1,5 @@
+{
+  "plants": ["minecraft:pitcher_pod"],
+  "soils": ["#aeroflux:soil/farmland"],
+  "replaces_default": true
+}

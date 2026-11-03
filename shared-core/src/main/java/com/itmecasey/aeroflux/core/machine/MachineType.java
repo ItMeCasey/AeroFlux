@@ -27,7 +27,7 @@ public enum MachineType {
     /** Strips the enchantments from an item onto a fresh book. The item survives. */
     DISENCHANTER("flux_disenchanter", "Disenchanter", 2, 2, EnumSet.of(FluxType.MOON)),
     /** Grows crops, saplings and flowers from seeds. Runs on either flux. */
-    PLANT_GROWER("plant_grower", "Plant Grower", 1, 3, EnumSet.of(FluxType.AERO, FluxType.MOON)),
+    PLANT_GROWER("plant_grower", "Plant Grower", 2, 3, EnumSet.of(FluxType.AERO, FluxType.MOON)),
     /**
      * An auto crafting table. The nine input slots are the crafting grid itself; it always keeps
      * one item in each filled slot, so the pattern stays put while pipes top the slots up.

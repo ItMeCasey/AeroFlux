@@ -20,7 +20,9 @@ import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.machine.MachineFactory;
+import com.itmecasey.aeroflux.machine.MachineInputs;
 import com.itmecasey.aeroflux.machine.MachineMenu;
+import com.itmecasey.aeroflux.machine.PlantSoils;
 import com.itmecasey.aeroflux.machine.RecipeMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
@@ -137,6 +139,8 @@ final class MachineSelfTest {
     private static BlockPos aeroGrower;
     private static BlockPos wrongFluxGrower;
     private static BlockPos moonGrower;
+    private static BlockPos noSoilGrower;
+    private static BlockPos dirtWheatGrower;
     private static int infuserStartFlux;
     private static int enchanterStartFlux;
     private static int disenchanterStartFlux;
@@ -252,9 +256,17 @@ final class MachineSelfTest {
         disenchanter = placed(7, Y, 5, MachineType.DISENCHANTER, 10_000, FluxType.MOON, worn, new ItemStack(Items.BOOK));
         disenchanterStartFlux = flux(disenchanter);
 
-        aeroGrower = placed(9, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.AERO, new ItemStack(Items.WHEAT_SEEDS));
-        wrongFluxGrower = placed(11, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.AERO, new ItemStack(Items.RED_MUSHROOM));
-        moonGrower = placed(13, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.MOON, new ItemStack(Items.RED_MUSHROOM));
+        // Each grower gets the soil its plant stands on: farmland for wheat, dirt for a mushroom.
+        aeroGrower = placed(9, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.AERO, new ItemStack(Items.WHEAT_SEEDS),
+                new ItemStack(Items.FARMLAND));
+        wrongFluxGrower = placed(11, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.AERO, new ItemStack(Items.RED_MUSHROOM),
+                new ItemStack(Items.DIRT));
+        moonGrower = placed(13, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.MOON, new ItemStack(Items.RED_MUSHROOM),
+                new ItemStack(Items.DIRT));
+        // Wheat with no soil at all, and wheat on dirt, which is no farmland: neither may grow.
+        noSoilGrower = placed(15, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.AERO, new ItemStack(Items.WHEAT_SEEDS));
+        dirtWheatGrower = placed(17, Y, 5, MachineType.PLANT_GROWER, 10_000, FluxType.AERO, new ItemStack(Items.WHEAT_SEEDS),
+                new ItemStack(Items.DIRT));
 
         // Pipes: a tank feeding a furnace through a fluid pipe, and a furnace the pipe tries to drain.
         pipeFedTank = tank(1, PIPE_Y, 2, 1_000);
@@ -592,6 +604,40 @@ final class MachineSelfTest {
                         && flux(wrongFluxGrower) == 10_000);
         SelfTest.check("plant grower: on Moon Flux the mushrooms grew into a bigger harvest",
                 output(moonGrower, 0).is(Items.RED_MUSHROOM) && output(moonGrower, 0).getCount() == 3);
+        SelfTest.check("plant grower: the soil is not used up",
+                machine(aeroGrower).stackIn(1).is(Items.FARMLAND) && machine(aeroGrower).stackIn(1).getCount() == 1);
+        SelfTest.check("plant grower: wheat with no soil does not grow, and dirt is no soil for a crop",
+                output(noSoilGrower, 0).isEmpty() && output(dirtWheatGrower, 0).isEmpty()
+                        && machine(noSoilGrower).stackIn(0).getCount() == 1 && machine(dirtWheatGrower).stackIn(0).getCount() == 1
+                        && flux(noSoilGrower) == 10_000 && flux(dirtWheatGrower) == 10_000);
+        SelfTest.check("plant grower: the soil slot takes dirt and farmland but not stone or seeds",
+                MachineInputs.accepts(MachineType.PLANT_GROWER, level, 1, new ItemStack(Items.DIRT))
+                        && MachineInputs.accepts(MachineType.PLANT_GROWER, level, 1, new ItemStack(Items.FARMLAND))
+                        && !MachineInputs.accepts(MachineType.PLANT_GROWER, level, 1, new ItemStack(Items.STONE))
+                        && !MachineInputs.accepts(MachineType.PLANT_GROWER, level, 1, new ItemStack(Items.WHEAT_SEEDS)));
+        checkSoilRules();
+    }
+
+    /** What the shipped soil rules say about the vanilla plants that grow on something else. */
+    private static void checkSoilRules() {
+        ItemStack wart = new ItemStack(Items.NETHER_WART);
+        SelfTest.check("soil rules: nether wart grows on soul sand, not on dirt",
+                PlantSoils.judge(wart, new ItemStack(Items.SOUL_SAND)).grows() && !PlantSoils.judge(wart, new ItemStack(Items.DIRT)).grows());
+        ItemStack cactus = new ItemStack(Items.CACTUS);
+        SelfTest.check("soil rules: a cactus grows on sand, not on dirt or farmland",
+                PlantSoils.judge(cactus, new ItemStack(Items.SAND)).grows() && !PlantSoils.judge(cactus, new ItemStack(Items.DIRT)).grows()
+                        && !PlantSoils.judge(cactus, new ItemStack(Items.FARMLAND)).grows());
+        ItemStack sapling = new ItemStack(Items.OAK_SAPLING);
+        SelfTest.check("soil rules: a sapling grows on grass, dirt and farmland like in vanilla, not on sand",
+                PlantSoils.judge(sapling, new ItemStack(Items.GRASS_BLOCK)).grows() && PlantSoils.judge(sapling, new ItemStack(Items.DIRT)).grows()
+                        && PlantSoils.judge(sapling, new ItemStack(Items.FARMLAND)).grows()
+                        && !PlantSoils.judge(sapling, new ItemStack(Items.SAND)).grows());
+        ItemStack wheat = new ItemStack(Items.WHEAT_SEEDS);
+        SelfTest.check("soil rules: wheat grows on farmland only, and a plain soil has no bonus",
+                PlantSoils.judge(wheat, new ItemStack(Items.FARMLAND)).grows() && !PlantSoils.judge(wheat, new ItemStack(Items.GRASS_BLOCK)).grows()
+                        && PlantSoils.judge(wheat, new ItemStack(Items.FARMLAND)).extraSeedChance() == 0.0);
+        SelfTest.check("soil rules: a plant that needs no soil passes whatever is in the slot",
+                PlantSoils.judge(new ItemStack(Items.BONE_MEAL), ItemStack.EMPTY).grows());
     }
 
     // --- Sawdust over many jobs --------------------------------------------------------------

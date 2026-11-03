@@ -77,8 +77,8 @@ public final class GuideBook {
                             "Enchanter: puts the enchantments of a book onto a tool for lapis and Moon Flux. Disenchanter: moves them from an item onto a plain book and keeps the item.\n"
                                     + "Repairer: mends a tool with Bottles o' Enchanting and keeps its enchantments. Moon Spawner: rolls the loot of the mob on a spawn egg without any mob."),
                     new Page("farming", "plant-grower", "Farming Machines",
-                            "Plant Grower: seeds or saplings and the soil they like, grown without a field. Any mod's crop works. Breeder: feeds the animals around it so they breed.\n"
-                                    + "Sifter: a block and a mesh from Ex Deorum or Ex Nihilo Sequentia; the mesh decides the drops."),
+                            "Plant Grower: a seed or sapling in the top slot and a soil block in the one below, which is never used up. Crops want farmland; saplings, flowers and the rest take dirt or grass. Any mod's crop works.\n"
+                                    + "Essence farmland from Mystical Agriculture gives a chance of an extra seed. Breeder: feeds animals so they breed. Sifter: a block and a mesh from Ex Deorum or Ex Nihilo Sequentia."),
                     new Page("utility", "machines", "Utility Machines",
                             "Crafter: lay a recipe in its grid; it keeps one item in each slot and crafts with the rest. Purifier: ore and water into three times the raw metal. Blender: Aero and Moon Flux into Twilight Flux.\n"
                                     + "Sky Controller: day, night and rain at a button. Magnet: pulls dropped items in, with a filter. Sun and Moon Lamps keep monsters away and help plants grow."))),

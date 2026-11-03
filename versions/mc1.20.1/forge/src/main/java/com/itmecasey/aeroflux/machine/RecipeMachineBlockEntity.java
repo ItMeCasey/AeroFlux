@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.core.machine.ExtraTank;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.core.machine.OutputChance;
+import com.itmecasey.aeroflux.core.machine.PlantSoilRules.Verdict;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.machine.recipe.MachineInput;
 import com.itmecasey.aeroflux.registry.ModRecipes;
@@ -49,9 +50,14 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
         if (!(level instanceof ServerLevel server)) {
             return null;
         }
-        MachineInput input = new MachineInput(inputStacks());
+        MachineInput input = new MachineInput(recipeInputs());
         if (input.stacks().stream().allMatch(ItemStack::isEmpty)) {
             lastRecipe = null;
+            return null;
+        }
+        Verdict soil = soil();
+        if (!soil.grows()) {
+            // The seed has no soil it likes in the soil slot.
             return null;
         }
         FluxRecipe recipe = lastRecipe;
@@ -65,31 +71,33 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
         }
         if (recipe == null && machine() == MachineType.PLANT_GROWER && PlantGrowth.grows(stackIn(0))) {
             // No recipe names this plant: grow it the way it grows in the world.
-            return new GrowJob(stackIn(0).getItem());
+            return new GrowJob(stackIn(0).getItem(), soil);
         }
         // A recipe that needs water (the Purifier's) waits until the tank has enough.
         if (recipe == null || !hasWater(recipe.water())) {
             return null;
         }
-        return new RecipeJob(recipe);
+        return new RecipeJob(recipe, soil);
     }
 
     /** A Plant Grower growing a plant no recipe names; see {@link PlantGrowth}. */
     private final class GrowJob implements Job {
         private final Item plant;
+        private final Verdict soil;
 
-        GrowJob(Item plant) {
+        GrowJob(Item plant, Verdict soil) {
             this.plant = plant;
+            this.soil = soil;
         }
 
         @Override
         public Object key() {
-            return plant;
+            return List.of(plant, soil);
         }
 
         @Override
         public int baseTicks() {
-            return PlantGrowth.ticks(stackIn(0));
+            return soiledTicks(PlantGrowth.ticks(stackIn(0)), soil);
         }
 
         /** What a harvest gives is only known once it is rolled, so a free spot for one item is enough to go on. */
@@ -106,7 +114,9 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             ItemStack seed = stackIn(0).copyWithCount(1);
             consumeInput(0, 1);
             RandomSource rolls = seededRolls != null ? seededRolls : server.getRandom();
-            putOutputs(PlantGrowth.harvest(server, worldPosition, seed, silkTouch(), rolls));
+            List<ItemStack> products = new ArrayList<>(PlantGrowth.harvest(server, worldPosition, seed, silkTouch(), rolls));
+            addBonusSeed(products, seed, soil, rolls);
+            putOutputs(products);
         }
     }
 
@@ -150,19 +160,21 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
     /** One run of a recipe. */
     private final class RecipeJob implements Job {
         private final FluxRecipe recipe;
+        private final Verdict soil;
 
-        RecipeJob(FluxRecipe recipe) {
+        RecipeJob(FluxRecipe recipe, Verdict soil) {
             this.recipe = recipe;
+            this.soil = soil;
         }
 
         @Override
         public Object key() {
-            return recipe.getId();
+            return List.of(recipe.getId(), soil);
         }
 
         @Override
         public int baseTicks() {
-            return recipe.time();
+            return soiledTicks(recipe.time(), soil);
         }
 
         /**
@@ -194,7 +206,8 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
 
         @Override
         public void complete() {
-            int[] slots = recipe.assign(new MachineInput(inputStacks()));
+            ItemStack seed = stackIn(0).copyWithCount(1);
+            int[] slots = recipe.assign(new MachineInput(recipeInputs()));
             if (slots == null || level == null) {
                 return;
             }
@@ -217,7 +230,35 @@ public class RecipeMachineBlockEntity extends FluxMachineBlockEntity {
             if (bonus > 0 && !recipe.outputs().isEmpty() && recipe.outputs().get(0).chance() >= 1.0F) {
                 products.add(recipe.outputs().get(0).stack().copyWithCount(bonus));
             }
+            if (machine() == MachineType.PLANT_GROWER) {
+                addBonusSeed(products, seed, soil, rolls);
+            }
             putOutputs(products);
+        }
+    }
+
+    /**
+     * What the recipes see of the inputs. The Plant Grower's soil slot is no ingredient, so its
+     * recipes get the seed slot alone; every other machine shows all its input slots.
+     */
+    private List<ItemStack> recipeInputs() {
+        return machine() == MachineType.PLANT_GROWER ? List.of(stackIn(0)) : inputStacks();
+    }
+
+    /** How the soil in the Plant Grower suits the seed; any other machine has no soil and always passes. */
+    private Verdict soil() {
+        return machine() == MachineType.PLANT_GROWER ? PlantSoils.judge(stackIn(0), stackIn(1)) : Verdict.PLAIN;
+    }
+
+    /** A soil's speed bonus shortens a run, by at most nine in ten and never to nothing. */
+    private static int soiledTicks(int ticks, Verdict soil) {
+        return Math.max(1, (int) Math.round(ticks / soil.speed()));
+    }
+
+    /** Rolls the soil's chance of one more seed and adds it to the harvest. */
+    private static void addBonusSeed(List<ItemStack> products, ItemStack seed, Verdict soil, RandomSource rolls) {
+        if (soil.extraSeedChance() > 0 && rolls.nextDouble() < soil.extraSeedChance()) {
+            products.add(seed.copyWithCount(1));
         }
     }
 

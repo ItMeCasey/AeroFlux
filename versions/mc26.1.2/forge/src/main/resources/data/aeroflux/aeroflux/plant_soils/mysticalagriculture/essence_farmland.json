@@ -1,0 +1,12 @@
+{
+  "plants": ["#mysticalagriculture:seeds"],
+  "soils": [
+    "mysticalagriculture:inferium_farmland",
+    "mysticalagriculture:prudentium_farmland",
+    "mysticalagriculture:tertium_farmland",
+    "mysticalagriculture:imperium_farmland",
+    "mysticalagriculture:supremium_farmland",
+    "mysticalagriculture:awakened_supremium_farmland"
+  ],
+  "extra_seed_chance": 0.1
+}

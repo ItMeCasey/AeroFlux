@@ -7,8 +7,10 @@ import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModTags;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.Identifier;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
@@ -46,6 +48,19 @@ public class ModBlockTagProvider extends BlockTagsProvider {
             for (LampKind kind : LampKind.values()) {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.lamp(kind, tier).get());
             }
+        }
+        // The soils the Plant Grower accepts: vanilla's, plus other mods' farmland where they are known.
+        // Vanilla lets saplings and bushes stand on farmland as well as on dirt.
+        // The dirt tag is thin on some loaders (Forge 26.1 leaves out the grassy and mossy kinds), so name them.
+        tag(ModTags.SOIL_DIRT).addTag(BlockTags.DIRT).add(Blocks.FARMLAND, Blocks.GRASS_BLOCK, Blocks.PODZOL, Blocks.MYCELIUM,
+                Blocks.MOSS_BLOCK, Blocks.MUD, Blocks.MUDDY_MANGROVE_ROOTS);
+        tag(ModTags.SOIL_FARMLAND).add(Blocks.FARMLAND);
+        // Other mods' farmland may be missing, so it goes in as optional entries.
+        for (String farmland : List.of("farmersdelight:rich_soil_farmland", "mysticalagriculture:inferium_farmland",
+                "mysticalagriculture:prudentium_farmland", "mysticalagriculture:tertium_farmland",
+                "mysticalagriculture:imperium_farmland", "mysticalagriculture:supremium_farmland",
+                "mysticalagriculture:awakened_supremium_farmland")) {
+            getOrCreateRawBuilder(ModTags.SOIL_FARMLAND).addOptionalElement(Identifier.parse(farmland));
         }
         // What each lamp helps grow; packs can add their own plants to these.
         tag(ModTags.SUN_LAMP_PLANTS)
