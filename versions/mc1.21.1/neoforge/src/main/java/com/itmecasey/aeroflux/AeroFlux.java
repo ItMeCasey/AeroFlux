@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux;
 
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModCreativeTabs;
@@ -43,6 +44,8 @@ public class AeroFlux {
         ModFluids.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
+        // The Stress converter only exists with Create installed.
+        CreateCompat.register(modEventBus);
         ModDataComponents.register(modEventBus);
         ModItems.register(modEventBus);
         ModMenus.register(modEventBus);

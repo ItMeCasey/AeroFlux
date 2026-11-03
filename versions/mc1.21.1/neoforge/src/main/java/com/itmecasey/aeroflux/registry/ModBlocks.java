@@ -41,8 +41,8 @@ public final class ModBlocks {
     private static final Map<LampKind, Map<Tier, DeferredBlock<FluxLampBlock>>> LAMPS = new EnumMap<>(LampKind.class);
 
     /**
-     * The converters this version has. The stress converter needs Create, which has no build for
-     * this Minecraft version yet, so it is left out here.
+     * The converters built from {@link FluxConverterBlock}. The Stress converter has to be a Create
+     * block, so it lives in {@code compat.create} and only exists with Create installed.
      */
     public static final List<ConverterType> CONVERTER_TYPES = List.of(ConverterType.ENERGY, ConverterType.AE);
 

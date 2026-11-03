@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
@@ -76,6 +77,7 @@ public final class ModCreativeTabs {
                         for (DeferredBlock<FluxConverterBlock> converter : ModBlocks.converters()) {
                             output.accept(converter.get());
                         }
+                        CreateCompat.stressConverters().forEach(output::accept);
                         for (DeferredBlock<FluxLampBlock> lamp : ModBlocks.lamps()) {
                             output.accept(lamp.get());
                         }

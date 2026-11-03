@@ -191,9 +191,8 @@ final class TransferSelfTest {
             return;
         }
         if (!built) {
-            // Blocks ticking is not enough: until entities tick too, the chunk is still settling and timed checks come up short.
             BlockPos probe = new BlockPos(2, 210, 2);
-            if (level.shouldTickBlocksAt(probe) && level.isPositionEntityTicking(probe)) {
+            if (SelfTest.blockEntitiesTick(level, probe)) {
                 build();
                 built = true;
             }

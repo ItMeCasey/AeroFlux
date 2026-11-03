@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.block.entity.FluxDimensions;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.converter.ConverterView;
 import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
 import com.itmecasey.aeroflux.core.DimensionRules;
 import com.itmecasey.aeroflux.core.FluxType;
@@ -24,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +50,9 @@ public final class LookInfo {
             case FluxConverterBlockEntity converter -> lines.add(Component.translatable("tooltip.aeroflux.look.converter",
                     converter.lastBurn() * (converter.type() == ConverterType.AE ? ConverterMath.AE_PER_MB : ConverterMath.FE_PER_MB),
                     converter.type() == ConverterType.AE ? "AE" : "FE"));
+            // The Stress converter is a Create block entity, so it is only known by what it shows.
+            case ConverterView stress when stress.type() == ConverterType.STRESS -> lines.add(Component.translatable(
+                    "tooltip.aeroflux.look.stress", stress.output(), stress.stored()));
             case FluxChunkLoaderBlockEntity loader -> lines.add(Component.translatable(
                     "gui.aeroflux.chunk_loader.status." + loader.status().name().toLowerCase(Locale.ROOT)));
             default -> {
@@ -74,6 +79,8 @@ public final class LookInfo {
             case FluxCollectorBlockEntity collector -> collector.outputView();
             case FluxMachineBlockEntity machine -> machine.fluxTank();
             case FluxConverterBlockEntity converter -> converter.tank();
+            case ConverterView stress when stress.type() == ConverterType.STRESS -> entity.getLevel() == null ? null
+                    : entity.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, entity.getBlockPos(), null);
             case FluxChunkLoaderBlockEntity loader -> loader.tank();
             default -> null;
         };

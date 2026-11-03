@@ -4,6 +4,10 @@ import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.client.screen.FluxMachineScreen;
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
+import com.itmecasey.aeroflux.compat.create.CreateContent;
+import com.itmecasey.aeroflux.compat.create.StressConverterBlock;
+import com.itmecasey.aeroflux.compat.create.StressConverterBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.conduit.PipeItem;
 import com.itmecasey.aeroflux.conduit.config.PipeConfigActions;
@@ -41,6 +45,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -59,6 +64,7 @@ import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
@@ -508,6 +514,36 @@ public final class ShotTour {
         openShot(collector, "screen_collector");
         openShot(covered, "screen_collector_blocked");
         openShot(tank, "screen_tank");
+
+        // The Create Stress converter turning a shaft, and its screen; only with Create in the dev run.
+        if (CreateCompat.loaded()) {
+            BlockPos stress = at(78, 6);
+            then(2, () -> onServer(server -> CreateShots.place(server.overworld(), stress)));
+            settleAndShoot("stress_converter", eye(78.5, 1.8, 3.6), center(stress).add(0.5, 0.0, 0.0));
+            then(5, () -> onServer(server -> CreateShots.open(serverPlayer(server), server.overworld(), stress)));
+            shoot("screen_stress_converter", 10);
+            then(2, () -> player().closeContainer());
+        }
+    }
+
+    /** The Create shots' server side; this class names the Create content, so it is only loaded with Create. */
+    private static final class CreateShots {
+        /** A gold Stress converter with Flux, its shaft pointing east into a Create shaft. */
+        static void place(ServerLevel level, BlockPos pos) {
+            level.setBlockAndUpdate(pos, CreateContent.converter(Tier.GOLD).get().defaultBlockState()
+                    .setValue(StressConverterBlock.FACING, Direction.EAST));
+            level.setBlockAndUpdate(pos.east(), BuiltInRegistries.BLOCK.get(ResourceLocation.parse("create:shaft"))
+                    .defaultBlockState().setValue(BlockStateProperties.AXIS, Direction.Axis.X));
+            if (level.getBlockEntity(pos) instanceof StressConverterBlockEntity converter) {
+                converter.tank().setFluid(new FluidStack(ModFluids.MOON_FLUX.get(), 20_000));
+            }
+        }
+
+        static void open(ServerPlayer player, ServerLevel level, BlockPos pos) {
+            if (level.getBlockEntity(pos) instanceof StressConverterBlockEntity converter) {
+                player.openMenu(converter, converter::writeOpenData);
+            }
+        }
     }
 
     /** Opens the screen of the block at {@code pos} the way the server opens it for a player, and shoots it. */

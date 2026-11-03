@@ -133,6 +133,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
         setChanged();
         if (level != null) {
             TransferNetworks.topologyChanged(level);
+            // Which faces take fluid from other mods' pipes follows the faces' modes.
+            level.invalidateCapabilities(worldPosition);
             syncMeLink();
             clearStaleRedstone();
             BlockState state = getBlockState();

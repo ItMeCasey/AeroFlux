@@ -37,6 +37,20 @@ repositories {
         }
         filter { includeGroup 'maven.modrinth' }
     }
+    // Create's own Maven, for the libraries the Create jar carries inside it (Ponder, which holds
+    // Catnip, and Flywheel). The Stress converter's renderer compiles against them.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Create'
+                url = 'https://maven.createmod.net'
+            }
+        }
+        filter {
+            includeGroup 'net.createmod.ponder'
+            includeGroup 'dev.engine-room.flywheel'
+        }
+    }
 }
 
 base {
@@ -141,14 +155,29 @@ dependencies {
     localRuntime "maven.modrinth:mekanism:${mekanism_version}"
     // Ex Deorum is only here so the self-test can read its real sieve and hammer recipes; AeroFlux
     // never compiles against it. It stays out of data generation, which needs none of it.
+    // EMI, WTHIT (with Bad Packets, which it needs), CraftTweaker and Create run in the dev client
+    // and the self-test too, and stay out of data generation the same way.
     if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
         localRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
+        localRuntime "maven.modrinth:emi:${emi_version}"
+        localRuntime "maven.modrinth:wthit:${wthit_version}"
+        localRuntime "maven.modrinth:badpackets:${badpackets_version}"
+        localRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
+        localRuntime "maven.modrinth:create:${create_version}"
     }
     compileOnly "maven.modrinth:jei:${jei_version}"
     localRuntime "maven.modrinth:jei:${jei_version}"
 
     compileOnly "maven.modrinth:kubejs:${kubejs_version}"
     compileOnly "maven.modrinth:rhino:${rhino_version}"
+
+    compileOnly "maven.modrinth:emi:${emi_version}"
+    compileOnly "maven.modrinth:wthit:${wthit_version}"
+    compileOnly "maven.modrinth:badpackets:${badpackets_version}"
+    compileOnly "maven.modrinth:crafttweaker:${crafttweaker_version}"
+    compileOnly "maven.modrinth:create:${create_version}"
+    compileOnly("net.createmod.ponder:ponder-neoforge:${ponder_version}") { transitive = false }
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-1.21.1:${flywheel_version}") { transitive = false }
 
     compileOnly "maven.modrinth:rei:${rei_version}"
     compileOnly "maven.modrinth:cloth-config:${cloth_config_version}"

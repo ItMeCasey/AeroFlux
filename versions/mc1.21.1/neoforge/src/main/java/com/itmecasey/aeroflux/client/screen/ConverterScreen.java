@@ -34,9 +34,10 @@ public class ConverterScreen extends AbstractContainerScreen<ConverterMenu> {
     private static final int CELL = 14;
     private static final int NET_Y = 58;
 
-    /** The output bar's fill: FE red, AE the purple of AE2's power. */
+    /** The output bar's fill: FE red, AE the purple of AE2's power, stress the brass of Create's gauges. */
     private static final int FE_COLOR = 0xFFD8322C;
     private static final int AE_COLOR = 0xFF8B4FD8;
+    private static final int SU_COLOR = 0xFFD9A441;
     private static final int BAR_FACE = 0xFF2A2A30;
 
     private final int accent;
@@ -95,7 +96,7 @@ public class ConverterScreen extends AbstractContainerScreen<ConverterMenu> {
             if (isHovered()) {
                 graphics.fill(getX(), getY(), getX() + width, getY() + height, 0x40FFFFFF);
                 setTooltip(Tooltip.create(getMessage().copy().append(CommonComponents.NEW_LINE).append(
-                        Component.translatable(on ? "gui.aeroflux.converter.output_on" : "gui.aeroflux.converter.output_off"))));
+                        Component.translatable(faceHint(on)))));
             }
         }
 
@@ -105,9 +106,21 @@ public class ConverterScreen extends AbstractContainerScreen<ConverterMenu> {
         }
     }
 
-    /** "FE" or "AE", the unit this converter makes. */
+    /** What a face of the map says: whether power goes out there, or for the Stress converter, where its shaft is. */
+    private String faceHint(boolean on) {
+        if (menu.type() == ConverterType.STRESS) {
+            return on ? "gui.aeroflux.converter.shaft_here" : "gui.aeroflux.converter.no_shaft";
+        }
+        return on ? "gui.aeroflux.converter.output_on" : "gui.aeroflux.converter.output_off";
+    }
+
+    /** "FE", "AE" or "SU", the unit this converter makes. */
     private String unit() {
-        return menu.type() == ConverterType.AE ? "AE" : "FE";
+        return switch (menu.type()) {
+            case ENERGY -> "FE";
+            case AE -> "AE";
+            case STRESS -> "SU";
+        };
     }
 
     @Override
@@ -138,11 +151,17 @@ public class ConverterScreen extends AbstractContainerScreen<ConverterMenu> {
         int capacity = Math.max(1, menu.bufferCapacity());
         int filled = (int) ((long) (CONTENT_HEIGHT - 2) * Math.min(menu.stored(), capacity) / capacity);
         if (filled > 0) {
-            int color = menu.type() == ConverterType.AE ? AE_COLOR : FE_COLOR;
+            int color = switch (menu.type()) {
+                case ENERGY -> FE_COLOR;
+                case AE -> AE_COLOR;
+                case STRESS -> SU_COLOR;
+            };
             graphics.fill(x + 1, y + CONTENT_HEIGHT - 1 - filled, x + BAR_WIDTH - 1, y + CONTENT_HEIGHT - 1, color);
         }
 
-        centered(graphics, menu.outputPerTick() + " " + unit() + "/t", CONTENT_Y + 2, Panel.TEXT);
+        // Stress is a capacity, not an amount per tick.
+        String perTick = menu.type() == ConverterType.STRESS ? "" : "/t";
+        centered(graphics, menu.outputPerTick() + " " + unit() + perTick, CONTENT_Y + 2, Panel.TEXT);
         centered(graphics, menu.burn() + " mB/t", CONTENT_Y + 14, Panel.TEXT_MUTED);
         centered(graphics, compact(menu.stored()) + " / " + compact(menu.bufferCapacity()), CONTENT_Y + 26, Panel.TEXT_MUTED);
     }

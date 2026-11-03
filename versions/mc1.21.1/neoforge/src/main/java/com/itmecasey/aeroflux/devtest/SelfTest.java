@@ -86,6 +86,7 @@ public final class SelfTest {
         EnchantConfigSelfTest.setUp(level);
         FluxScreenSelfTest.setUp(level);
         PolishSelfTest.setUp(level);
+        CompatSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -101,6 +102,9 @@ public final class SelfTest {
         FluxScreenSelfTest.tick();
         // So do the creative tank, creative tab and sound checks.
         PolishSelfTest.tick();
+        // The checks of other mods' support build in a layer of their own; they wait for the machine
+        // extras themselves, since those add the import rule the recipe viewer checks look for.
+        CompatSelfTest.tick();
         // The tool checks come last: they place and remove many bundles, which must not disturb the timed transfer checks.
         if (TransferSelfTest.finished()) {
             ToolSelfTest.tick();
@@ -130,7 +134,7 @@ public final class SelfTest {
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
                     && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()
                     && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished()
-                    && FluxScreenSelfTest.finished() && PolishSelfTest.finished()) {
+                    && FluxScreenSelfTest.finished() && PolishSelfTest.finished() && CompatSelfTest.finished()) {
                 finish();
             }
             return;

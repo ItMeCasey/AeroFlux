@@ -9,6 +9,7 @@ import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.conduit.ToolMode;
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
 import com.itmecasey.aeroflux.core.machine.MachineType;
@@ -225,8 +226,16 @@ public class ModLanguageProvider extends LanguageProvider {
                 addBlock(ModBlocks.converter(type, tier), tier == Tier.COPPER ? type.displayName() : displayName(tier) + " " + type.displayName());
             }
         }
+        // The Stress converter only exists with Create, so it is named by its registry name here.
+        for (Tier tier : Tier.values()) {
+            add("block." + AeroFlux.MODID + "." + CreateCompat.converterName(tier), tier == Tier.COPPER
+                    ? ConverterType.STRESS.displayName() : displayName(tier) + " " + ConverterType.STRESS.displayName());
+        }
         add("gui." + AeroFlux.MODID + ".converter.buffer.fe", "Energy buffer");
         add("gui." + AeroFlux.MODID + ".converter.buffer.ae", "AE buffer");
+        add("gui." + AeroFlux.MODID + ".converter.buffer.su", "Stress in use on the shaft's network");
+        add("gui." + AeroFlux.MODID + ".converter.shaft_here", "The shaft comes out here.");
+        add("gui." + AeroFlux.MODID + ".converter.no_shaft", "No shaft on this face.");
         add("gui." + AeroFlux.MODID + ".auto_insert", "Auto insert seeds");
         add("gui." + AeroFlux.MODID + ".chunk_loader.show_area", "Show Area");
         for (LampKind kind : LampKind.values()) {
@@ -257,9 +266,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui." + AeroFlux.MODID + ".converter.output_on", "Power goes out here. Click to stop it.");
         add("gui." + AeroFlux.MODID + ".converter.output_off", "No power goes out here. Click to send it.");
         add("tooltip." + AeroFlux.MODID + ".look.converter", "Making %s %s per tick");
+        add("tooltip." + AeroFlux.MODID + ".look.stress", "Supplying %s SU, %s SU in use");
         // Jade lists every plugin entry in its settings and needs a name for ours.
         add("config.jade.plugin_" + AeroFlux.MODID + ".look_info", "AeroFlux details");
         add("jei." + AeroFlux.MODID + ".chance", "%s%% chance");
+        add("jei." + AeroFlux.MODID + ".imported", "From %s");
+        add("jei." + AeroFlux.MODID + ".sieve.amount", "Amount: %s");
+        add("jei." + AeroFlux.MODID + ".sieve.water", "%s mB water");
         add("jei." + AeroFlux.MODID + ".time", "%s ticks");
         add("jei." + AeroFlux.MODID + ".time_and_flux", "%s ticks, +%s mB Flux");
         add("jei." + AeroFlux.MODID + ".info.enchanter", "Puts the enchantments of an enchanted book onto a tool or armor piece. Costs lapis and Moon Flux per level. Curses and clashing enchantments are refused.");

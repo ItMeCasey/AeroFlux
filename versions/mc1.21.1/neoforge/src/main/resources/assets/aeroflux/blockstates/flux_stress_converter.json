@@ -1,0 +1,50 @@
+{
+  "variants": {
+    "facing=north,lit=false": {
+      "model": "aeroflux:block/flux_stress_converter"
+    },
+    "facing=north,lit=true": {
+      "model": "aeroflux:block/flux_stress_converter_active"
+    },
+    "facing=east,lit=false": {
+      "model": "aeroflux:block/flux_stress_converter",
+      "y": 90
+    },
+    "facing=east,lit=true": {
+      "model": "aeroflux:block/flux_stress_converter_active",
+      "y": 90
+    },
+    "facing=south,lit=false": {
+      "model": "aeroflux:block/flux_stress_converter",
+      "y": 180
+    },
+    "facing=south,lit=true": {
+      "model": "aeroflux:block/flux_stress_converter_active",
+      "y": 180
+    },
+    "facing=west,lit=false": {
+      "model": "aeroflux:block/flux_stress_converter",
+      "y": 270
+    },
+    "facing=west,lit=true": {
+      "model": "aeroflux:block/flux_stress_converter_active",
+      "y": 270
+    },
+    "facing=up,lit=false": {
+      "model": "aeroflux:block/flux_stress_converter",
+      "x": 270
+    },
+    "facing=up,lit=true": {
+      "model": "aeroflux:block/flux_stress_converter_active",
+      "x": 270
+    },
+    "facing=down,lit=false": {
+      "model": "aeroflux:block/flux_stress_converter",
+      "x": 90
+    },
+    "facing=down,lit=true": {
+      "model": "aeroflux:block/flux_stress_converter_active",
+      "x": 90
+    }
+  }
+}

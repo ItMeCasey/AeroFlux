@@ -2,6 +2,8 @@ package com.itmecasey.aeroflux.registry;
 
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
+import com.itmecasey.aeroflux.conduit.transfer.PipeFluidInlet;
 import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -48,6 +50,13 @@ public final class ModCapabilities {
         // Lamps take their Flux on every side.
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ModBlockEntities.LAMP.get(),
                 (lamp, side) -> lamp.tank());
+
+        // A fluid pipe's Open and Import faces take fluid from other mods' pipes and pumps.
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ModBlockEntities.CONDUIT_BUNDLE.get(),
+                PipeFluidInlet::forSide);
+
+        // With Create installed, the Stress converter takes Flux on every side.
+        CreateCompat.registerCapabilities(event);
 
         // With AE2 installed, a bundle's ME pipe is a grid node AE2 can join.
         Ae2Compat.registerCapabilities(event);

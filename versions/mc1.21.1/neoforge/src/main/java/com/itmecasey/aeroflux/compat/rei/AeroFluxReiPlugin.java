@@ -1,9 +1,10 @@
 package com.itmecasey.aeroflux.compat.rei;
 
 import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.compat.ViewerRecipes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.machine.MachineRecipes;
+import com.itmecasey.aeroflux.machine.SieveRoll;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.ArrayList;
@@ -33,9 +34,10 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 
 /**
  * REI support, the same pages as the JEI plugin: one per recipe machine, with every tier of the
- * machine as its workstation. The displays are built on the client from the recipes the server
- * sent, so they are never sent anywhere themselves. REI finds this class by its annotation and
- * only when REI is installed.
+ * machine as its workstation, listing its own recipes and the ones imported from other mods, and
+ * one for the Flux Sifter's sieve drops. The displays are built on the client (see
+ * {@link ViewerRecipes}) from the recipes the server sent, so they are never sent anywhere
+ * themselves. REI finds this class by its annotation and only when REI is installed.
  */
 @REIPluginClient
 public class AeroFluxReiPlugin implements REIClientPlugin {
@@ -51,6 +53,12 @@ public class AeroFluxReiPlugin implements REIClientPlugin {
                 });
             }
         }
+        registry.add(new SifterCategory());
+        registry.configure(SIFTER, config -> {
+            for (Tier tier : Tier.values()) {
+                config.addWorkstations(EntryStacks.of(ModBlocks.machine(MachineType.SIFTER, tier).get()));
+            }
+        });
     }
 
     @Override
@@ -61,12 +69,17 @@ public class AeroFluxReiPlugin implements REIClientPlugin {
         }
         for (MachineType machine : MachineType.values()) {
             if (machine.hasOwnRecipes()) {
-                for (RecipeHolder<FluxRecipe> holder : MachineRecipes.of(minecraft.level, machine)) {
+                for (RecipeHolder<FluxRecipe> holder : ViewerRecipes.machine(minecraft.level, machine)) {
                     registry.add(new MachineDisplay(holder.value(), Optional.of(holder.id())));
                 }
             }
         }
+        for (ViewerRecipes.SievePage page : ViewerRecipes.sifter(minecraft.level)) {
+            registry.add(new SifterDisplay(page));
+        }
     }
+
+    private static final CategoryIdentifier<SifterDisplay> SIFTER = CategoryIdentifier.of(Ids.mod("sifter"));
 
     private static CategoryIdentifier<MachineDisplay> id(MachineType machine) {
         return CategoryIdentifier.of(Ids.mod(machine.id()));
@@ -158,6 +171,85 @@ public class AeroFluxReiPlugin implements REIClientPlugin {
                     ? Component.translatable("jei.aeroflux.time_and_flux", recipe.time(), recipe.flux())
                     : Component.translatable("jei.aeroflux.time", recipe.time());
             widgets.add(Widgets.createLabel(new Point(x, y + 24), cost).leftAligned().noShadow().color(0xFF606060));
+            display.getDisplayLocation().map(ViewerRecipes::importedLine).ifPresent(imported ->
+                    widgets.add(Widgets.createLabel(new Point(x, y + 34), imported).leftAligned().noShadow().color(0xFF808080)));
+            return widgets;
+        }
+    }
+
+    /**
+     * One Sifter page: the block and the mesh go in, the drops come out. The mesh is listed as an
+     * input so looking up a mesh finds its pages, even though the Sifter never uses it up.
+     */
+    static final class SifterDisplay extends BasicDisplay {
+        private final ViewerRecipes.SievePage page;
+
+        SifterDisplay(ViewerRecipes.SievePage page) {
+            super(List.of(EntryIngredients.ofIngredient(page.material()), EntryIngredients.ofIngredient(page.mesh())),
+                    page.drops().stream().map(drop -> EntryIngredients.of(drop.product())).toList(),
+                    Optional.of(page.id()));
+            this.page = page;
+        }
+
+        ViewerRecipes.SievePage page() {
+            return page;
+        }
+
+        @Override
+        public CategoryIdentifier<?> getCategoryIdentifier() {
+            return SIFTER;
+        }
+    }
+
+    /** The Sifter's page type: block and mesh, an arrow, and the drops in rows of five with their amounts. */
+    private static final class SifterCategory implements DisplayCategory<SifterDisplay> {
+        @Override
+        public CategoryIdentifier<? extends SifterDisplay> getCategoryIdentifier() {
+            return SIFTER;
+        }
+
+        @Override
+        public Component getTitle() {
+            return ModBlocks.machine(MachineType.SIFTER, Tier.COPPER).get().getName();
+        }
+
+        @Override
+        public Renderer getIcon() {
+            return EntryStacks.of(ModBlocks.machine(MachineType.SIFTER, Tier.COPPER).get());
+        }
+
+        @Override
+        public int getDisplayHeight() {
+            return 66;
+        }
+
+        @Override
+        public int getDisplayWidth(SifterDisplay display) {
+            return 76 + ViewerRecipes.SIEVE_COLUMNS * 18;
+        }
+
+        @Override
+        public List<Widget> setupDisplay(SifterDisplay display, Rectangle bounds) {
+            List<Widget> widgets = new ArrayList<>();
+            widgets.add(Widgets.createRecipeBase(bounds));
+            int x = bounds.x + 6;
+            int y = bounds.y + 6;
+            List<EntryIngredient> inputs = display.getInputEntries();
+            widgets.add(Widgets.createSlot(new Point(x, y + 18)).entries(inputs.get(0)).markInput());
+            widgets.add(Widgets.createSlot(new Point(x + 18, y + 18)).entries(inputs.get(1)).markInput());
+            widgets.add(Widgets.createArrow(new Point(x + 38, y + 18)));
+            ViewerRecipes.SievePage page = display.page();
+            for (int i = 0; i < page.drops().size(); i++) {
+                SieveRoll drop = page.drops().get(i);
+                Point at = new Point(x + 66 + (i % ViewerRecipes.SIEVE_COLUMNS) * 18, y + (i / ViewerRecipes.SIEVE_COLUMNS) * 18);
+                Component amount = ViewerRecipes.amountLine(drop.amount());
+                widgets.add(Widgets.createSlot(at).entries(display.getOutputEntries().get(i).map(stack -> stack.copy().tooltip(amount)))
+                        .markOutput());
+            }
+            if (page.water() > 0) {
+                widgets.add(Widgets.createLabel(new Point(x, y + 40), Component.translatable("jei.aeroflux.sieve.water", page.water()))
+                        .leftAligned().noShadow().color(0xFF3F76E4));
+            }
             return widgets;
         }
     }

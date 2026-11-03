@@ -24,6 +24,10 @@
     "aeroflux:chunk_loader",
     "aeroflux:flux_energy_converter",
     "aeroflux:flux_ae_converter",
+    {
+      "id": "aeroflux:flux_stress_converter",
+      "required": false
+    },
     "aeroflux:sun_lamp",
     "aeroflux:moon_lamp",
     "aeroflux:iron_collector",
@@ -48,6 +52,10 @@
     "aeroflux:iron_chunk_loader",
     "aeroflux:iron_flux_energy_converter",
     "aeroflux:iron_flux_ae_converter",
+    {
+      "id": "aeroflux:iron_flux_stress_converter",
+      "required": false
+    },
     "aeroflux:iron_sun_lamp",
     "aeroflux:iron_moon_lamp",
     "aeroflux:gold_collector",
@@ -72,6 +80,10 @@
     "aeroflux:gold_chunk_loader",
     "aeroflux:gold_flux_energy_converter",
     "aeroflux:gold_flux_ae_converter",
+    {
+      "id": "aeroflux:gold_flux_stress_converter",
+      "required": false
+    },
     "aeroflux:gold_sun_lamp",
     "aeroflux:gold_moon_lamp",
     "aeroflux:diamond_collector",
@@ -96,6 +108,10 @@
     "aeroflux:diamond_chunk_loader",
     "aeroflux:diamond_flux_energy_converter",
     "aeroflux:diamond_flux_ae_converter",
+    {
+      "id": "aeroflux:diamond_flux_stress_converter",
+      "required": false
+    },
     "aeroflux:diamond_sun_lamp",
     "aeroflux:diamond_moon_lamp",
     "aeroflux:netherite_collector",
@@ -120,6 +136,10 @@
     "aeroflux:netherite_chunk_loader",
     "aeroflux:netherite_flux_energy_converter",
     "aeroflux:netherite_flux_ae_converter",
+    {
+      "id": "aeroflux:netherite_flux_stress_converter",
+      "required": false
+    },
     "aeroflux:netherite_sun_lamp",
     "aeroflux:netherite_moon_lamp",
     "aeroflux:fluxium_collector",
@@ -144,6 +164,10 @@
     "aeroflux:fluxium_chunk_loader",
     "aeroflux:fluxium_flux_energy_converter",
     "aeroflux:fluxium_flux_ae_converter",
+    {
+      "id": "aeroflux:fluxium_flux_stress_converter",
+      "required": false
+    },
     "aeroflux:fluxium_sun_lamp",
     "aeroflux:fluxium_moon_lamp"
   ]
