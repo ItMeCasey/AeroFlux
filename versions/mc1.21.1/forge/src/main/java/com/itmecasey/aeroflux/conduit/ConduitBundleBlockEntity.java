@@ -9,7 +9,9 @@ import com.itmecasey.aeroflux.core.conduit.BundleState;
 import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -202,6 +204,7 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        SaveVersion.stamp(tag, SaveSchema.Kind.CONDUIT_BUNDLE);
         tag.putIntArray(TAG_BUNDLE, bundle.serialize());
         tag.putIntArray(TAG_REDSTONE, redstoneOutput);
         if (!endpoints.isEmpty()) {
@@ -212,6 +215,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.CONDUIT_BUNDLE, tag);
         bundle = BundleState.deserialize(tag.getIntArray(TAG_BUNDLE));
         int[] saved = tag.getIntArray(TAG_REDSTONE);
         for (int i = 0; i < redstoneOutput.length; i++) {

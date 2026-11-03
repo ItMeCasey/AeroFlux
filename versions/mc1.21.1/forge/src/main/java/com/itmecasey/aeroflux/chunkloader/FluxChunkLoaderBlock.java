@@ -2,6 +2,8 @@ package com.itmecasey.aeroflux.chunkloader;
 
 import com.itmecasey.aeroflux.block.entity.FluxDimensions;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.fluid.Buckets;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.Codec;
@@ -124,6 +126,7 @@ public class FluxChunkLoaderBlock extends BaseEntityBlock {
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null
-                : createTickerHelper(type, ModBlockEntities.CHUNK_LOADER.get(), FluxChunkLoaderBlockEntity::serverTick);
+                : createTickerHelper(type, ModBlockEntities.CHUNK_LOADER.get(),
+                        TickProfiler.<FluxChunkLoaderBlockEntity>wrap(ProfileTypes.CHUNK_LOADER, FluxChunkLoaderBlockEntity::serverTick));
     }
 }

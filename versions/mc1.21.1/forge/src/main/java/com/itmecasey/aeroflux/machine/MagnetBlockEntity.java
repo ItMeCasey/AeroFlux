@@ -69,7 +69,7 @@ public class MagnetBlockEntity extends FluxMachineBlockEntity {
         }
         AABB range = new AABB(worldPosition).inflate(MachineReach.magnetRadius(tier()));
         return level.getEntitiesOfClass(ItemEntity.class, range,
-                item -> item.isAlive() && !item.hasPickUpDelay() && wanted(item.getItem()));
+                item -> item.isAlive() && !item.hasPickUpDelay() && wanted(item.getItem()) && mayTouch(item));
     }
 
     @Nullable

@@ -6,6 +6,8 @@ import com.itmecasey.aeroflux.conduit.transfer.TransferEngine;
 import com.itmecasey.aeroflux.core.conduit.BundleState;
 import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModItems;
 import com.mojang.serialization.MapCodec;
@@ -114,7 +116,8 @@ public class ConduitBundleBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null
-                : createTickerHelper(type, ModBlockEntities.CONDUIT_BUNDLE.get(), ConduitBundleBlockEntity::serverTick);
+                : createTickerHelper(type, ModBlockEntities.CONDUIT_BUNDLE.get(),
+                        TickProfiler.<ConduitBundleBlockEntity>wrap(ProfileTypes.CONDUIT_BUNDLE, ConduitBundleBlockEntity::serverTick));
     }
 
     // Redstone pipes can power the blocks they export into. Whether a given face does is a

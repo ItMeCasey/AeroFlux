@@ -76,6 +76,10 @@ public class SkyControllerBlockEntity extends FluxMachineBlockEntity {
         if (!(level instanceof ServerLevel server) || !AeroFluxConfig.skyControllerEnabled() || cooldown > 0) {
             return false;
         }
+        if (!mayActAt(worldPosition)) {
+            // The owner's claims no longer let this controller change the sky.
+            return false;
+        }
         boolean done = switch (buttonId) {
             case MachineConfigActions.SKY_DAY_BUTTON -> payAero(AeroFluxConfig.skyDayCost()) && moveClock(server, DAY);
             case MachineConfigActions.SKY_NIGHT_BUTTON -> payMoon(AeroFluxConfig.skyNightCost()) && moveClock(server, NIGHT);

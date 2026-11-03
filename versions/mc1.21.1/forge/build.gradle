@@ -53,11 +53,27 @@ repositories {
     minecraft.mavenizer(it) // In Kotlin, it = this
     maven fg.forgeMaven
     maven fg.minecraftLibsMaven
+    // Modrinth's Maven, for the claim mod the protection layer talks to when it is installed.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup 'maven.modrinth' }
+    }
     mavenCentral()
 }
 
 dependencies {
     implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+
+    // Open Parties and Claims, compiled against only: the protection layer loads its classes when it is
+    // installed and never otherwise. It is not on the dev runtime, and only its own API interfaces are
+    // called, so its (obfuscated) jar needs no remapping. FTB Chunks has no Forge build for 1.21.1
+    // (its Forge line stops at 1.20.4), so only Open Parties and Claims is bridged here.
+    compileOnly("maven.modrinth:open-parties-and-claims:${opac_version}") { transitive = false }
 }
 
 // mods.toml and pack.mcmeta are templates: this fills in their ${} values from gradle.properties
