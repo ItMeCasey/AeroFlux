@@ -59,7 +59,7 @@ final class ConfiguratorSelfTest {
 
     /** Runs every check once blocks in the layer tick. */
     static void tick() {
-        if (level == null || finished || started || !level.shouldTickBlocksAt(new BlockPos(2, Y, 2))) {
+        if (level == null || finished || started || !SelfTest.blockEntitiesTick(level, new BlockPos(2, Y, 2))) {
             return;
         }
         started = true;

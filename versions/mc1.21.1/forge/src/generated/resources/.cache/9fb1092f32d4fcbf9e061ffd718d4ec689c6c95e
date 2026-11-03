@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-02T14:26:10.7980527	Recipes
+// 1.21.1	2026-11-02T17:54:09.8161595	Recipes
 423a62d472a06d443979ba5e9f3229b519cfc7f6 data/aeroflux/advancement/recipes/diamond_flux_sifter.json
 060b23edbae65af45737bbf8a4827e4e822908d4 data/aeroflux/advancement/recipes/fluxium_flux_sifter.json
 2626bbdea142568e2cff17e0907ee522fdc0b1d7 data/aeroflux/advancement/recipes/flux_sifter.json
@@ -179,6 +179,7 @@ c9e4754c827e3e87005db6f26a43346943a714b4 data/aeroflux/advancement/recipes/redst
 69a107cda2b2d14e413435e684f35e7ee4d72dce data/aeroflux/advancement/recipes/redstone/netherite_flux_energy_converter.json
 9858b777ff5937c50d4ea5bda727b099a53455c1 data/aeroflux/advancement/recipes/redstone/netherite_redstone_pipe.json
 3a66acb24f13fe526b223bad71799df809af0e6a data/aeroflux/advancement/recipes/tools/conduit_tool.json
+1c2b0cd4c7e9431f0bf031246c865ecf39f0d5c3 data/aeroflux/advancement/recipes/tools/flux_configurator.json
 cd461d07f9045b4fa685cc6caef5a7678e7a6c03 data/aeroflux/advancement/recipes/tools/flux_wrench.json
 b30047c63412f4a1617b0dd00c1fa5129eeb93e9 data/aeroflux/recipe/aero_crystal.json
 01b2748ff9d2b3e0e8937782bd01e60ca2e793c4 data/aeroflux/recipe/alloy_smelter.json
@@ -252,6 +253,7 @@ e2d5869d347a6271b91e5ce444ffb0eed62555d9 data/aeroflux/recipe/fluxium_plant_grow
 ef21fb072d9e95d5495bfac2146dc24e0f5b86ef data/aeroflux/recipe/fluxium_sun_lamp.json
 761a4003893df50accb43d07f1e0f368f1b0afc4 data/aeroflux/recipe/fluxium_tank.json
 ab2cebea171649176a14e3ab97ca655e4bc5b1b7 data/aeroflux/recipe/flux_blender.json
+04d648f6552445c3fef5d3279a0212fb8d21a7d2 data/aeroflux/recipe/flux_configurator.json
 47aaf1ececc958165cd80f2bc65ff62984c2528c data/aeroflux/recipe/flux_crafter.json
 ab07301f2e74dfd1f1181c907aaf486dc44842e8 data/aeroflux/recipe/flux_disenchanter.json
 cc8d1312d6a3f28eaa3a7d4fa8269a4674f2f0c7 data/aeroflux/recipe/flux_dust.json

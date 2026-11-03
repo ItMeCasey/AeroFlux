@@ -81,7 +81,7 @@ final class PolishSelfTest {
             return;
         }
         if (started < 0) {
-            if (!level.shouldTickBlocksAt(new BlockPos(3, Y, Z))) {
+            if (!SelfTest.blockEntitiesTick(level, new BlockPos(3, Y, Z))) {
                 return;
             }
             started = level.getGameTime();

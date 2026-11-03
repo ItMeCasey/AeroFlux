@@ -84,7 +84,7 @@ final class FluxScreenSelfTest {
             return;
         }
         if (started < 0) {
-            if (!level.shouldTickBlocksAt(new BlockPos(1, Y, Z))) {
+            if (!SelfTest.blockEntitiesTick(level, new BlockPos(1, Y, Z))) {
                 return;
             }
             started = level.getGameTime();

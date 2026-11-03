@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "M": {
+      "item": "aeroflux:moon_crystal"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "RMR",
+    "CDC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "aeroflux:flux_configurator"
+  }
+}

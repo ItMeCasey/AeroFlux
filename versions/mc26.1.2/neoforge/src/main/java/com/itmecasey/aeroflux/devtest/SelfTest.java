@@ -304,6 +304,16 @@ public final class SelfTest {
         return phase == 2;
     }
 
+    /**
+     * Whether block entities at {@code pos} tick yet. A block entity waits for both the chunk to
+     * tick and its entities to finish loading; the entities load on their own schedule, sometimes a
+     * few seconds after the chunk starts ticking, so a check timed from the first would sometimes
+     * find its machines and collectors not yet started.
+     */
+    static boolean blockEntitiesTick(ServerLevel level, BlockPos pos) {
+        return level.shouldTickBlocksAt(pos) && level.isPositionEntityTicking(pos);
+    }
+
     static void check(String name, boolean condition) {
         if (condition) {
             passed++;

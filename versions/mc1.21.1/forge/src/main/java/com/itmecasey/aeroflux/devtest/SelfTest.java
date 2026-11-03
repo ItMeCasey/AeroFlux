@@ -34,7 +34,7 @@ import net.minecraftforge.fml.common.Mod;
  *
  * <p>Results are written to the log as {@code AEROFLUX-SELFTEST PASS/FAIL <name>}, followed by a
  * summary line, and the server then stops. The transfer scenarios (pipes moving fluid, items and
- * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}. The machines and their screens' menus are in {@link MachineSelfTest}.
+ * redstone) live in {@link TransferSelfTest}, and the Conduit Tool actions in {@link ToolSelfTest}, and the pipe screen's menu in {@link ScreenSelfTest}. The machines and their screens' menus are in {@link MachineSelfTest}, and the Flux Configurator in {@link ConfiguratorSelfTest}.
  */
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID)
 public final class SelfTest {
@@ -86,6 +86,7 @@ public final class SelfTest {
         EnchantConfigSelfTest.setUp(level);
         FluxScreenSelfTest.setUp(level);
         PolishSelfTest.setUp(level);
+        ConfiguratorSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -119,6 +120,8 @@ public final class SelfTest {
             MachineExtrasSelfTest.tick();
             // The tank, comparator, hopper and dropper checks build in a layer of their own too.
             BlockIoSelfTest.tick();
+            // So do the Flux Configurator checks.
+            ConfiguratorSelfTest.tick();
         }
         // The enchanting config checks change global settings, so they wait until the machine checks,
         // which test the defaults, are done.
@@ -130,7 +133,7 @@ public final class SelfTest {
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
                     && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()
                     && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished() && FluxScreenSelfTest.finished()
-                    && PolishSelfTest.finished()) {
+                    && PolishSelfTest.finished() && ConfiguratorSelfTest.finished()) {
                 finish();
             }
             return;
@@ -272,6 +275,14 @@ public final class SelfTest {
     /** Whether the collector checks, which need day and night on time, are done with the clock. */
     static boolean collectorChecksDone() {
         return phase == 2;
+    }
+
+    /**
+     * Whether the block entities at a position tick. Blocks ticking is not enough: the chunk's
+     * entities load asynchronously, and a check that starts counting ticks before they do comes up short.
+     */
+    static boolean blockEntitiesTick(ServerLevel level, BlockPos pos) {
+        return level.shouldTickBlocksAt(pos) && level.isPositionEntityTicking(pos);
     }
 
     static void check(String name, boolean condition) {
