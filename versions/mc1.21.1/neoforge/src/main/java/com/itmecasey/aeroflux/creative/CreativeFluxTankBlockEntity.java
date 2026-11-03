@@ -2,7 +2,9 @@ package com.itmecasey.aeroflux.creative;
 
 import com.itmecasey.aeroflux.block.entity.TankView;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -74,12 +76,15 @@ public class CreativeFluxTankBlockEntity extends BlockEntity implements TankView
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        SaveVersion.stamp(tag, SaveSchema.Kind.CREATIVE_TANK);
         tag.putString(TAG_FLUX, flux.id());
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.CREATIVE_TANK, tag);
         String saved = tag.contains(TAG_FLUX) ? tag.getString(TAG_FLUX) : FluxType.AERO.id();
         try {
             flux = FluxType.valueOf(saved.toUpperCase(Locale.ROOT));

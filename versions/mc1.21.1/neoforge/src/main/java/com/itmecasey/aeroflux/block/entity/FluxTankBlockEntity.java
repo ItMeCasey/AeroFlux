@@ -7,10 +7,12 @@ import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.RateMeter;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModDataComponents;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
@@ -193,17 +195,22 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
     public void removeComponentsFromTag(CompoundTag tag) {
         super.removeComponentsFromTag(tag);
         tag.remove("Fluid");
+        // The version stamp goes too, so a picked-up tank still stacks with a crafted one.
+        tag.remove(SaveSchema.TAG);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        SaveVersion.stamp(tag, SaveSchema.Kind.TANK);
         tank.writeToNBT(registries, tag);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.TANK, tag);
         tank.readFromNBT(registries, tag);
     }
 

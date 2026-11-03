@@ -19,14 +19,21 @@ import com.itmecasey.aeroflux.core.machine.RedstoneControl;
 import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import com.itmecasey.aeroflux.core.machine.SideConfigs;
 import com.itmecasey.aeroflux.core.machine.SideResource;
-import com.itmecasey.aeroflux.core.machine.SieveMesh;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
+import com.itmecasey.aeroflux.core.protect.ProtectedMachines;
+import com.itmecasey.aeroflux.core.protect.ProtectionCache;
+import com.itmecasey.aeroflux.core.save.MachineSaveMigrations;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
+import com.itmecasey.aeroflux.protect.Protection;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModSounds;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -39,14 +46,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -81,9 +91,7 @@ import org.jetbrains.annotations.Nullable;
  * machine keeps its progress, burns nothing and stays unlit.
  */
 public abstract class FluxMachineBlockEntity extends BlockEntity implements MenuProvider {
-    /** Version of the saved layout, so a later change can still read today's worlds. 2: the Sifter has a mesh slot. */
-    private static final int SCHEMA_VERSION = 2;
-    private static final String TAG_SCHEMA = "schema_version";
+    private static final String TAG_OWNER = "owner";
     private static final String TAG_FLUX = "flux";
     private static final String TAG_ITEMS = "items";
     private static final String TAG_PROGRESS = "progress";
@@ -100,6 +108,10 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     private static final String TAG_REDSTONE_POWERED = "powered";
     private static final String TAG_REDSTONE_PULSE = "pulse";
 
+    /** How long a claim answer is trusted, in ticks; a claim changes rarely and this keeps the check cheap. */
+    private static final int PROTECTION_TTL = 40;
+    /** Set in the cache key of an entity check, so it never collides with the machine's own spot. */
+    private static final long ENTITY_KEY_FLAG = 1L << 62;
     /** An idle machine looks for new work this often instead of every tick. */
     private static final int IDLE_CHECK_INTERVAL = 10;
     /** The start, stop and done sounds are cues, kept a little under full volume. */
@@ -146,7 +158,13 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     private final SidedFluidHandler[] fluidViews = new SidedFluidHandler[7];
     private final MachineUpgradeSlots upgrades;
     private final RedstoneControl redstone = new RedstoneControl();
+    private final ProtectedMachines.Reach reach;
+    private final ProtectionCache protection = new ProtectionCache(PROTECTION_TTL);
 
+    /** The player who placed the machine, if one did; the claim checks are made as this player. */
+    private @Nullable UUID owner;
+    /** The version the data being loaded was saved with, for the inventory's migration. */
+    private int loadedVersion = SaveSchema.Kind.MACHINE.current();
     private MachineStatus status = MachineStatus.IDLE;
     /** True while the redstone mode holds the machine back; the screen then says "Disabled". */
     private boolean redstoneDisabled;
@@ -174,6 +192,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         this.tier = block.tier();
         this.machine = block.machine();
         this.sides = new SideConfigs(machine.resources());
+        this.reach = ProtectedMachines.reachOf(machine);
         // A single tank, so it can only ever hold one kind of flux.
         this.fluxTank = new FluxFluidTank(StorageSizes.machine(tier), this::acceptsFlux) {
             /**
@@ -270,6 +289,41 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
 
     public Tier tier() {
         return tier;
+    }
+
+    /** The player who placed this machine, if one did. */
+    public Optional<UUID> owner() {
+        return Optional.ofNullable(owner);
+    }
+
+    /** Called by the block when a player places the machine; {@code null} for anything else. */
+    public void setOwner(@Nullable UUID owner) {
+        this.owner = owner;
+        protection.clear();
+        setChanged();
+    }
+
+    /**
+     * Whether the owner's claims let this machine act on a block position. An unowned machine is
+     * never asked; answers are kept for a short time.
+     */
+    protected final boolean mayActAt(BlockPos target) {
+        if (owner == null || !(level instanceof ServerLevel server)) {
+            return true;
+        }
+        return protection.allowed(target.asLong(), server.getGameTime(),
+                () -> Protection.mayAct(server, owner, target, ProtectedMachines.actionOf(reach)));
+    }
+
+    /** Whether the owner's claims let this machine act on an entity. Answers are kept per chunk. */
+    protected final boolean mayTouch(Entity entity) {
+        if (owner == null || !(level instanceof ServerLevel server)) {
+            return true;
+        }
+        BlockPos at = entity.blockPosition();
+        long chunk = ChunkPos.asLong(at.getX() >> 4, at.getZ() >> 4);
+        return protection.allowed(chunk | ENTITY_KEY_FLAG, server.getGameTime(),
+                () -> Protection.mayTouch(server, owner, entity));
     }
 
     public MachineType machine() {
@@ -803,6 +857,18 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             showCrop(level);
             return;
         }
+        if (reach == ProtectedMachines.Reach.OWN_SPOT && !mayActAt(worldPosition)) {
+            // The owner's claims no longer allow this machine to work here: it keeps its inputs and
+            // burns nothing, and looks again in a moment.
+            timer.reset();
+            activeKey = null;
+            jobExtraFlux = 0;
+            sleeping = true;
+            status = MachineStatus.IDLE;
+            showWorking(level, false);
+            showCrop(level);
+            return;
+        }
         sleeping = false;
 
         if (!job.key().equals(activeKey)) {
@@ -947,7 +1013,10 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putInt(TAG_SCHEMA, SCHEMA_VERSION);
+        SaveVersion.stamp(tag, SaveSchema.Kind.MACHINE);
+        if (owner != null) {
+            tag.putUUID(TAG_OWNER, owner);
+        }
         tag.put(TAG_FLUX, fluxTank.writeToNBT(registries, new CompoundTag()));
         if (!extraTanks.isEmpty()) {
             CompoundTag tanksTag = new CompoundTag();
@@ -978,9 +1047,13 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        // Version 2 gave the Sifter its mesh slot; fitInventory handles older saves.
-        // The upgrades and the redstone settings came later in version 1 and are simply missing
-        // from older saves, which leaves an unupgraded machine that ignores redstone.
+        // The version decides how the inventory is read (see fitInventory). The upgrades and the
+        // redstone settings came later in version 1 and are simply missing from older saves, which
+        // leaves an unupgraded machine that ignores redstone; the owner (version 3) is missing the
+        // same way, which leaves a machine nobody's claim is asked about.
+        loadedVersion = SaveVersion.read(SaveSchema.Kind.MACHINE, tag);
+        owner = tag.hasUUID(TAG_OWNER) ? tag.getUUID(TAG_OWNER) : null;
+        protection.clear();
         fluxTank.readFromNBT(registries, tag.getCompound(TAG_FLUX));
         CompoundTag tanksTag = tag.getCompound(TAG_EXTRA_TANKS);
         for (int i = 0; i < extraTanks.size(); i++) {
@@ -1000,7 +1073,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
         autoImport = tag.getBoolean(TAG_AUTO_IMPORT);
         autoExport = tag.getBoolean(TAG_AUTO_EXPORT);
         inventory.deserializeNBT(registries, tag.getCompound(TAG_ITEMS));
-        fitInventory(tag.getInt(TAG_SCHEMA));
+        fitInventory();
         timer.restore(tag.getInt(TAG_PROGRESS), tag.getInt(TAG_TOTAL));
         CompoundTag sideTag = tag.getCompound(TAG_SIDES);
         for (SideResource resource : sides.used()) {
@@ -1012,35 +1085,22 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
     }
 
     /**
-     * Brings the loaded slots to the number this machine needs while keeping what they hold. A save
-     * from a build with a different number of input slots (the Sifter gained its mesh slot) keeps
-     * its inputs in place and its outputs counted from the first output slot, so nothing lands in
-     * the wrong kind of slot. Where the slot count is not saved, a Sifter saved before its mesh
-     * slot (layout 1) is known by the layout instead, and its outputs move up one the same way.
+     * Brings the loaded slots to the layout this machine has now while keeping what they hold. The
+     * rules (a Sifter saved before its mesh slot, a save with a different number of input slots)
+     * are the migration steps in shared-core, chosen by the version the data was saved with.
      */
-    private void fitInventory(int schema) {
-        int wanted = machine.inputSlots() + machine.outputSlots();
+    private void fitInventory() {
         int saved = inventory.getSlots();
-        if (saved == wanted) {
-            if (schema < 2 && machine == MachineType.SIFTER && inventory.getStackInSlot(wanted - 1).isEmpty()) {
-                for (int slot = wanted - 1; slot > SieveMesh.MESH_SLOT; slot--) {
-                    inventory.setStackInSlot(slot, inventory.getStackInSlot(slot - 1));
-                }
-                inventory.setStackInSlot(SieveMesh.MESH_SLOT, ItemStack.EMPTY);
-            }
-            return;
-        }
-        ItemStack[] stacks = new ItemStack[saved];
+        List<ItemStack> stacks = new ArrayList<>(saved);
         for (int slot = 0; slot < saved; slot++) {
-            stacks[slot] = inventory.getStackInSlot(slot);
+            stacks.add(inventory.getStackInSlot(slot));
         }
-        int savedInputs = Math.max(0, saved - machine.outputSlots());
-        inventory.setSize(wanted);
-        for (int slot = 0; slot < Math.min(savedInputs, machine.inputSlots()); slot++) {
-            inventory.setStackInSlot(slot, stacks[slot]);
-        }
-        for (int slot = 0; slot < Math.min(saved - savedInputs, machine.outputSlots()); slot++) {
-            inventory.setStackInSlot(machine.inputSlots() + slot, stacks[savedInputs + slot]);
+        List<ItemStack> migrated = MachineSaveMigrations.migrate(
+                new MachineSaveMigrations.Inventory<>(stacks, machine.inputSlots(), machine.outputSlots(), ItemStack.EMPTY),
+                loadedVersion).stacks();
+        inventory.setSize(migrated.size());
+        for (int slot = 0; slot < migrated.size(); slot++) {
+            inventory.setStackInSlot(slot, migrated.get(slot));
         }
     }
 }

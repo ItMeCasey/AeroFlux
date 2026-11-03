@@ -651,6 +651,24 @@ public class ModLanguageProvider extends LanguageProvider {
         add(command + "total", "%s chunk loader(s)");
         add(command + "none", "No chunk loader is registered at %s, %s, %s");
         add(command + "removed", "Removed the chunk loader at %s, %s, %s in %s");
+
+        add("message.aeroflux.protected", "A claim here does not let you change that");
+        add("message.aeroflux.protected_skipped", "A claim kept this from changing %s block(s)");
+
+        String profile = "commands.aeroflux.profile.";
+        add(profile + "started", "Sampling AeroFlux block entities for %s seconds...");
+        add(profile + "busy", "A profile is already running");
+        add(profile + "none", "No profile is running");
+        add(profile + "cancelled", "Profile cancelled");
+        add(profile + "empty", "No AeroFlux block ticked in %s ticks (%s s)");
+        add(profile + "header", "AeroFlux over %s ticks (%s s): %s ms per tick in total, %s blocks loaded");
+        add(profile + "budget", "Budget for this many blocks: %s ms per tick, %s%% used (%s)");
+        add(profile + "within", "within budget");
+        add(profile + "over", "over budget");
+        add(profile + "group", "%s: %s ms per tick (%s%%), %s blocks");
+        add(profile + "type", "  %s: %s ms per tick (%s%%), %s loaded, slowest tick %s us");
+        add(profile + "heaviest", "Heaviest blocks:");
+        add(profile + "block", "  %s at %s, %s, %s in %s: %s ms per tick");
     }
 
     private static String toolModeName(ToolMode mode) {

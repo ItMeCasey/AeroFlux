@@ -87,6 +87,7 @@ public final class SelfTest {
         FluxScreenSelfTest.setUp(level);
         PolishSelfTest.setUp(level);
         ConfiguratorSelfTest.setUp(level);
+        GuardSelfTest.setUp(level);
         CompatSelfTest.setUp(level);
         command("time set day");
         phase = 0;
@@ -126,6 +127,8 @@ public final class SelfTest {
             BlockIoSelfTest.tick();
             // So do the Flux Configurator checks.
             ConfiguratorSelfTest.tick();
+            // The profiler, save versioning and protection checks build in layers of their own too.
+            GuardSelfTest.tick();
         }
         // The enchanting config checks change global settings, so they wait until the machine checks,
         // which test the defaults, are done.
@@ -138,7 +141,7 @@ public final class SelfTest {
                     && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()
                     && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished()
                     && FluxScreenSelfTest.finished() && PolishSelfTest.finished() && CompatSelfTest.finished()
-                    && ConfiguratorSelfTest.finished()) {
+                    && ConfiguratorSelfTest.finished() && GuardSelfTest.finished()) {
                 finish();
             }
             return;

@@ -2,6 +2,8 @@ package com.itmecasey.aeroflux.block;
 
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -117,6 +119,7 @@ public class FluxCollectorBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         // Only the server makes fluid; the client never needs to tick this block.
         return level.isClientSide ? null
-                : createTickerHelper(type, ModBlockEntities.COLLECTOR.get(), FluxCollectorBlockEntity::serverTick);
+                : createTickerHelper(type, ModBlockEntities.COLLECTOR.get(),
+                        TickProfiler.<FluxCollectorBlockEntity>wrap(ProfileTypes.COLLECTOR, FluxCollectorBlockEntity::serverTick));
     }
 }

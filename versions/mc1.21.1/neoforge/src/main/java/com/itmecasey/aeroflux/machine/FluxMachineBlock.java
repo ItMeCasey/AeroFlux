@@ -4,6 +4,8 @@ import com.itmecasey.aeroflux.block.FluxParticles;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -16,6 +18,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -107,6 +110,15 @@ public class FluxMachineBlock extends BaseEntityBlock {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
+    /** Records who placed the machine, so the claim checks of the machines that reach into the world are made as that player. */
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
+        super.setPlacedBy(level, pos, state, by, itemStack);
+        if (!level.isClientSide() && by instanceof Player player && level.getBlockEntity(pos) instanceof FluxMachineBlockEntity machine) {
+            machine.setOwner(player.getUUID());
+        }
+    }
+
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
@@ -180,7 +192,8 @@ public class FluxMachineBlock extends BaseEntityBlock {
         if (level.isClientSide) {
             return clientTicker == null ? null : createTickerHelper(type, ModBlockEntities.MACHINE.get(), clientTicker);
         }
-        return createTickerHelper(type, ModBlockEntities.MACHINE.get(), FluxMachineBlockEntity::serverTick);
+        return createTickerHelper(type, ModBlockEntities.MACHINE.get(), TickProfiler.<FluxMachineBlockEntity>wrap(
+                blockState -> ProfileTypes.machine(machine.id()), FluxMachineBlockEntity::serverTick));
     }
 
     /** A working machine gives off a mote now and then, in the color of the flux it runs on. */

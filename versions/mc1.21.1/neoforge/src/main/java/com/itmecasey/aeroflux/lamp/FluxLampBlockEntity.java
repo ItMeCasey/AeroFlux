@@ -3,10 +3,12 @@ package com.itmecasey.aeroflux.lamp;
 import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineReach;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModTags;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -135,12 +137,15 @@ public class FluxLampBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        SaveVersion.stamp(tag, SaveSchema.Kind.LAMP);
         tag.put(TAG_TANK, tank.writeToNBT(registries, new CompoundTag()));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.LAMP, tag);
         tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
     }
 }

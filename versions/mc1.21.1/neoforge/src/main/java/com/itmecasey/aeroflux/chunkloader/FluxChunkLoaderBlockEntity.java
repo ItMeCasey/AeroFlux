@@ -8,10 +8,15 @@ import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.chunkloader.ChunkLoaderMath;
 import com.itmecasey.aeroflux.core.chunkloader.LoaderStatus;
+import com.itmecasey.aeroflux.core.protect.ProtectionAction;
+import com.itmecasey.aeroflux.core.protect.ProtectionCache;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.fluid.InputOnlyFluidHandler;
+import com.itmecasey.aeroflux.protect.Protection;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -46,8 +51,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>Pipes and buckets can only fill it; nothing can pump the Flux back out.
  */
 public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvider {
-    private static final int SCHEMA_VERSION = 1;
-    private static final String TAG_SCHEMA = "schema_version";
+    /** How long a claim answer is trusted, in ticks; a claim changes rarely and this keeps the check cheap. */
+    private static final int PROTECTION_TTL = 40;
     private static final String TAG_FLUX = "flux";
     private static final String TAG_CREDIT = "credit";
     private static final String TAG_OWNER = "owner";
@@ -66,6 +71,7 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
     private boolean holding;
     private int graceLeft;
     private LoaderStatus status = LoaderStatus.NO_FLUX;
+    private final ProtectionCache protection = new ProtectionCache(PROTECTION_TTL);
     /** False until the first tick after placing or loading, which makes the world match {@link #holding}. */
     private boolean settled;
 
@@ -143,6 +149,7 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
     /** Called once by the block when a player places it. */
     void setOwner(@Nullable UUID owner) {
         this.owner = owner;
+        protection.clear();
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
             register(serverLevel);
@@ -180,7 +187,8 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
         }
 
         boolean enabled = AeroFluxConfig.chunkLoadersEnabled();
-        boolean allowed = FluxDimensions.rulesFor(level).chunkLoaderAllowed();
+        // A claim that no longer lets the owner act here counts like a dimension that forbids loaders.
+        boolean allowed = FluxDimensions.rulesFor(level).chunkLoaderAllowed() && protectionAllows(level);
         boolean underCap = holding || underCaps(level);
         // Only a loader that is allowed to run pays; a capped or forbidden one keeps its Flux.
         boolean paid = enabled && allowed && underCap && pay();
@@ -208,6 +216,12 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
         }
         int perDimension = AeroFluxConfig.chunkLoadersPerDimension();
         return perDimension <= 0 || ChunkLoaderRegistry.of(level).activeCount(worldPosition) < perDimension;
+    }
+
+    /** Whether the owner's claims still let this loader work where it stands. An unowned loader is never asked. */
+    private boolean protectionAllows(ServerLevel level) {
+        return owner == null || protection.allowed(0L, level.getGameTime(),
+                () -> Protection.mayAct(level, owner, worldPosition, ProtectionAction.USE_BLOCK));
     }
 
     /** Pays for one tick out of the credit and the tank; takes nothing unless the whole tick is covered. */
@@ -257,7 +271,7 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putInt(TAG_SCHEMA, SCHEMA_VERSION);
+        SaveVersion.stamp(tag, SaveSchema.Kind.CHUNK_LOADER);
         tag.put(TAG_FLUX, tank.writeToNBT(registries, new CompoundTag()));
         tag.putLong(TAG_CREDIT, creditMilli);
         tag.putBoolean(TAG_HOLDING, holding);
@@ -270,7 +284,8 @@ public class FluxChunkLoaderBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        // Version 1 is the only layout so far; later versions will branch on TAG_SCHEMA here.
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.CHUNK_LOADER, tag);
         tank.readFromNBT(registries, tag.getCompound(TAG_FLUX));
         creditMilli = tag.getLong(TAG_CREDIT);
         holding = tag.getBoolean(TAG_HOLDING);
