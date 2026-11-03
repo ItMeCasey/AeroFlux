@@ -44,7 +44,7 @@ description='''${mod_description}'''
     ordering="AFTER"
     side="CLIENT"
 
-# Look-at tooltips. Both send block data from the server, so they count on both sides.
+# Look-at tooltips. All three send block data from the server, so they count on both sides.
 [[dependencies.${mod_id}]]
     modId="jade"
     type="optional"
@@ -54,6 +54,13 @@ description='''${mod_description}'''
 
 [[dependencies.${mod_id}]]
     modId="theoneprobe"
+    type="optional"
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="wthit"
     type="optional"
     versionRange="[0,)"
     ordering="AFTER"

@@ -642,6 +642,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add("message.aeroflux.protected", "A claim here does not let you change that");
         add("message.aeroflux.protected_skipped", "A claim kept this from changing %s block(s)");
 
+        add("jei.aeroflux.imported", "From %s");
+        add("jei.aeroflux.sieve.amount", "Amount: %s");
+        add("jei.aeroflux.sieve.water", "%s mB water");
+
         String profile = "commands.aeroflux.profile.";
         add(profile + "started", "Sampling AeroFlux block entities for %s seconds...");
         add(profile + "busy", "A profile is already running");

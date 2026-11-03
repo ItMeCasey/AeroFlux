@@ -45,6 +45,15 @@ public final class MachineRecipes {
         received = recipes;
     }
 
+    /** Only the machine's own recipes (not the imported ones), as the given side knows them. */
+    public static Collection<RecipeHolder<FluxRecipe>> ownOf(Level level, MachineType machine) {
+        RecipeType<FluxRecipe> type = ModRecipes.type(machine).get();
+        if (level instanceof ServerLevel server) {
+            return new ArrayList<>(server.recipeAccess().recipeMap().byType(type));
+        }
+        return new ArrayList<>(received.byType(type));
+    }
+
     /** The recipes of one machine, as the given side knows them. */
     public static Collection<RecipeHolder<FluxRecipe>> of(Level level, MachineType machine) {
         RecipeType<FluxRecipe> type = ModRecipes.type(machine).get();

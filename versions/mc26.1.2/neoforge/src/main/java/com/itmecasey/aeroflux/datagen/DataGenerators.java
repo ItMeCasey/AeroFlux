@@ -34,6 +34,7 @@ public final class DataGenerators {
     @SubscribeEvent
     public static void gatherServerData(GatherDataEvent.Server event) {
         event.createProvider(ModBlockTagProvider::new);
+        event.createProvider(ModFluidTagProvider::new);
         event.createProvider(ModRecipeProvider.Runner::new);
         event.createProvider((output, lookupProvider) -> new LootTableProvider(output, Set.of(), List.of(
                 new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK)),

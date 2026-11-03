@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.compat.jei;
 
 import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.compat.ViewerRecipes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
@@ -15,6 +16,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -23,14 +25,14 @@ import net.minecraft.world.item.crafting.Ingredient;
  * Grower): the inputs, an arrow that runs as long as the copper machine takes, the outputs with
  * their chance, and the Flux the job costs on top of the running cost.
  */
-final class MachineRecipeCategory implements IRecipeCategory<FluxRecipe> {
+final class MachineRecipeCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private static final int WIDTH = 150;
-    private static final int HEIGHT = 44;
+    private static final int HEIGHT = 54;
     private static final int SLOT = 18;
     private static final int OUTPUT_X = 92;
 
     private final MachineType machine;
-    private final IRecipeType<FluxRecipe> type;
+    private final IRecipeType<ViewerRecipes.Entry> type;
     private final IDrawable icon;
 
     MachineRecipeCategory(MachineType machine, IGuiHelper gui) {
@@ -40,12 +42,12 @@ final class MachineRecipeCategory implements IRecipeCategory<FluxRecipe> {
     }
 
     /** The JEI recipe type for a machine's recipes. */
-    static IRecipeType<FluxRecipe> typeFor(MachineType machine) {
-        return IRecipeType.create(Ids.mod(machine.id()), FluxRecipe.class);
+    static IRecipeType<ViewerRecipes.Entry> typeFor(MachineType machine) {
+        return IRecipeType.create(Ids.mod(machine.id()), ViewerRecipes.Entry.class);
     }
 
     @Override
-    public IRecipeType<FluxRecipe> getRecipeType() {
+    public IRecipeType<ViewerRecipes.Entry> getRecipeType() {
         return type;
     }
 
@@ -70,7 +72,8 @@ final class MachineRecipeCategory implements IRecipeCategory<FluxRecipe> {
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, FluxRecipe recipe, IFocusGroup focuses) {
+    public void setRecipe(IRecipeLayoutBuilder builder, ViewerRecipes.Entry entry, IFocusGroup focuses) {
+        FluxRecipe recipe = entry.recipe();
         List<FluxRecipe.Input> inputs = recipe.inputs();
         for (int i = 0; i < inputs.size(); i++) {
             FluxRecipe.Input input = inputs.get(i);
@@ -94,12 +97,22 @@ final class MachineRecipeCategory implements IRecipeCategory<FluxRecipe> {
     }
 
     @Override
-    public void createRecipeExtras(IRecipeExtrasBuilder builder, FluxRecipe recipe, IFocusGroup focuses) {
+    public void createRecipeExtras(IRecipeExtrasBuilder builder, ViewerRecipes.Entry entry, IFocusGroup focuses) {
+        FluxRecipe recipe = entry.recipe();
         builder.addAnimatedRecipeArrowWidget(recipe.time()).setPosition(62, 5);
         Component cost = recipe.flux() > 0
                 ? Component.translatable("jei.aeroflux.time_and_flux", recipe.time(), recipe.flux())
                 : Component.translatable("jei.aeroflux.time", recipe.time());
         builder.addText(cost, WIDTH, 10).setPosition(0, 30).setColor(0xFF606060);
+        Component imported = ViewerRecipes.importedLine(entry.id());
+        if (imported != null) {
+            builder.addText(imported, WIDTH, 10).setPosition(0, 42).setColor(0xFF808080);
+        }
+    }
+
+    @Override
+    public Identifier getIdentifier(ViewerRecipes.Entry entry) {
+        return entry.id();
     }
 
     /** The items an ingredient accepts, each in the amount the recipe needs. */

@@ -45,6 +45,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -120,7 +121,47 @@ public final class RecipeImports {
     private static @Nullable RecipeMap cachedFrom;
     private static Map<MachineType, List<RecipeHolder<FluxRecipe>>> cached = Map.of();
 
+    /**
+     * The imported recipes the server sent this client (see {@link RecipeImportsSync}), for the
+     * recipe viewers. Since 26.1 a client gets no recipes of other mods, so the server works the
+     * imports out and sends the result.
+     */
+    private static volatile Map<MachineType, List<RecipeHolder<FluxRecipe>>> syncedForViewer = Map.of();
+
     private RecipeImports() {
+    }
+
+    /**
+     * The recipes imported for one machine as a recipe viewer should list them: the ones the machine
+     * runs on the server, the ones the server sent on a client.
+     */
+    public static List<RecipeHolder<FluxRecipe>> forViewer(Level level, MachineType machine) {
+        if (level instanceof ServerLevel server) {
+            return of(server, machine);
+        }
+        return syncedForViewer.getOrDefault(machine, List.of());
+    }
+
+    /** The imports the server sent this client for one machine; empty on a server or before the first sync. */
+    public static List<RecipeHolder<FluxRecipe>> syncedForViewer(MachineType machine) {
+        return syncedForViewer.getOrDefault(machine, List.of());
+    }
+
+    /** Every machine's imports as the server would send them now. */
+    static Map<MachineType, List<RecipeHolder<FluxRecipe>>> forSync(ServerLevel level) {
+        Map<MachineType, List<RecipeHolder<FluxRecipe>>> all = new EnumMap<>(MachineType.class);
+        for (MachineType machine : MachineType.values()) {
+            List<RecipeHolder<FluxRecipe>> imported = of(level, machine);
+            if (!imported.isEmpty()) {
+                all.put(machine, List.copyOf(imported));
+            }
+        }
+        return all;
+    }
+
+    /** Takes the imports a server sent. */
+    static void useSynced(Map<MachineType, List<RecipeHolder<FluxRecipe>>> imports) {
+        syncedForViewer = Map.copyOf(imports);
     }
 
     /** The recipes imported for one machine, worked out again whenever the server's recipes change. */

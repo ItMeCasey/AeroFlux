@@ -98,6 +98,7 @@ public final class SelfTest {
         PolishSelfTest.setUp(level);
         ConfiguratorSelfTest.setUp(level);
         GuardSelfTest.setUp(level);
+        CompatSelfTest.setUp(level);
         // In 26.1 the time command takes a clock time marker; these two sit at 1000 and 18000.
         command("time set day");
         phase = 0;
@@ -140,6 +141,8 @@ public final class SelfTest {
             ConfiguratorSelfTest.tick();
             // The profiler, save versioning and protection checks build in layers of their own too.
             GuardSelfTest.tick();
+            // The compat checks build in the same separate chunk, after the machine extras they depend on.
+            CompatSelfTest.tick();
         }
         // The enchanting config checks change global settings, so they wait until the machine checks,
         // which test the defaults, are done.
@@ -152,7 +155,7 @@ public final class SelfTest {
                     && MachineSelfTest.finished() && MachineUpgradeSelfTest.finished() && ChunkLoaderSelfTest.finished()
                     && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished() && BlockIoSelfTest.finished()
                     && EnchantConfigSelfTest.finished() && FluxScreenSelfTest.finished()
-                    && PolishSelfTest.finished() && ConfiguratorSelfTest.finished() && GuardSelfTest.finished()) {
+                    && PolishSelfTest.finished() && ConfiguratorSelfTest.finished() && GuardSelfTest.finished() && CompatSelfTest.finished()) {
                 finish();
             }
             return;

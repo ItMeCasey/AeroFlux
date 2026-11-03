@@ -178,6 +178,12 @@ dependencies {
     compileOnly "maven.modrinth:cloth-config:${cloth_config_version}"
     compileOnly "maven.modrinth:architectury-api:${architectury_version}"
 
+    // WTHIT, the third look-at tooltip mod. Bad Packets is the library it needs.
+    compileOnly "maven.modrinth:wthit:${wthit_version}"
+    compileOnly "maven.modrinth:badpackets:${badpackets_version}"
+    localRuntime "maven.modrinth:wthit:${wthit_version}"
+    localRuntime "maven.modrinth:badpackets:${badpackets_version}"
+
     // Claim mods, compiled against only: the protection layer loads their classes when they are
     // installed and never otherwise. Neither is on the dev runtime. FTB Chunks stands alone here
     // (no transitive jars), because only its own interfaces are called.
