@@ -33,6 +33,9 @@ public final class RecipeImportsSync {
     private RecipeImportsSync() {
     }
 
+    /** The most rules one message may claim; a longer one is a broken or hostile packet. */
+    private static final int MAX_RULES = 100_000;
+
     /** The message: every rule, written as JSON. */
     public record Payload(List<String> rules) {
         /** Writes the message. */
@@ -42,7 +45,15 @@ public final class RecipeImportsSync {
 
         /** Reads the message. */
         public static Payload read(FriendlyByteBuf buf) {
-            return new Payload(new ArrayList<>(buf.readList(FriendlyByteBuf::readUtf)));
+            int size = buf.readVarInt();
+            if (size < 0 || size > MAX_RULES) {
+                throw new io.netty.handler.codec.DecoderException("Recipe import rule list too long: " + size);
+            }
+            List<String> rules = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                rules.add(buf.readUtf());
+            }
+            return new Payload(rules);
         }
     }
 

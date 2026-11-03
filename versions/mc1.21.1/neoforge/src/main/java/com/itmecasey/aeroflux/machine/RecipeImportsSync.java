@@ -33,7 +33,7 @@ public final class RecipeImportsSync {
     public record Payload(List<String> rules) implements CustomPacketPayload {
         public static final Type<Payload> TYPE = new Type<>(Ids.mod("recipe_imports"));
         public static final StreamCodec<FriendlyByteBuf, Payload> CODEC = ByteBufCodecs.STRING_UTF8
-                .apply(ByteBufCodecs.list())
+                .apply(ByteBufCodecs.list(100_000))
                 .map(Payload::new, Payload::rules)
                 .cast();
 

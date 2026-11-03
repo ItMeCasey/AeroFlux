@@ -12,6 +12,11 @@ import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModDataComponents;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import java.util.List;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.nbt.CompoundTag;
+import com.itmecasey.aeroflux.converter.ConverterMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -22,6 +27,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -145,6 +152,30 @@ final class BlockIoSelfTest {
         // The screen learns the fluid through the menu's data.
         TankMenu menu = new TankMenu(0, null, placed);
         SelfTest.check("tanks: the menu tells the screen which fluid the tank holds", menu.fluid() == Fluids.WATER);
+        // A save that names a fluid from a mod that is gone loads as an empty tank, not an error.
+        CompoundTag saved = placed.saveWithoutMetadata(level.registryAccess());
+        BlockPos orphan = new BlockPos(7, Y, 2);
+        level.setBlock(orphan, state, Block.UPDATE_ALL);
+        FluxTankBlockEntity orphaned = (FluxTankBlockEntity) level.getBlockEntity(orphan);
+        boolean loaded;
+        try {
+            CompoundTag broken = TagParser.parseCompoundFully(saved.toString().replace("minecraft:water", "aeroflux_test:gone"));
+            orphaned.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), broken));
+            loaded = true;
+        } catch (Exception e) {
+            loaded = false;
+        }
+        SelfTest.check("tanks: a saved fluid that no longer exists loads as an empty tank", loaded && orphaned.amount() == 0);
+        // A converter's menu refuses a button press from a player who has walked away.
+        FakePlayer player = FakePlayerFactory.getMinecraft(level);
+        BlockPos convPos = new BlockPos(8, Y, 2);
+        level.setBlock(convPos, ModBlocks.converter(ConverterType.ENERGY, Tier.COPPER).get().defaultBlockState(), Block.UPDATE_ALL);
+        FluxConverterBlockEntity conv = (FluxConverterBlockEntity) level.getBlockEntity(convPos);
+        ConverterMenu convMenu = new ConverterMenu(2, player.getInventory(), conv);
+        player.setPos(convPos.getX() + 0.5, convPos.getY() + 40, convPos.getZ() + 0.5);
+        SelfTest.check("converter menu: a button press from far away is refused", !convMenu.clickMenuButton(player, 0));
+        player.setPos(convPos.getX() + 0.5, convPos.getY(), convPos.getZ() - 1.5);
+        SelfTest.check("converter menu: the same press next to it works", convMenu.clickMenuButton(player, 0));
     }
 
     private static void checkComparators() {

@@ -131,7 +131,7 @@ public class ConverterMenu extends AbstractContainerMenu {
     /** Button {@code n} switches the face with {@link FaceLabel} ordinal {@code n} on or off. */
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (entity == null || id < 0 || id >= FaceLabel.values().length) {
+        if (entity == null || !stillValid(player) || id < 0 || id >= FaceLabel.values().length) {
             return false;
         }
         entity.toggleOutput(FaceLabel.values()[id].faceFor(Face.byIndex(facing.get3DDataValue())));

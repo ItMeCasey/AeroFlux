@@ -129,10 +129,10 @@ public final class RecipeImportsSync {
 
     private static Payload read(RegistryFriendlyByteBuf buf) {
         Map<MachineType, List<RecipeHolder<FluxRecipe>>> recipes = new EnumMap<>(MachineType.class);
-        int machines = buf.readVarInt();
+        int machines = readCount(buf);
         for (int i = 0; i < machines; i++) {
             MachineType machine = buf.readEnum(MachineType.class);
-            int count = buf.readVarInt();
+            int count = readCount(buf);
             List<RecipeHolder<FluxRecipe>> holders = new ArrayList<>();
             for (int j = 0; j < count; j++) {
                 Identifier id = buf.readIdentifier();
@@ -142,7 +142,7 @@ public final class RecipeImportsSync {
             }
             recipes.put(machine, holders);
         }
-        int dropCount = buf.readVarInt();
+        int dropCount = readCount(buf);
         List<SieveRoll> drops = new ArrayList<>();
         for (int i = 0; i < dropCount; i++) {
             Ingredient material = Ingredient.CONTENTS_STREAM_CODEC.decode(buf);
@@ -184,7 +184,7 @@ public final class RecipeImportsSync {
             case UNIFORM -> new SieveMesh.Uniform(buf.readVarInt(), buf.readVarInt());
             case BINOMIAL -> new SieveMesh.Binomial(buf.readVarInt(), buf.readDouble());
             case SUM -> {
-                int parts = buf.readVarInt();
+                int parts = readCount(buf);
                 List<SieveMesh.Amount> list = new ArrayList<>();
                 for (int i = 0; i < parts; i++) {
                     list.add(readAmount(buf));
@@ -193,5 +193,16 @@ public final class RecipeImportsSync {
             }
             default -> new SieveMesh.Constant(buf.readVarInt());
         };
+    }
+
+    /** The most entries any one list in this packet may claim; a longer one is a broken or hostile packet. */
+    private static final int MAX_ENTRIES = 100_000;
+
+    private static int readCount(RegistryFriendlyByteBuf buf) {
+        int count = buf.readVarInt();
+        if (count < 0 || count > MAX_ENTRIES) {
+            throw new io.netty.handler.codec.DecoderException("Recipe sync list too long: " + count);
+        }
+        return count;
     }
 }

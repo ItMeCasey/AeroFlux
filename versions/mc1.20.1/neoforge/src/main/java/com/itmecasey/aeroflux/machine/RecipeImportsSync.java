@@ -167,13 +167,13 @@ public final class RecipeImportsSync {
         int machineIndex = buf.readVarInt();
         MachineType machine = machineIndex < 0 || machineIndex >= MachineType.values().length ? null : MachineType.values()[machineIndex];
         List<FluxRecipe> recipes = new ArrayList<>();
-        int recipeCount = buf.readVarInt();
+        int recipeCount = readCount(buf);
         for (int i = 0; i < recipeCount; i++) {
             ResourceLocation id = buf.readResourceLocation();
             recipes.add(ModRecipes.serializer(machine).get().fromNetwork(id, buf));
         }
         List<SieveRoll> drops = new ArrayList<>();
-        int dropCount = buf.readVarInt();
+        int dropCount = readCount(buf);
         for (int i = 0; i < dropCount; i++) {
             Ingredient material = Ingredient.fromNetwork(buf);
             Ingredient mesh = Ingredient.fromNetwork(buf);
@@ -206,7 +206,7 @@ public final class RecipeImportsSync {
             case 1 -> new SieveMesh.Uniform(buf.readVarInt(), buf.readVarInt());
             case 2 -> new SieveMesh.Binomial(buf.readVarInt(), buf.readDouble());
             case 3 -> {
-                int count = buf.readVarInt();
+                int count = readCount(buf);
                 List<SieveMesh.Amount> parts = new ArrayList<>();
                 for (int i = 0; i < count; i++) {
                     parts.add(readAmount(buf));
@@ -234,5 +234,16 @@ public final class RecipeImportsSync {
         public static void loggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
             forget();
         }
+    }
+
+    /** The most entries any one list in this packet may claim; a longer one is a broken or hostile packet. */
+    private static final int MAX_ENTRIES = 100_000;
+
+    private static int readCount(FriendlyByteBuf buf) {
+        int count = buf.readVarInt();
+        if (count < 0 || count > MAX_ENTRIES) {
+            throw new io.netty.handler.codec.DecoderException("Recipe sync list too long: " + count);
+        }
+        return count;
     }
 }
