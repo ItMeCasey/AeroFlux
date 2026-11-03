@@ -8,11 +8,13 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.fluid.InputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModCapabilities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -313,6 +315,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
+        SaveVersion.stamp(output, SaveSchema.Kind.CONVERTER);
         tank.writeTo(output.child(TAG_FLUX));
         output.putInt(TAG_ENERGY, energy.getEnergyStored());
         output.putDouble(TAG_AE, aeStored);
@@ -322,6 +325,8 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.CONVERTER, input);
         tank.readFrom(input.childOrEmpty(TAG_FLUX));
         energy.set(input.getIntOr(TAG_ENERGY, 0));
         aeStored = input.getDoubleOr(TAG_AE, 0.0);

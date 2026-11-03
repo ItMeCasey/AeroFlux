@@ -9,7 +9,9 @@ import com.itmecasey.aeroflux.core.conduit.BundleState;
 import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -204,6 +206,7 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
+        SaveVersion.stamp(output, SaveSchema.Kind.CONDUIT_BUNDLE);
         output.putIntArray(TAG_BUNDLE, bundle.serialize());
         output.putIntArray(TAG_REDSTONE, redstoneOutput);
         if (!endpoints.isEmpty()) {
@@ -214,6 +217,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.CONDUIT_BUNDLE, input);
         bundle = BundleState.deserialize(input.getIntArray(TAG_BUNDLE).orElse(null));
         endpoints = EndpointSettings.decode(input.getStringOr(TAG_ENDPOINTS, ""));
         endpoints.retainValid(bundle.set());

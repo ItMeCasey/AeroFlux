@@ -36,22 +36,34 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>There is one per dimension, made the first time a spawner there needs it and dropped when
  * the dimension unloads. Its name and id never change, so the server keeps a single entry for it.
+ * The protection layer also needs a stand-in that carries a machine owner's id, so a claim mod
+ * judges the machine as its owner; there is one of those per owner and dimension, kept the same way.
  */
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID)
 public final class StandInPlayer extends ServerPlayer {
     private static final GameProfile PROFILE = new GameProfile(
             UUID.nameUUIDFromBytes("aeroflux:spawner".getBytes(StandardCharsets.UTF_8)), "[AeroFlux]");
-    private static final Map<ResourceKey<Level>, StandInPlayer> BY_DIMENSION = new HashMap<>();
+    private static final Map<ResourceKey<Level>, Map<UUID, StandInPlayer>> BY_DIMENSION = new HashMap<>();
 
-    private StandInPlayer(ServerLevel level) {
-        super(level.getServer(), level, PROFILE, ClientInformation.createDefault());
+    private StandInPlayer(ServerLevel level, GameProfile profile) {
+        super(level.getServer(), level, profile, ClientInformation.createDefault());
         // The listener sets itself as this player's connection.
         new NoConnection(level.getServer(), this);
     }
 
     /** The stand-in for a dimension. */
     public static StandInPlayer of(ServerLevel level) {
-        return BY_DIMENSION.computeIfAbsent(level.dimension(), dimension -> new StandInPlayer(level));
+        return BY_DIMENSION.computeIfAbsent(level.dimension(), dimension -> new HashMap<>())
+                .computeIfAbsent(PROFILE.id(), id -> new StandInPlayer(level, PROFILE));
+    }
+
+    /**
+     * The stand-in that acts as a machine's owner in a dimension: it carries the owner's id and
+     * name, whether or not the owner is online. The first name given is the one it keeps.
+     */
+    public static StandInPlayer of(ServerLevel level, UUID owner, String name) {
+        return BY_DIMENSION.computeIfAbsent(level.dimension(), dimension -> new HashMap<>())
+                .computeIfAbsent(owner, id -> new StandInPlayer(level, new GameProfile(id, name)));
     }
 
     /** Lets go of a dimension's stand-in with the dimension, so an old world is never kept alive. */

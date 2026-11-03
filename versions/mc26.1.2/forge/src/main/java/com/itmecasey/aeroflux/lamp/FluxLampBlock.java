@@ -1,6 +1,8 @@
 package com.itmecasey.aeroflux.lamp;
 
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.fluid.Buckets;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.Codec;
@@ -93,6 +95,7 @@ public class FluxLampBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide() ? null : createTickerHelper(type, ModBlockEntities.LAMP.get(), FluxLampBlockEntity::serverTick);
+        return level.isClientSide() ? null : createTickerHelper(type, ModBlockEntities.LAMP.get(),
+                TickProfiler.<FluxLampBlockEntity>wrap(ProfileTypes.LAMP, FluxLampBlockEntity::serverTick));
     }
 }

@@ -4,7 +4,9 @@ import com.itmecasey.aeroflux.AeroFluxConfig;
 import com.itmecasey.aeroflux.core.configurator.ConfigArea;
 import com.itmecasey.aeroflux.core.configurator.ConfiguratorMode;
 import com.itmecasey.aeroflux.core.configurator.ConfiguratorPresets;
+import com.itmecasey.aeroflux.core.protect.ProtectionAction;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
+import com.itmecasey.aeroflux.protect.ToolGuard;
 import com.itmecasey.aeroflux.world.OutlineParticles;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
@@ -70,7 +72,10 @@ public class FluxConfiguratorItem extends Item {
         // A marked area waiting for its confirming use is pasted; otherwise the preset screen opens.
         if (ConfiguratorStackData.mode(stack) == ConfiguratorMode.AREA && ConfiguratorStackData.secondCorner(stack) != null) {
             if (level instanceof ServerLevel serverLevel) {
-                tell(player, ConfiguratorActions.areaPaste(stack, serverLevel, player.getUUID(), AeroFluxConfig.configuratorAreaLimit()));
+                ToolGuard guard = new ToolGuard(player, ProtectionAction.USE_BLOCK);
+                tell(player, ConfiguratorActions.areaPaste(stack, serverLevel, player.getUUID(),
+                        AeroFluxConfig.configuratorAreaLimit(), guard));
+                guard.report();
                 stopOutline(player);
             }
             return InteractionResult.SUCCESS;
@@ -96,13 +101,15 @@ public class FluxConfiguratorItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
+        ToolGuard guard = new ToolGuard(player, ProtectionAction.USE_BLOCK);
         ConfiguratorActions.Result result;
         if (context.isSecondaryUseActive() && machine) {
             result = ConfiguratorActions.copy(stack, (FluxMachineBlockEntity) level.getBlockEntity(pos));
         } else if (mode == ConfiguratorMode.AREA) {
             boolean confirming = ConfiguratorStackData.secondCorner(stack) != null;
             result = ConfiguratorActions.areaUse(stack, serverLevel, pos,
-                    player == null ? null : player.getUUID(), AeroFluxConfig.configuratorAreaLimit());
+                    player == null ? null : player.getUUID(), AeroFluxConfig.configuratorAreaLimit(), guard);
+            guard.report();
             ConfigArea pending = ConfiguratorActions.pendingArea(stack, serverLevel);
             if (player instanceof ServerPlayer serverPlayer) {
                 if (pending != null) {
@@ -112,6 +119,11 @@ public class FluxConfiguratorItem extends Item {
                 }
             }
         } else {
+            // Changing a machine's settings is using it, so a claim may refuse it.
+            if (!guard.test(pos)) {
+                ToolGuard.refuse(player);
+                return InteractionResult.FAIL;
+            }
             result = ConfiguratorActions.paste(stack, serverLevel, pos, player == null ? null : player.getUUID());
         }
 

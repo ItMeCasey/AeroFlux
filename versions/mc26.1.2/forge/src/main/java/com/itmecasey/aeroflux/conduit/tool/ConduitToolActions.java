@@ -20,6 +20,7 @@ import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -147,6 +148,14 @@ public final class ConduitToolActions {
      * @param pipe the pipe nearest the click
      */
     public static Result removeRun(ServerLevel level, ItemStack tool, BlockPos pos, PipeType pipe) {
+        return removeRun(level, tool, pos, pipe, at -> true);
+    }
+
+    /**
+     * The same, but only bundles at positions {@code allowed} accepts are changed; the rest of the
+     * run is skipped (a claim mod's protection, in the game).
+     */
+    public static Result removeRun(ServerLevel level, ItemStack tool, BlockPos pos, PipeType pipe, Predicate<BlockPos> allowed) {
         String dimension = level.dimension().identifier().toString();
         ToolStackData.RunStart start = ToolStackData.runStart(tool);
         if (start == null || !start.dimension().equals(dimension)) {
@@ -166,7 +175,7 @@ public final class ConduitToolActions {
         for (RunPlanner.Pos step : run) {
             BlockPos at = new BlockPos(step.x(), step.y(), step.z());
             if (level.isLoaded(at) && level.getBlockEntity(at) instanceof ConduitBundleBlockEntity entity
-                    && entity.bundle().set().contains(start.pipe())) {
+                    && entity.bundle().set().contains(start.pipe()) && allowed.test(at)) {
                 takeLane(entity, start.pipe(), items);
                 settle(level, at, entity);
                 removed++;
@@ -343,6 +352,14 @@ public final class ConduitToolActions {
      * @param pos the bundle that was clicked, or the free spot in front of the clicked block
      */
     public static Result pasteRun(ServerLevel level, ItemStack tool, BlockPos pos, Supply supply) {
+        return pasteRun(level, tool, pos, supply, at -> true);
+    }
+
+    /**
+     * The same, but only spots {@code allowed} accepts are touched; the rest of the run is skipped
+     * (a claim mod's protection, in the game).
+     */
+    public static Result pasteRun(ServerLevel level, ItemStack tool, BlockPos pos, Supply supply, Predicate<BlockPos> allowed) {
         int[] stored = ToolStackData.copiedBundle(tool);
         if (stored == null) {
             return Result.of(false, "message.aeroflux.tool_nothing_copied");
@@ -370,7 +387,7 @@ public final class ConduitToolActions {
         int missing = 0;
         for (RunPlanner.Pos step : run) {
             BlockPos at = new BlockPos(step.x(), step.y(), step.z());
-            if (!level.isLoaded(at)) {
+            if (!level.isLoaded(at) || !allowed.test(at)) {
                 continue;
             }
             if (level.getBlockEntity(at) instanceof ConduitBundleBlockEntity entity) {

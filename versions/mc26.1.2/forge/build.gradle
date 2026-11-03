@@ -53,11 +53,26 @@ repositories {
     maven fg.forgeMaven
     maven fg.minecraftLibsMaven
     mavenCentral()
+    // Modrinth's Maven, for the one claim mod the protection layer compiles against.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup 'maven.modrinth' }
+    }
 }
 
 dependencies {
     implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
+
+    // Open Parties and Claims, compiled against only: the protection layer loads its classes when it
+    // is installed and never otherwise. FTB Chunks has no Forge build for this Minecraft version, so
+    // claims made with it are only honored through the standard permission events.
+    compileOnly("maven.modrinth:open-parties-and-claims:${opac_version}") { transitive = false }
 }
 
 // mods.toml and pack.mcmeta are templates: this fills in their ${} values from gradle.properties
