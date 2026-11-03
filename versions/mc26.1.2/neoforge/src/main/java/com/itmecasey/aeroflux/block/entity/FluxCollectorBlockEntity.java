@@ -11,9 +11,11 @@ import com.itmecasey.aeroflux.core.FluxAccumulator;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.RateMeter;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.fluid.OutputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -310,6 +312,7 @@ public class FluxCollectorBlockEntity extends BlockEntity implements MenuProvide
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
+        SaveVersion.stamp(output, SaveSchema.Kind.COLLECTOR);
         buffer.serialize(output.child("buffer"));
         output.putDouble("carry", accumulator.carry());
     }
@@ -317,6 +320,8 @@ public class FluxCollectorBlockEntity extends BlockEntity implements MenuProvide
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.COLLECTOR, input);
         input.child("buffer").ifPresent(buffer::deserialize);
         accumulator.setCarry(input.getDoubleOr("carry", 0.0));
         collecting = fluxById(input.getStringOr(TAG_COLLECTING, ""));

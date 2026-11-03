@@ -24,7 +24,12 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 final class FluidMover implements ResourceMover {
     @Override
     public void run(ServerLevel level, LaneNetwork network, LaneState state) {
-        int limit = (int) Math.min(network.amountPerTick(), Integer.MAX_VALUE);
+        // Whatever other mods already pushed into the network this tick comes off the limit.
+        long gameTime = level.getGameTime();
+        int limit = (int) Math.min(state.remaining(gameTime, network.amountPerTick()), Integer.MAX_VALUE);
+        if (limit <= 0) {
+            return;
+        }
 
         List<Held> sources = new ArrayList<>();
         List<Held> sinks = new ArrayList<>();
@@ -65,7 +70,7 @@ final class FluidMover implements ResourceMover {
         for (Held sink : sinks) {
             sinkPorts.add(new FluidPort(sink, fluid, sink.endpoint.allows(id)));
         }
-        AmountMover.move(sourcePorts, sinkPorts, modes.toArray(new DistributionMode[0]), limit, state);
+        state.spend(gameTime, AmountMover.move(sourcePorts, sinkPorts, modes.toArray(new DistributionMode[0]), limit, state));
     }
 
     /**

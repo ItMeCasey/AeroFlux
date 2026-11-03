@@ -5,6 +5,9 @@ import com.itmecasey.aeroflux.core.conduit.ConduitLayout;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.ToolMode;
+import com.itmecasey.aeroflux.core.protect.ProtectionAction;
+import com.itmecasey.aeroflux.protect.Protection;
+import com.itmecasey.aeroflux.protect.ToolGuard;
 import com.itmecasey.aeroflux.world.OutlineParticles;
 import java.util.List;
 import java.util.Locale;
@@ -81,10 +84,22 @@ public class ConduitToolItem extends Item {
         ItemStack tool = context.getItemInHand();
         ToolMode mode = ToolStackData.mode(tool);
         boolean sneaking = context.isSecondaryUseActive();
+        // Editing, pasting and removing change someone's blocks, so a claim may refuse them. The
+        // run modes are checked block by block below; looking and copying change nothing.
+        ProtectionAction needed = switch (mode) {
+            case EDIT, PASTE -> ProtectionAction.USE_BLOCK;
+            case REMOVE -> ProtectionAction.BREAK_BLOCK;
+            default -> null;
+        };
+        if (needed != null && !Protection.mayPlayerAct(player, pos, needed)) {
+            ToolGuard.refuse(player);
+            return InteractionResult.FAIL;
+        }
+        ToolGuard runGuard = new ToolGuard(player, mode == ToolMode.REMOVE_RUN ? ProtectionAction.BREAK_BLOCK : ProtectionAction.USE_BLOCK);
         ConduitToolActions.Result result = switch (mode) {
             case EDIT -> ConduitToolActions.edit(entity, pipe, Face.byIndex(context.getClickedFace().get3DDataValue()));
             case REMOVE -> ConduitToolActions.remove(level, pos, entity, pipe, sneaking);
-            case REMOVE_RUN -> ConduitToolActions.removeRun(serverLevel, tool, pos, pipe);
+            case REMOVE_RUN -> ConduitToolActions.removeRun(serverLevel, tool, pos, pipe, runGuard);
             // Tiers are raised by using a higher-tier pipe on the bundle now; the tool skips this mode.
             case REPLACE_TIER -> ConduitToolActions.inspect(serverLevel, pos, pipe);
             case COPY -> ConduitToolActions.copy(tool, entity);
@@ -92,6 +107,7 @@ public class ConduitToolItem extends Item {
             case INSPECT -> ConduitToolActions.inspect(serverLevel, pos, pipe);
         };
 
+        runGuard.report();
         if (mode == ToolMode.INSPECT && player instanceof ServerPlayer serverPlayer) {
             List<BlockPos> members = ConduitToolActions.networkMembers(serverLevel, pos, pipe);
             if (!members.isEmpty()) {
@@ -127,8 +143,10 @@ public class ConduitToolItem extends Item {
                 ? clicked
                 : clicked.relative(context.getClickedFace());
         Player player = context.getPlayer();
+        ToolGuard guard = new ToolGuard(player, ProtectionAction.PLACE_BLOCK);
         ConduitToolActions.Result result = ConduitToolActions.pasteRun(serverLevel, context.getItemInHand(), pos,
-                ConduitToolActions.supplyOf(player));
+                ConduitToolActions.supplyOf(player), guard);
+        guard.report();
         if (player != null) {
             player.sendOverlayMessage(result.message());
         }

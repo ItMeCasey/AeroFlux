@@ -24,7 +24,6 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -258,7 +257,7 @@ final class TransferSelfTest {
             // In 26.1 a chunk also has to have its entities loaded before its block entities tick,
             // and that finishes some ticks after the chunk itself starts ticking blocks.
             BlockPos probe = new BlockPos(2, 210, 2);
-            if (level.shouldTickBlocksAt(probe) && level.areEntitiesActuallyLoadedAndTicking(ChunkPos.containing(probe))) {
+            if (SelfTest.blockEntitiesTick(level, probe)) {
                 build();
                 built = true;
             }

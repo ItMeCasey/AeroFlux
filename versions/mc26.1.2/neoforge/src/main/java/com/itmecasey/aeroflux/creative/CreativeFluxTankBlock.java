@@ -2,6 +2,8 @@ package com.itmecasey.aeroflux.creative;
 
 import com.itmecasey.aeroflux.block.ModShapes;
 import com.itmecasey.aeroflux.core.FluxType;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -75,6 +77,7 @@ public class CreativeFluxTankBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null
-                : createTickerHelper(type, ModBlockEntities.CREATIVE_TANK.get(), CreativeFluxTankBlockEntity::serverTick);
+                : createTickerHelper(type, ModBlockEntities.CREATIVE_TANK.get(),
+                        TickProfiler.<CreativeFluxTankBlockEntity>wrap(ProfileTypes.CREATIVE_TANK, CreativeFluxTankBlockEntity::serverTick));
     }
 }

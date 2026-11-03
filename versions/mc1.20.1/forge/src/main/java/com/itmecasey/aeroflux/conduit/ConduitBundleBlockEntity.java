@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.conduit;
 
 import com.itmecasey.aeroflux.client.model.BundleModelData;
 import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
+import com.itmecasey.aeroflux.conduit.transfer.PipeFluidInlet;
 import com.itmecasey.aeroflux.conduit.transfer.TransferEngine;
 import com.itmecasey.aeroflux.conduit.transfer.TransferNetworks;
 import com.itmecasey.aeroflux.core.Tier;
@@ -10,6 +11,8 @@ import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
+import java.util.EnumMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +27,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +52,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     /** The AE2 grid node of the ME pipe, when AE2 is installed and there is one; see {@link Ae2Compat}. */
     @Nullable
     private Object meLink;
+    /** The fluid inlet each side offers other mods, made on first ask and dropped whenever the bundle changes. */
+    private final Map<Direction, LazyOptional<IFluidHandler>> inlets = new EnumMap<>(Direction.class);
 
     public ConduitBundleBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CONDUIT_BUNDLE.get(), pos, state);
@@ -133,6 +140,8 @@ public class ConduitBundleBlockEntity extends BlockEntity {
     /** Saves, redraws on clients, and lets neighboring bundles recheck their connections. */
     public void changed() {
         setChanged();
+        // Which faces take fluid from other mods' pipes follows the faces' modes.
+        dropInlets();
         if (level != null) {
             TransferNetworks.topologyChanged(level);
             syncMeLink();
@@ -251,12 +260,37 @@ public class ConduitBundleBlockEntity extends BlockEntity {
         }
     }
 
-    /** AE2 finds the ME pipe's grid node through this; the bundle offers no other capability. */
+    /**
+     * AE2 finds the ME pipe's grid node through this, and other mods' pipes and pumps find a way
+     * into a fluid pipe's Open and Import faces (see {@link PipeFluidInlet}).
+     */
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         LazyOptional<T> node = Ae2Compat.gridNode(cap, meLink);
-        return node.isPresent() ? node : super.getCapability(cap, side);
+        if (node.isPresent()) {
+            return node;
+        }
+        if (cap == ForgeCapabilities.FLUID_HANDLER && side != null) {
+            LazyOptional<IFluidHandler> inlet = inlets.computeIfAbsent(side, direction -> {
+                IFluidHandler handler = PipeFluidInlet.forSide(this, direction);
+                return handler == null ? LazyOptional.empty() : LazyOptional.of(() -> handler);
+            });
+            return inlet.cast();
+        }
+        return super.getCapability(cap, side);
+    }
+
+    @Override
+    public void invalidateCaps() {
+        super.invalidateCaps();
+        dropInlets();
+    }
+
+    /** Forgets the fluid inlets, which follow the faces' modes, and tells whoever holds one it is gone. */
+    private void dropInlets() {
+        inlets.values().forEach(LazyOptional::invalidate);
+        inlets.clear();
     }
 
     @Override

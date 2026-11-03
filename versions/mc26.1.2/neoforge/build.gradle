@@ -27,6 +27,16 @@ sourceSets.main.resources {
 }
 
 repositories {
+    // FTB's own Maven, for the FTB Chunks API the protection layer is compiled against.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'FTB'
+                url = 'https://maven.ftb.dev/releases'
+            }
+        }
+        filter { includeGroup 'dev.ftb.mods' }
+    }
     // Modrinth's Maven, for the optional mods AeroFlux talks to (Jade, The One Probe).
     exclusiveContent {
         forRepository {
@@ -167,6 +177,12 @@ dependencies {
     compileOnly "maven.modrinth:rei:${rei_version}"
     compileOnly "maven.modrinth:cloth-config:${cloth_config_version}"
     compileOnly "maven.modrinth:architectury-api:${architectury_version}"
+
+    // Claim mods, compiled against only: the protection layer loads their classes when they are
+    // installed and never otherwise. Neither is on the dev runtime. FTB Chunks stands alone here
+    // (no transitive jars), because only its own interfaces are called.
+    compileOnly "maven.modrinth:open-parties-and-claims:${opac_version}"
+    compileOnly("dev.ftb.mods:ftb-chunks-neoforge:${ftbchunks_version}") { transitive = false }
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

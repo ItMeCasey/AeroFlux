@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -111,6 +112,12 @@ public final class ConfiguratorActions {
      * @param limit the most machines one area paste may change
      */
     public static Result areaUse(ItemStack tool, ServerLevel level, BlockPos pos, UUID undoKey, int limit) {
+        return areaUse(tool, level, pos, undoKey, limit, at -> true);
+    }
+
+    /** The same, pasting only onto machines at positions {@code allowed} accepts. */
+    public static Result areaUse(ItemStack tool, ServerLevel level, BlockPos pos, UUID undoKey, int limit,
+                                 Predicate<BlockPos> allowed) {
         String dimension = dimension(level);
         ConfiguratorStackData.Corner first = ConfiguratorStackData.firstCorner(tool);
         ConfiguratorStackData.Corner second = ConfiguratorStackData.secondCorner(tool);
@@ -128,7 +135,7 @@ public final class ConfiguratorActions {
             int machines = machinesIn(level, area).size();
             return new Result(true, "message.aeroflux.configurator_area_marked", List.of(machines), machines);
         }
-        return areaPaste(tool, level, undoKey, limit);
+        return areaPaste(tool, level, undoKey, limit, allowed);
     }
 
     /** The area both marked corners span, or {@code null} while fewer than two are marked here. */
@@ -148,6 +155,14 @@ public final class ConfiguratorActions {
      * than {@code limit}.
      */
     public static Result areaPaste(ItemStack tool, ServerLevel level, UUID undoKey, int limit) {
+        return areaPaste(tool, level, undoKey, limit, at -> true);
+    }
+
+    /**
+     * The same, but machines at positions {@code allowed} refuses are left as they are (a claim
+     * mod's protection, in the game). They still count in the box, so the limit stays the same.
+     */
+    public static Result areaPaste(ItemStack tool, ServerLevel level, UUID undoKey, int limit, Predicate<BlockPos> allowed) {
         ConfiguratorPresets.Preset preset = ConfiguratorStackData.presets(tool).current();
         ConfigArea area = pendingArea(tool, level);
         if (area == null) {
@@ -168,6 +183,9 @@ public final class ConfiguratorActions {
         Set<Setting> skipped = EnumSet.noneOf(Setting.class);
         int changed = 0;
         for (FluxMachineBlockEntity machine : machines) {
+            if (!allowed.test(machine.getBlockPos())) {
+                continue;
+            }
             MachineConfigurable target = new MachineConfigurable(machine);
             MachineSettings old = MachineSettings.capture(target);
             MachineSettings.PasteReport report = preset.settings().applyTo(target);

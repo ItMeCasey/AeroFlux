@@ -2,6 +2,8 @@ package com.itmecasey.aeroflux.converter;
 
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -136,6 +138,7 @@ public class FluxConverterBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null
-                : createTickerHelper(type, ModBlockEntities.CONVERTER.get(), FluxConverterBlockEntity::serverTick);
+                : createTickerHelper(type, ModBlockEntities.CONVERTER.get(),
+                        TickProfiler.<FluxConverterBlockEntity>wrap(ProfileTypes.CONVERTER, FluxConverterBlockEntity::serverTick));
     }
 }
