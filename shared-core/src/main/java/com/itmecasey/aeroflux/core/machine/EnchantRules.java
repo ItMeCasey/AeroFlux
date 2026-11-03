@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * The rules and prices of the Flux Enchanter and Disenchanter, as plan section 7 lays them out:
+ * The rules and prices of the Enchanter and Disenchanter, as plan section 7 lays them out:
  * the Enchanter refuses curses, everything is priced per enchantment level, and the Disenchanter
  * keeps curses on the item. Every number and switch comes from the config through
  * {@link #use(Settings)}; until the config is read, the defaults below apply.

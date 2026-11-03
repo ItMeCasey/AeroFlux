@@ -55,8 +55,8 @@ Pipes line up neatly: one pipe sits in the middle, two sit side by side, three m
 
 All run on Flux.
 
-- **Powered by sunlight:** Flux Furnace, Flux Grinder, Flux Sawmill, Alloy Smelter
-- **Powered by moonlight:** Flux Infuser, Flux Enchanter, Flux Disenchanter
+- **Powered by sunlight:** Furnace, Grinder, Sawmill, Alloy Smelter
+- **Powered by moonlight:** Infuser, Enchanter, Disenchanter
 - **Either:** the **Plant Grower** uses sunlight by day and moonlight by night
 - **Flux Chunk Loader:** keeps the area around it running while you're away, so your collectors never stop
 

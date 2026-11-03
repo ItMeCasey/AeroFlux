@@ -1,4 +1,4 @@
-// 26.1.2	2026-11-02T18:11:20.8633901	AeroFlux recipes
+// 26.1.2	2026-11-03T02:55:14.5040895	AeroFlux recipes
 3c017d989a327ca2cda271c4017df3f971715a59 data/aeroflux/advancement/recipes/diamond_flux_sifter.json
 719e3f6b0bdd48f3fa0e067095c198744c76b418 data/aeroflux/advancement/recipes/fluxium_flux_sifter.json
 a5dd07a3a2336ca7a37cca8c38cd09d2d2d3c405 data/aeroflux/advancement/recipes/flux_sifter.json
@@ -261,7 +261,7 @@ d98df048a35d296067ff038ceea8f8923b0be90d data/aeroflux/recipe/flux_enchanter.jso
 32269d10422c3bb05c9c1e507a08fee5029cb2f2 data/aeroflux/recipe/flux_energy_converter.json
 7310fa4c5ed3cfb327387b1676733f5da89826e7 data/aeroflux/recipe/flux_furnace.json
 87cc391939605508004724c932bf4524a8830a84 data/aeroflux/recipe/flux_grinder.json
-e29345f486d06fb8caf5132732a8af98ee51bc3c data/aeroflux/recipe/flux_infuser.json
+76a96f36650f8c501ec6809a8eefb742ba636e6e data/aeroflux/recipe/flux_infuser.json
 55dc7f90e92e24bb575e5ddde0ebe8587dabd35e data/aeroflux/recipe/flux_magnet.json
 3b210cd58ef50d0c212ef926ac80a9c52a312d3d data/aeroflux/recipe/flux_purifier.json
 d56220b07a8c97c7872ce17fe02e40fa54dd013f data/aeroflux/recipe/flux_repairer.json
@@ -313,6 +313,7 @@ bba36863b50004e41b1e191822b34be7c365a746 data/aeroflux/recipe/grinder/redstone_o
 d78d0e4a2f78df041ef994024a86152be0ca5f5e data/aeroflux/recipe/guidebook.json
 71e7a1f9726fc1372ebd3566f810ffb96c67d837 data/aeroflux/recipe/infuser/aero_crystal.json
 32e6518d1cf71b0d0ef9afd2f43925c6d7d5b2b3 data/aeroflux/recipe/infuser/crying_obsidian.json
+5377bd4e3c9fa0b63dd1e54da4df9598e33a1ea8 data/aeroflux/recipe/infuser/flux_dust.json
 1b35426f62024f4bf1a533b3912fa5bdc5e9d96a data/aeroflux/recipe/infuser/moon_crystal.json
 44d35f2ec989e8623719db8e2275f1d9ea989d5b data/aeroflux/recipe/iron_alloy_smelter.json
 68e0b56389922964d2b0e976a2aa0748bc4acd7f data/aeroflux/recipe/iron_animal_breeder.json

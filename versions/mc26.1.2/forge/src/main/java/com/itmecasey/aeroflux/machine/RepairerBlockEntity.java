@@ -8,7 +8,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Flux Repairer: it pours Bottles o' Enchanting into a damaged tool or armor piece, at the same
+ * The Repairer: it pours Bottles o' Enchanting into a damaged tool or armor piece, at the same
  * rate Mending repairs (two points of durability per point of experience, seven points to a
  * bottle on average). The item keeps its enchantments. Once whole it moves to the output slot.
  */

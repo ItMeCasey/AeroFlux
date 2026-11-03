@@ -187,8 +187,8 @@ def done():
 LOOPS = {"furnace": furnace, "grinder": grinder, "smelter": smelter, "sawmill": sawmill,
          "infuser": infuser, "enchanter": enchanter, "disenchanter": disenchanter, "grower": grower}
 SHOTS = {"start": start, "stop": stop, "done": done}
-NAMES = {"furnace": "Flux Furnace", "grinder": "Flux Grinder", "smelter": "Alloy Smelter", "sawmill": "Flux Sawmill",
-         "infuser": "Flux Infuser", "enchanter": "Flux Enchanter", "disenchanter": "Flux Disenchanter",
+NAMES = {"furnace": "Furnace", "grinder": "Grinder", "smelter": "Alloy Smelter", "sawmill": "Sawmill",
+         "infuser": "Infuser", "enchanter": "Enchanter", "disenchanter": "Disenchanter",
          "grower": "Plant Grower"}
 
 

@@ -30,7 +30,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 /**
- * Sends the recipes AeroFlux imports from other mods, and the sieve drops of the Flux Sifter, to
+ * Sends the recipes AeroFlux imports from other mods, and the sieve drops of the Sifter, to
  * its players, so JEI, REI and EMI can list them under the machines that run them. Imported
  * recipes are worked out on the server from recipe files that a 1.20.1 client never has, so unlike
  * on newer versions the finished recipes travel, not the rules.

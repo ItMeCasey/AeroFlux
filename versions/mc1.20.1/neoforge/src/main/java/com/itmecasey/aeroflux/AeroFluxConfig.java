@@ -140,9 +140,9 @@ public final class AeroFluxConfig {
         BUILDER.pop();
     }
 
-    // The Flux Enchanter and Disenchanter. Enchantments are named by id or by #tag, so modded ones work too.
+    // The Enchanter and Disenchanter. Enchantments are named by id or by #tag, so modded ones work too.
     static {
-        BUILDER.comment("Flux Enchanter and Disenchanter. Name enchantments by id (minecraft:mending) or by an enchantment tag from a datapack (#modid:name).")
+        BUILDER.comment("Enchanter and Disenchanter. Name enchantments by id (minecraft:mending) or by an enchantment tag from a datapack (#modid:name).")
                 .push("enchanting");
     }
 

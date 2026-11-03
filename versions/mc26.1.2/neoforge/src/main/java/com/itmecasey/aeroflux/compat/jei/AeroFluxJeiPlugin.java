@@ -21,7 +21,7 @@ import net.minecraft.world.level.ItemLike;
 
 /**
  * JEI support: a page type for each recipe machine with every tier of that machine as its
- * station, the Flux Furnace on JEI's own smelting pages, and an info page for the Enchanter and
+ * station, the Furnace on JEI's own smelting pages, and an info page for the Enchanter and
  * Disenchanter, which follow rules rather than recipes. JEI finds this class by its annotation and
  * only when JEI is installed.
  */

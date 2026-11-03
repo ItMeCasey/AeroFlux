@@ -45,9 +45,9 @@ class ConfiguratorStorageTest {
     @Test
     void storingIntoANamedSlotKeepsItsName() {
         ConfiguratorPresets presets = new ConfiguratorPresets();
-        presets.store(2, "Flux Furnace", furnace(RedstoneMode.ALWAYS));
+        presets.store(2, "Furnace", furnace(RedstoneMode.ALWAYS));
         assertTrue(presets.rename(2, "Ore line"));
-        presets.store(2, "Flux Grinder", furnace(RedstoneMode.HIGH));
+        presets.store(2, "Grinder", furnace(RedstoneMode.HIGH));
         assertEquals("Ore line", presets.get(2).name());
         assertEquals(RedstoneMode.HIGH, presets.get(2).settings().redstoneMode());
     }

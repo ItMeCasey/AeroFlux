@@ -61,7 +61,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
- * The machine part of the self-test: the Flux Furnace and the seven other machines, run through
+ * The machine part of the self-test: the Furnace and the seven other machines, run through
  * a real server. Every scenario is built at once, high above the world and inside the forced
  * chunk, and the checks run at fixed tick counts afterwards (a machine needs real ticks to work).
  * The checks that need no waiting (face rules, saving, menus) run as soon as everything is built.

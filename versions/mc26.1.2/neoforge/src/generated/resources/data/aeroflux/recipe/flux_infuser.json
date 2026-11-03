@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": "#c:gems/amethyst",
+    "A": "#c:ingots/copper",
     "C": "#c:ingots/copper",
     "D": "aeroflux:flux_dust",
     "M": "minecraft:cauldron",

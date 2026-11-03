@@ -320,8 +320,8 @@ public class ModRecipeProvider extends RecipeProvider {
             case SAWMILL -> new MachineParts(Items.STONECUTTER, tag(Tags.Items.INGOTS_IRON), copper, ModItems.FLUX_DUST.get());
             case ALLOY_SMELTER -> new MachineParts(Items.BLAST_FURNACE, Ingredient.of(ModItems.AERO_CRYSTAL.get()), copper,
                     ModItems.AERO_CRYSTAL.get());
-            // A cauldron to soak things in, under amethyst, so the Infuser comes before the Nether.
-            case INFUSER -> new MachineParts(Items.CAULDRON, tag(Tags.Items.GEMS_AMETHYST), copper, ModItems.FLUX_DUST.get());
+            // A cauldron to soak things in, under copper, so the Infuser is within reach of the first copper.
+            case INFUSER -> new MachineParts(Items.CAULDRON, copper, copper, ModItems.FLUX_DUST.get());
             case ENCHANTER -> new MachineParts(Items.ENCHANTING_TABLE, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
             // Vanilla takes enchantments off with a grindstone, so the disenchanter is built around one too.
             case DISENCHANTER -> new MachineParts(Items.GRINDSTONE, moonCrystal, fluxsteel, ModItems.FLUXSTEEL_INGOT.get());
@@ -675,6 +675,17 @@ public class ModRecipeProvider extends RecipeProvider {
         infuse("aero_crystal", Items.QUARTZ, ModItems.AERO_CRYSTAL.get(), 500);
         infuse("moon_crystal", Items.AMETHYST_SHARD, ModItems.MOON_CRYSTAL.get(), 500);
         infuse("crying_obsidian", Items.OBSIDIAN, Items.CRYING_OBSIDIAN, 1_000);
+        sawdustToDust();
+    }
+
+    /**
+     * The first Infuser recipe a new player meets: one Sawdust becomes one Flux Dust, twice what the
+     * crafting grid gives. It soaks in Aero Flux, the sun's, so it needs nothing from the Moon.
+     */
+    private void sawdustToDust() {
+        add(MachineType.INFUSER, "flux_dust",
+                List.of(in(Ingredient.of(ModItems.SAWDUST.get()), 1)),
+                List.of(out(ModItems.FLUX_DUST.get(), 1, 1.0F)), STANDARD, 100, FluxType.AERO);
     }
 
     /** An item and a pinch of Flux Dust, soaked in Moon Flux (the extra Flux is on top of the running cost). */

@@ -12,7 +12,7 @@ import java.util.List;
 import net.minecraft.network.chat.Component;
 
 /**
- * One Flux Sifter page in EMI: the block, the mesh (a catalyst, as it is never used up), and the
+ * One Sifter page in EMI: the block, the mesh (a catalyst, as it is never used up), and the
  * drops in rows of five, each with how many a run gives in its tooltip.
  */
 final class SifterEmiRecipe extends BasicEmiRecipe {

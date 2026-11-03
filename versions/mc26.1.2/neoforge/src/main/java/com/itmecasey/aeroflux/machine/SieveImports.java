@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The sieve recipes of Ex Deorum ({@code exdeorum:sieve}) and Ex Nihilo Sequentia
- * ({@code exnihilosequentia:sieve}, {@code exnihilosequentia:sifting} from 5.0 on), the Flux Sifter's
+ * ({@code exnihilosequentia:sieve}, {@code exnihilosequentia:sifting} from 5.0 on), the Sifter's
  * only recipes.
  *
  * <p>They are taken from the recipes the game has loaded, not from the files, so whatever decides
@@ -168,7 +168,7 @@ public final class SieveImports {
             }
         }
         if (!rolls.isEmpty()) {
-            AeroFlux.LOGGER.info("Imported {} sieve drop(s) for the Flux Sifter", rolls.size());
+            AeroFlux.LOGGER.info("Imported {} sieve drop(s) for the Sifter", rolls.size());
         }
         return List.copyOf(rolls);
     }

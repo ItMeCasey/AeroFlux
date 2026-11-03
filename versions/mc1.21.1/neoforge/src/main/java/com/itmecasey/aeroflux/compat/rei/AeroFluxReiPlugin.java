@@ -35,7 +35,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 /**
  * REI support, the same pages as the JEI plugin: one per recipe machine, with every tier of the
  * machine as its workstation, listing its own recipes and the ones imported from other mods, and
- * one for the Flux Sifter's sieve drops. The displays are built on the client (see
+ * one for the Sifter's sieve drops. The displays are built on the client (see
  * {@link ViewerRecipes}) from the recipes the server sent, so they are never sent anywhere
  * themselves. REI finds this class by its annotation and only when REI is installed.
  */

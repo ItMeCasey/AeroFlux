@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Flux Enchanter: applies the enchantments stored in an enchanted book to an item, for
+ * The Enchanter: applies the enchantments stored in an enchanted book to an item, for
  * lapis and Moon Flux. The slots are the item, the book and the lapis. What the rules allow (by
  * default no curses, nothing the config blocks, no enchantment the item cannot take, no clash with
  * one it already has, never a lower level than it has) and what it costs live in

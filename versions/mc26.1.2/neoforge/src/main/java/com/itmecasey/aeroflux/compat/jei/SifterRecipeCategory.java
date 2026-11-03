@@ -21,7 +21,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The Flux Sifter's JEI pages: the block, the mesh, and every drop of sifting the one through the
+ * The Sifter's JEI pages: the block, the mesh, and every drop of sifting the one through the
  * other, each with how many a run gives. The drops come from Ex Deorum and Ex Nihilo Sequentia
  * (see {@link ViewerRecipes#sifter}); the mesh is a catalyst, as it is never used up.
  */

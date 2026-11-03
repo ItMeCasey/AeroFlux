@@ -388,7 +388,7 @@ public final class ShotTour {
     // --- Screens -----------------------------------------------------------------------------
 
     /**
-     * An Iron Flux Furnace with its side-config window open, then a gold item pipe next to it (with
+     * An Iron Furnace with its side-config window open, then a gold item pipe next to it (with
      * the distribution and upgrade rows) and an ME pipe (with neither). The faces and the pipe get
      * a mix of settings first, so the shots show every color.
      */

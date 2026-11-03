@@ -77,7 +77,7 @@ public final class ViewerRecipes {
         return Component.translatable("jei.aeroflux.imported", name);
     }
 
-    // --- Flux Sifter ---------------------------------------------------------------------------
+    // --- Sifter ---------------------------------------------------------------------------
 
     /**
      * One Sifter page: a block, a mesh and what sifting the one through the other gives.

@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * What the recipe viewer plugins (JEI, REI, EMI) list, worked out once here so the three show the
  * same thing: each machine's own recipes followed by the ones imported from other mods, and the
- * Flux Sifter's sieve drops grouped into pages. Nothing in here names a viewer class, so it also
+ * Sifter's sieve drops grouped into pages. Nothing in here names a viewer class, so it also
  * runs on a dedicated server, which is where the self-test checks it.
  */
 public final class ViewerRecipes {
@@ -70,7 +70,7 @@ public final class ViewerRecipes {
         return Component.translatable("jei.aeroflux.imported", name);
     }
 
-    // --- Flux Sifter ---------------------------------------------------------------------------
+    // --- Sifter ---------------------------------------------------------------------------
 
     /**
      * One Sifter page: a block, a mesh and what sifting the one through the other gives.

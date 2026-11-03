@@ -13,44 +13,44 @@ import java.util.Set;
  */
 public enum MachineType {
     /** Smelts with vanilla smelting recipes; paid for with Flux instead of fuel. */
-    FURNACE("flux_furnace", "Flux Furnace", 1, 1, EnumSet.of(FluxType.AERO)),
+    FURNACE("flux_furnace", "Furnace", 1, 1, EnumSet.of(FluxType.AERO)),
     /** Ore to double raw material, bones to bonemeal and so on. One product and a chance of a second. */
-    GRINDER("flux_grinder", "Flux Grinder", 1, 2, EnumSet.of(FluxType.AERO)),
+    GRINDER("flux_grinder", "Grinder", 1, 2, EnumSet.of(FluxType.AERO)),
     /** Logs to planks, with a chance of sawdust. */
-    SAWMILL("flux_sawmill", "Flux Sawmill", 1, 2, EnumSet.of(FluxType.AERO)),
+    SAWMILL("flux_sawmill", "Sawmill", 1, 2, EnumSet.of(FluxType.AERO)),
     /** Two or three ingredients into an alloy. */
     ALLOY_SMELTER("alloy_smelter", "Alloy Smelter", 3, 1, EnumSet.of(FluxType.AERO)),
     /** An item and an additive soaked in Moon Flux become something new. */
-    INFUSER("flux_infuser", "Flux Infuser", 2, 1, EnumSet.of(FluxType.MOON)),
+    INFUSER("flux_infuser", "Infuser", 2, 1, EnumSet.of(FluxType.MOON)),
     /** Applies the enchantments of a book to an item for lapis and Moon Flux. */
-    ENCHANTER("flux_enchanter", "Flux Enchanter", 3, 1, EnumSet.of(FluxType.MOON)),
+    ENCHANTER("flux_enchanter", "Enchanter", 3, 1, EnumSet.of(FluxType.MOON)),
     /** Strips the enchantments from an item onto a fresh book. The item survives. */
-    DISENCHANTER("flux_disenchanter", "Flux Disenchanter", 2, 2, EnumSet.of(FluxType.MOON)),
+    DISENCHANTER("flux_disenchanter", "Disenchanter", 2, 2, EnumSet.of(FluxType.MOON)),
     /** Grows crops, saplings and flowers from seeds. Runs on either flux. */
     PLANT_GROWER("plant_grower", "Plant Grower", 1, 3, EnumSet.of(FluxType.AERO, FluxType.MOON)),
     /**
      * An auto crafting table. The nine input slots are the crafting grid itself; it always keeps
      * one item in each filled slot, so the pattern stays put while pipes top the slots up.
      */
-    CRAFTER("flux_crafter", "Flux Crafter", 9, 2, EnumSet.of(FluxType.AERO)),
+    CRAFTER("flux_crafter", "Crafter", 9, 2, EnumSet.of(FluxType.AERO)),
     /** Ore, a little water and Flux into three times the raw material. */
-    PURIFIER("flux_purifier", "Flux Purifier", 1, 2, EnumSet.of(FluxType.AERO), List.of(ExtraTank.WATER)),
+    PURIFIER("flux_purifier", "Purifier", 1, 2, EnumSet.of(FluxType.AERO), List.of(ExtraTank.WATER)),
     /**
      * A powered sieve for the recipes of Ex Deorum and Ex Nihilo Sequentia: the block to sift and a
      * mesh from either mod, which decides the drops (see {@link SieveMesh}). Some recipes need water.
      */
-    SIFTER("flux_sifter", "Flux Sifter", 2, 6, EnumSet.of(FluxType.AERO), List.of(ExtraTank.WATER)),
+    SIFTER("flux_sifter", "Sifter", 2, 6, EnumSet.of(FluxType.AERO), List.of(ExtraTank.WATER)),
     /** Aero Flux and Moon Flux into Twilight Flux; an empty bucket in the slot is filled from it. */
-    BLENDER("flux_blender", "Flux Blender", 1, 1, EnumSet.of(FluxType.AERO),
+    BLENDER("flux_blender", "Blender", 1, 1, EnumSet.of(FluxType.AERO),
             List.of(ExtraTank.MOON_FLUX, ExtraTank.TWILIGHT_FLUX)),
     /** Day for Aero Flux, night for Moon Flux, and clear or rain, from three buttons. */
     SKY_CONTROLLER("sky_controller", "Sky Controller", 0, 0, EnumSet.of(FluxType.AERO), List.of(ExtraTank.MOON_FLUX)),
     /** Pulls dropped items in its range into its slots. The input slot is a filter, never used up. */
-    MAGNET("flux_magnet", "Flux Magnet", 1, 6, EnumSet.of(FluxType.MOON)),
+    MAGNET("flux_magnet", "Magnet", 1, 6, EnumSet.of(FluxType.MOON)),
     /** Feeds the animals around it the food in its slot so they breed. */
     BREEDER("animal_breeder", "Animal Breeder", 1, 0, EnumSet.of(FluxType.AERO)),
     /** Repairs a damaged tool or armor piece with Bottles o' Enchanting, keeping its enchantments. */
-    REPAIRER("flux_repairer", "Flux Repairer", 2, 1, EnumSet.of(FluxType.MOON)),
+    REPAIRER("flux_repairer", "Repairer", 2, 1, EnumSet.of(FluxType.MOON)),
     /** Rolls the loot of the mob on the spawn egg in its slot, with no mob in the world. */
     SPAWNER("moon_spawner", "Moon Spawner", 2, 6, EnumSet.of(FluxType.MOON));
 
@@ -85,7 +85,7 @@ public enum MachineType {
         return blockId;
     }
 
-    /** The English name without the tier, such as "Flux Furnace"; the translation files use it. */
+    /** The English name without the tier, such as "Furnace"; the translation files use it. */
     public String displayName() {
         return displayName;
     }

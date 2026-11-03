@@ -30,7 +30,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /**
- * Sends the recipes AeroFlux imports from other mods, and the Flux Sifter's sieve drops, to its
+ * Sends the recipes AeroFlux imports from other mods, and the Sifter's sieve drops, to its
  * players, so JEI and REI can list them under the machines that run them. Since Minecraft 26.1 a
  * client is sent only the recipe types the mod asks for ({@link MachineRecipes}), and the imports
  * are made of other mods' recipes, so the server works them out and sends the result.

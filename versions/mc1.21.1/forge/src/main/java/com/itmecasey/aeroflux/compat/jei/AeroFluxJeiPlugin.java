@@ -22,7 +22,7 @@ import net.minecraft.world.level.ItemLike;
 /**
  * JEI support: a page type for each recipe machine with every tier of that machine as its
  * station, listing the machine's own recipes and the ones imported from other mods, a page type
- * for the Flux Sifter's sieve drops, the Flux Furnace on JEI's own smelting pages, and an info page
+ * for the Sifter's sieve drops, the Furnace on JEI's own smelting pages, and an info page
  * for the Enchanter and Disenchanter, which follow rules rather than recipes. The lists come from
  * {@link ViewerRecipes}, which the REI and EMI plugins share. JEI finds this class by its
  * annotation and only when JEI is installed.

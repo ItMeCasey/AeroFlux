@@ -25,7 +25,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 /**
  * EMI support, the same pages as the JEI and REI plugins: a category for each recipe machine with
  * every tier of it as a workstation, listing its own recipes and the ones imported from other
- * mods, a category for the Flux Sifter's sieve drops, the Flux Furnace as a smelting workstation,
+ * mods, a category for the Sifter's sieve drops, the Furnace as a smelting workstation,
  * and info pages for the Enchanter and Disenchanter. The lists come from {@link ViewerRecipes}.
  * EMI finds this class by its annotation and only when EMI is installed.
  */

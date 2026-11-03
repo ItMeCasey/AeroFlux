@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The Flux Disenchanter: moves the enchantments of an item onto a plain book, for Moon Flux. The
+ * The Disenchanter: moves the enchantments of an item onto a plain book, for Moon Flux. The
  * item survives (damage and all) and keeps its curses, the way a grindstone leaves them, and keeps
  * anything the config blocks. Both the stripped item and the new enchanted book come out. When the
  * config switches it on, the machine also gives back experience for what it strips, as orbs on top.

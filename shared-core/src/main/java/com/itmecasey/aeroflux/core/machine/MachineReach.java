@@ -7,7 +7,7 @@ import com.itmecasey.aeroflux.core.Tier;
  * may be used, by tier. Pure numbers, so they are unit tested.
  */
 public final class MachineReach {
-    /** The Sun and Moon Lamps and the Flux Magnet: 4 blocks for copper up to 16 for fluxium. */
+    /** The Sun and Moon Lamps and the Magnet: 4 blocks for copper up to 16 for fluxium. */
     private static final int[] WIDE = {4, 6, 8, 10, 13, 16};
     /** The Animal Breeder: 3 blocks for copper up to 9 for fluxium. */
     private static final int[] PEN = {3, 4, 5, 6, 8, 9};

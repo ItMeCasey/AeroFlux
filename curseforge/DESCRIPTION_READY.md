@@ -23,15 +23,15 @@ Tanks are made of glass, so you can see the liquid rising inside. Bigger tiers h
 Every machine runs on Flux. Which kind it wants depends on the job.
 
 **Sun machines (Aero Flux)**
-- **Flux Furnace:** smelts things like a furnace, without the fuel.
-- **Flux Grinder:** grinds ores and other items down.
-- **Flux Sawmill:** cuts logs and wood into boards.
+- **Furnace:** smelts things like a furnace, without the fuel.
+- **Grinder:** grinds ores and other items down.
+- **Sawmill:** cuts logs and wood into boards.
 - **Alloy Smelter:** melts two ingredients together into one.
 
 **Moon machines (Moon Flux)**
-- **Flux Infuser:** infuses items with Flux.
-- **Flux Enchanter:** puts enchantments on your gear.
-- **Flux Disenchanter:** takes them back off.
+- **Infuser:** infuses items with Flux.
+- **Enchanter:** puts enchantments on your gear.
+- **Disenchanter:** takes them back off.
 
 **Either one**
 - **Plant Grower:** helps crops along. It uses sunlight by day and moonlight by night.

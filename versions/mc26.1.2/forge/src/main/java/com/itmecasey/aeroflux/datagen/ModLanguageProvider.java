@@ -61,13 +61,13 @@ public class ModLanguageProvider extends LanguageProvider {
     /** The machine sound subtitles and the creative-only blocks. */
     private void addSoundAndCreativeTranslations() {
         String subtitle = "subtitles." + AeroFlux.MODID + ".machine.";
-        add(subtitle + "furnace", "Flux Furnace running");
-        add(subtitle + "grinder", "Flux Grinder running");
+        add(subtitle + "furnace", "Furnace running");
+        add(subtitle + "grinder", "Grinder running");
         add(subtitle + "smelter", "Alloy Smelter running");
-        add(subtitle + "sawmill", "Flux Sawmill running");
-        add(subtitle + "infuser", "Flux Infuser running");
-        add(subtitle + "enchanter", "Flux Enchanter running");
-        add(subtitle + "disenchanter", "Flux Disenchanter running");
+        add(subtitle + "sawmill", "Sawmill running");
+        add(subtitle + "infuser", "Infuser running");
+        add(subtitle + "enchanter", "Enchanter running");
+        add(subtitle + "disenchanter", "Disenchanter running");
         add(subtitle + "grower", "Plant Grower running");
         add(subtitle + "start", "Machine powers up");
         add(subtitle + "stop", "Machine powers down");
@@ -189,13 +189,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add("advancements." + AeroFlux.MODID + ".smart_pipes.title", "Sorted");
         add("advancements." + AeroFlux.MODID + ".smart_pipes.description", "Make a Filter or Priority Upgrade");
         add("advancements." + AeroFlux.MODID + ".furnace.title", "Flux-Fired");
-        add("advancements." + AeroFlux.MODID + ".furnace.description", "Build a Flux Furnace");
+        add("advancements." + AeroFlux.MODID + ".furnace.description", "Build a Furnace");
         add("advancements." + AeroFlux.MODID + ".alloy_smelter.title", "Better Together");
         add("advancements." + AeroFlux.MODID + ".alloy_smelter.description", "Build an Alloy Smelter");
         add("advancements." + AeroFlux.MODID + ".plant_grower.title", "Green Thumb");
         add("advancements." + AeroFlux.MODID + ".plant_grower.description", "Build a Plant Grower");
         add("advancements." + AeroFlux.MODID + ".enchanter.title", "Spellbound");
-        add("advancements." + AeroFlux.MODID + ".enchanter.description", "Build a Flux Enchanter");
+        add("advancements." + AeroFlux.MODID + ".enchanter.description", "Build an Enchanter");
         add("advancements." + AeroFlux.MODID + ".speed_upgrade.title", "Overclocked");
         add("advancements." + AeroFlux.MODID + ".speed_upgrade.description", "Make a Speed Upgrade");
         add("advancements." + AeroFlux.MODID + ".upgrade_card.title", "Moving Up");
@@ -206,7 +206,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("advancements." + AeroFlux.MODID + ".chunk_loader.description", "Build a Flux Chunk Loader");
         addItem(ModItems.GUIDEBOOK, "AeroFlux Guide");
         add("guide." + AeroFlux.MODID + ".start.title", "Welcome to AeroFlux");
-        add("guide." + AeroFlux.MODID + ".start.body", "AeroFlux gathers Flux from the sky: Aero Flux from the sun by day and Moon Flux from the moon by night. Both are fluids that power every AeroFlux machine.\nChopping trees shakes loose Sawdust now and then; two make a Flux Dust. Then build a Flux Collector, a Flux Tank and a Flux Furnace.");
+        add("guide." + AeroFlux.MODID + ".start.body", "AeroFlux gathers Flux from the sky: Aero Flux from the sun by day and Moon Flux from the moon by night. Both are fluids that power every AeroFlux machine.\nChopping trees shakes loose Sawdust now and then; two make a Flux Dust. Then build a Flux Collector, a Flux Tank and a Furnace.");
         add("guide." + AeroFlux.MODID + ".flux.title", "Aero and Moon Flux");
         add("guide." + AeroFlux.MODID + ".flux.body", "A collector makes Aero Flux in daylight and Moon Flux at night, faster in clear weather and, for Moon Flux, on brighter moon phases. A collector holds one kind at a time.\nMost machines take either kind; a few recipes need Moon Flux.");
         add("guide." + AeroFlux.MODID + ".collectors.title", "Collectors and Tanks");
@@ -270,8 +270,8 @@ public class ModLanguageProvider extends LanguageProvider {
 
         for (MachineType machine : MachineType.values()) {
             for (Tier tier : Tier.values()) {
-                // The first tier is just "Flux Furnace"; the others put the tier in front.
-                String name = tier == Tier.COPPER ? machine.displayName() : displayName(tier) + " " + machine.displayName();
+                // Every tier is named "<Tier> <Machine>", copper included.
+                String name = displayName(tier) + " " + machine.displayName();
                 addBlock(ModBlocks.machine(machine, tier), name);
             }
         }

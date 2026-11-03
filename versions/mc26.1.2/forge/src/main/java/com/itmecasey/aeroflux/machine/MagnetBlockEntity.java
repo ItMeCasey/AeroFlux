@@ -12,7 +12,7 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Flux Magnet: every half second it pulls the dropped items in its range into its output
+ * The Magnet: every half second it pulls the dropped items in its range into its output
  * slots, where pipes or Auto Export take them on. The input slot is a filter that is never used
  * up: with an item in it, the magnet takes only that item (whitelist) or everything but it
  * (blacklist). With the slot empty it takes everything. Items still in their pickup delay, such

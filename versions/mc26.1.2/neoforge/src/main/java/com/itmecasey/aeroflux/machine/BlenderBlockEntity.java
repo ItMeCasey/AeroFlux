@@ -14,7 +14,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Flux Blender: Aero Flux from its main tank and Moon Flux from its second tank, one to one,
+ * The Blender: Aero Flux from its main tank and Moon Flux from its second tank, one to one,
  * into Twilight Flux in its third. The blend takes a small running cost in Aero Flux on top. An
  * empty bucket in its slot is filled from the Twilight tank once a full bucket is there.
  */

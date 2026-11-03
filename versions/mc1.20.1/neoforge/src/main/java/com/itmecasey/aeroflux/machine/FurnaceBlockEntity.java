@@ -14,7 +14,7 @@ import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * The Flux Furnace: smelts with the vanilla smelting recipes, paid for with Flux instead of fuel.
+ * The Furnace: smelts with the vanilla smelting recipes, paid for with Flux instead of fuel.
  * A recipe's cooking time is its base time, so datapacks and other mods' smelting recipes work
  * unchanged; the tier's speed does the rest.
  */

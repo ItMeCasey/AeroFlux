@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.function.DoubleSupplier;
 
 /**
- * The rules of the Flux Sifter, which runs the sieve recipes of Ex Deorum and Ex Nihilo
+ * The rules of the Sifter, which runs the sieve recipes of Ex Deorum and Ex Nihilo
  * Sequentia. The player puts a mesh from either mod in its mesh slot; the mesh decides which
  * recipes run, exactly as it does in those mods' own sieves, and the sifter's tier only sets its
  * speed. The mesh is never used up.

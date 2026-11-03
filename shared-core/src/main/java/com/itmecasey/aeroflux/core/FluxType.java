@@ -4,7 +4,7 @@ import java.util.Locale;
 
 /**
  * The Flux fluids: sunlight by day and moonlight by night, which collectors gather, and Twilight
- * Flux, which only the Flux Blender makes from the two.
+ * Flux, which only the Blender makes from the two.
  */
 public enum FluxType {
     /** Gathered from the sun during the day; powers the production machines. */

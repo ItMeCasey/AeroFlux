@@ -349,7 +349,7 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
     }
 
     /**
-     * The title is the block's own name, such as "Iron Flux Furnace", and nothing else: the tier
+     * The title is the block's own name, such as "Iron Furnace", and nothing else: the tier
      * is in the name and in the bar along the top already. The player's inventory needs no label.
      */
     @Override

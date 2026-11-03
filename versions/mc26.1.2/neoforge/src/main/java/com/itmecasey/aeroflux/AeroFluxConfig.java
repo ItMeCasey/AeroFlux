@@ -140,9 +140,9 @@ public final class AeroFluxConfig {
         BUILDER.pop();
     }
 
-    // The Flux Enchanter and Disenchanter. Enchantments are named by id or by #tag, so modded ones work too.
+    // The Enchanter and Disenchanter. Enchantments are named by id or by #tag, so modded ones work too.
     static {
-        BUILDER.comment("Flux Enchanter and Disenchanter. Name enchantments by id (minecraft:mending) or by tag (#minecraft:treasure).")
+        BUILDER.comment("Enchanter and Disenchanter. Name enchantments by id (minecraft:mending) or by tag (#minecraft:treasure).")
                 .push("enchanting");
     }
 
@@ -209,7 +209,7 @@ public final class AeroFluxConfig {
 
     private static final ModConfigSpec.BooleanValue PROTECTION_ENABLED = BUILDER
             .comment("Before a machine that reaches into the world (Sky Controller, Moon Spawner, Plant Grower, Animal Breeder,",
-                            "Flux Magnet, chunk loaders) acts, and before the Conduit Tool and Flux Configurator change a block,",
+                            "Magnet, chunk loaders) acts, and before the Conduit Tool and Flux Configurator change a block,",
                             "ask the standard permission events that claim mods veto, and Open Parties and Claims and FTB Chunks",
                             "directly when they are installed. A machine acts as the player who placed it; a machine nobody placed",
                             "is never asked. Set to false to skip every check.")

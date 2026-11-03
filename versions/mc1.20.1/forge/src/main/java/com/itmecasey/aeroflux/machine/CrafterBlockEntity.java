@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Flux Crafter, an auto crafting table. Its nine input slots are the 3 by 3 grid, read the way
+ * The Crafter, an auto crafting table. Its nine input slots are the 3 by 3 grid, read the way
  * a crafting table reads it. It never takes the last item out of a slot, so the pattern a player
  * lays out stays put: a slot needs two items before the Crafter will use one. Pipes may only top up
  * slots that already hold the same item, and the Crafter spreads matching items evenly over the

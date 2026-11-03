@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Flux Sifter, a powered sieve for the recipes of Ex Deorum and Ex Nihilo Sequentia (see
+ * The Sifter, a powered sieve for the recipes of Ex Deorum and Ex Nihilo Sequentia (see
  * {@link SieveImports}); it has no recipes of its own. The player puts the block to sift in one
  * slot and a mesh from either mod in the other. Like those mods' sieves, one block rolls every drop
  * its recipes give for that mesh, each on its own; the mesh is never used up. Waterlogged recipes
