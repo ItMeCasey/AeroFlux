@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.conduit;
 
 import com.itmecasey.aeroflux.client.model.BundleModelData;
 import com.itmecasey.aeroflux.compat.ae2.Ae2Compat;
+import com.itmecasey.aeroflux.conduit.transfer.PipeFluidInlet;
 import com.itmecasey.aeroflux.conduit.transfer.TransferEngine;
 import com.itmecasey.aeroflux.conduit.transfer.TransferNetworks;
 import com.itmecasey.aeroflux.core.Tier;
@@ -26,6 +27,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -199,6 +205,19 @@ public class ConduitBundleBlockEntity extends BlockEntity {
                 setRedstoneOutput(face, 0);
             }
         }
+    }
+
+    /** A fluid pipe's Open and Import faces take fluid from other mods' pipes and pumps. */
+    @NotNull
+    @Override
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (cap == ForgeCapabilities.FLUID_HANDLER) {
+            IFluidHandler inlet = PipeFluidInlet.forSide(this, side);
+            if (inlet != null) {
+                return LazyOptional.of(() -> inlet).cast();
+            }
+        }
+        return super.getCapability(cap, side);
     }
 
     @Override

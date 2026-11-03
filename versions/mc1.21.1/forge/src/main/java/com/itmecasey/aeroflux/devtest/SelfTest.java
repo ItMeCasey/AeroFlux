@@ -88,6 +88,7 @@ public final class SelfTest {
         PolishSelfTest.setUp(level);
         ConfiguratorSelfTest.setUp(level);
         GuardSelfTest.setUp(level);
+        CompatSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -125,6 +126,8 @@ public final class SelfTest {
             ConfiguratorSelfTest.tick();
             // The profiler, save versioning and protection checks build in layers of their own too.
             GuardSelfTest.tick();
+            // The recipe viewer lists and the fluid interop build in a layer of their own too.
+            CompatSelfTest.tick();
         }
         // The enchanting config checks change global settings, so they wait until the machine checks,
         // which test the defaults, are done.
@@ -136,7 +139,7 @@ public final class SelfTest {
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
                     && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()
                     && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished() && FluxScreenSelfTest.finished()
-                    && PolishSelfTest.finished() && ConfiguratorSelfTest.finished() && GuardSelfTest.finished()) {
+                    && PolishSelfTest.finished() && ConfiguratorSelfTest.finished() && GuardSelfTest.finished() && CompatSelfTest.finished()) {
                 finish();
             }
             return;

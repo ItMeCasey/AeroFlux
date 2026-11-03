@@ -28,9 +28,15 @@ description='''${mod_description}'''
     ordering="NONE"
     side="BOTH"
 
-# Optional mods. This build has no recipe viewer, look-at tooltip, AE2 or Mekanism support yet,
-# so only the sieve mods are listed: the Sifter runs their sieve recipes and is only craftable
-# with one installed.
+# Optional mods. JEI is the recipe viewer with a Forge build for 1.21.1; the Sifter runs the sieve
+# recipes of Ex Deorum and Ex Nihilo Sequentia and is only craftable with one installed.
+[[dependencies.${mod_id}]]
+    modId="jei"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="CLIENT"
+
 [[dependencies.${mod_id}]]
     modId="exdeorum"
     mandatory=false

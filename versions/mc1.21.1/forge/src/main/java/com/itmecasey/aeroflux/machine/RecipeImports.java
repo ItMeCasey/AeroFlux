@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
@@ -43,6 +44,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -118,6 +120,18 @@ public final class RecipeImports {
     private static @Nullable RecipeManager cachedFrom;
     private static Map<MachineType, List<RecipeHolder<FluxRecipe>>> cached = Map.of();
 
+    /**
+     * The rules the server sent this client (see {@link RecipeImportsSync}), for the recipe viewers.
+     * Kept apart from {@link #rules}: in single player the client and the server share these
+     * fields, and the client must not knock out the server's cache.
+     */
+    private static volatile List<Rule> syncedRules = List.of();
+    @Nullable
+    private static RecipeManager viewerCachedFrom;
+    @Nullable
+    private static List<Rule> viewerCachedRules;
+    private static Map<MachineType, List<RecipeHolder<FluxRecipe>>> viewerCached = Map.of();
+
     private RecipeImports() {
     }
 
@@ -125,16 +139,69 @@ public final class RecipeImports {
     public static synchronized List<RecipeHolder<FluxRecipe>> of(ServerLevel level, MachineType machine) {
         RecipeManager recipes = level.getRecipeManager();
         if (recipes != cachedFrom) {
-            cached = build(recipes, RegistryOps.create(JsonOps.INSTANCE, level.registryAccess()));
+            cached = build(rules, recipes, RegistryOps.create(JsonOps.INSTANCE, level.registryAccess()));
             cachedFrom = recipes;
         }
         return cached.getOrDefault(machine, List.of());
     }
 
-    private static Map<MachineType, List<RecipeHolder<FluxRecipe>>> build(RecipeManager recipes, RegistryOps<JsonElement> ops) {
+    /**
+     * The recipes imported for one machine as a recipe viewer should list them. On the server
+     * these are the ones the machine runs. On a client they are worked out from the recipes the
+     * server sent and the import rules it sent with them, the same way the server does it, since
+     * on 1.21.1 the client gets every recipe of every mod.
+     */
+    public static List<RecipeHolder<FluxRecipe>> forViewer(Level level, MachineType machine) {
+        if (level instanceof ServerLevel server) {
+            return of(server, machine);
+        }
+        return fromSyncedRules(level.getRecipeManager(), level.registryAccess()).getOrDefault(machine, List.of());
+    }
+
+    /** Every machine's imports, from these recipes and the rules the server sent; cached until either changes. */
+    public static synchronized Map<MachineType, List<RecipeHolder<FluxRecipe>>> fromSyncedRules(RecipeManager recipes,
+                                                                                                 HolderLookup.Provider registries) {
+        List<Rule> current = syncedRules;
+        if (recipes != viewerCachedFrom || current != viewerCachedRules) {
+            viewerCached = build(current, recipes, RegistryOps.create(JsonOps.INSTANCE, registries));
+            viewerCachedFrom = recipes;
+            viewerCachedRules = current;
+        }
+        return viewerCached;
+    }
+
+    /** The rules as the server sends them to its players, each written as JSON. */
+    static List<String> rulesForSync() {
+        List<String> encoded = new ArrayList<>();
+        for (Rule rule : rules) {
+            Rule.CODEC.encodeStart(JsonOps.INSTANCE, rule).result().ifPresent(json -> encoded.add(json.toString()));
+        }
+        return encoded;
+    }
+
+    /** Takes the rules a server sent; a rule this version cannot read is skipped. */
+    static void useSyncedRules(List<String> encoded) {
+        List<Rule> read = new ArrayList<>();
+        for (String json : encoded) {
+            try {
+                Rule.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(json)).result().ifPresent(read::add);
+            } catch (RuntimeException skipped) {
+                // Not JSON at all; nothing to show for it.
+            }
+        }
+        syncedRules = List.copyOf(read);
+    }
+
+    /** Forgets the server's rules, when the player leaves it. */
+    static void forgetSyncedRules() {
+        syncedRules = List.of();
+    }
+
+    private static Map<MachineType, List<RecipeHolder<FluxRecipe>>> build(List<Rule> ruleSet, RecipeManager recipes,
+                                                                          RegistryOps<JsonElement> ops) {
         Map<MachineType, List<RecipeHolder<FluxRecipe>>> byMachine = new EnumMap<>(MachineType.class);
         int total = 0;
-        for (Rule rule : rules) {
+        for (Rule rule : ruleSet) {
             RecipeType<?> type = BuiltInRegistries.RECIPE_TYPE.get(rule.recipeType());
             if (type == null || !rule.machine().hasOwnRecipes()) {
                 // The mod is not installed, or the rule names a machine without recipes.
@@ -148,7 +215,8 @@ public final class RecipeImports {
                 }
             }
         }
-        if (total > 0) {
+        // Only the server's own build is worth a line in the log; a client's repeats it.
+        if (total > 0 && ruleSet == rules) {
             AeroFlux.LOGGER.info("Imported {} recipe(s) from other mods into AeroFlux machines", total);
         }
         return byMachine;

@@ -261,6 +261,9 @@ public class ModLanguageProvider extends LanguageProvider {
         // Jade lists every plugin entry in its settings and needs a name for ours.
         add("config.jade.plugin_" + AeroFlux.MODID + ".look_info", "AeroFlux details");
         add("jei." + AeroFlux.MODID + ".chance", "%s%% chance");
+        add("jei." + AeroFlux.MODID + ".imported", "From %s");
+        add("jei." + AeroFlux.MODID + ".sieve.amount", "Amount: %s");
+        add("jei." + AeroFlux.MODID + ".sieve.water", "%s mB water");
         add("jei." + AeroFlux.MODID + ".time", "%s ticks");
         add("jei." + AeroFlux.MODID + ".time_and_flux", "%s ticks, +%s mB Flux");
         add("jei." + AeroFlux.MODID + ".info.enchanter", "Puts the enchantments of an enchanted book onto a tool or armor piece. Costs lapis and Moon Flux per level. Curses and clashing enchantments are refused.");

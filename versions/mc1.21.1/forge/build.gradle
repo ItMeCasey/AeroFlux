@@ -74,6 +74,12 @@ dependencies {
     // called, so its (obfuscated) jar needs no remapping. FTB Chunks has no Forge build for 1.21.1
     // (its Forge line stops at 1.20.4), so only Open Parties and Claims is bridged here.
     compileOnly("maven.modrinth:open-parties-and-claims:${opac_version}") { transitive = false }
+
+    // Recipe viewer and look-at tooltip mods with a Forge build for 1.21.1, compiled against only.
+    // Like Open Parties and Claims they are not on the dev runtime: ForgeGradle 7's mavenizer cannot
+    // remap a mod jar yet. The others AeroFlux supports elsewhere (REI, EMI, Jade, The One Probe,
+    // KubeJS, CraftTweaker, AE2, Mekanism, Create) have no Forge build for 1.21.1.
+    compileOnly("maven.modrinth:jei:${jei_version}") { transitive = false }
 }
 
 // mods.toml and pack.mcmeta are templates: this fills in their ${} values from gradle.properties

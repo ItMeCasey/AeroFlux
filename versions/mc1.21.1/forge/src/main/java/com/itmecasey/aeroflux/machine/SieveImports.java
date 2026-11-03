@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -23,6 +24,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -61,6 +63,10 @@ public final class SieveImports {
     /** The recipe set {@link #converted} was worked out from; a reload brings a new one. */
     private static volatile @Nullable Object source;
     private static volatile List<SieveRoll> converted = List.of();
+    /** The same for the recipe viewers on a client, kept apart because single player shares these fields. */
+    @Nullable
+    private static volatile Object viewerSource;
+    private static volatile List<SieveRoll> viewerConverted = List.of();
 
     private SieveImports() {
     }
@@ -72,10 +78,32 @@ public final class SieveImports {
         Object current = forTest != null ? forTest : recipes;
         if (current != source) {
             RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, level.registryAccess());
-            converted = convertAll(forTest != null ? forTest : loaded(recipes, ops), ops);
+            converted = convertAll(forTest != null ? forTest : loaded(recipes, ops), ops, true);
             source = current;
         }
         return converted;
+    }
+
+    /**
+     * Every sieve drop as a recipe viewer should list it: on the server the ones the Sifter runs,
+     * on a client the same, worked out from the recipes the server sent (on 1.21.1 the client gets
+     * every recipe of every mod).
+     */
+    public static List<SieveRoll> forViewer(Level level) {
+        if (level instanceof ServerLevel server) {
+            return of(server);
+        }
+        return fromRecipes(level.getRecipeManager(), level.registryAccess());
+    }
+
+    /** Every sieve drop among these recipes, ignoring any the self-test set; cached until the recipes change. */
+    public static List<SieveRoll> fromRecipes(RecipeManager recipes, HolderLookup.Provider registries) {
+        if (recipes != viewerSource) {
+            RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, registries);
+            viewerConverted = convertAll(loaded(recipes, ops), ops, false);
+            viewerSource = recipes;
+        }
+        return viewerConverted;
     }
 
     /** The loaded sieve recipes of both mods, each written back out as JSON with its own serializer. */
@@ -140,7 +168,7 @@ public final class SieveImports {
         testRecipes = recipes == null ? null : List.copyOf(recipes);
     }
 
-    private static List<SieveRoll> convertAll(List<JsonObject> recipes, RegistryOps<JsonElement> ops) {
+    private static List<SieveRoll> convertAll(List<JsonObject> recipes, RegistryOps<JsonElement> ops, boolean log) {
         List<SieveRoll> rolls = new ArrayList<>();
         for (JsonObject json : recipes) {
             try {
@@ -149,7 +177,7 @@ public final class SieveImports {
                 // A shape this reader does not know; the recipe is simply not imported.
             }
         }
-        if (!rolls.isEmpty()) {
+        if (log && !rolls.isEmpty()) {
             AeroFlux.LOGGER.info("Imported {} sieve drop(s) for the Flux Sifter", rolls.size());
         }
         return List.copyOf(rolls);
