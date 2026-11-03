@@ -37,6 +37,7 @@ public final class DataGenerators {
 
         generator.addProvider(event.includeServer(), new ModRecipeProvider(output));
         generator.addProvider(event.includeServer(), new ModBlockTagProvider(output, lookupProvider, existingFileHelper));
+        generator.addProvider(event.includeServer(), new ModFluidTagProvider(output, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(), List.of(
                 new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK))));
         generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookupProvider, List.of(new ModAdvancements())));

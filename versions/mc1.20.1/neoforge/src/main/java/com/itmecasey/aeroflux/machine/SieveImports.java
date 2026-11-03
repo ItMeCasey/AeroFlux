@@ -54,6 +54,9 @@ public final class SieveImports {
     /** The recipe set {@link #converted} was worked out from; a reload brings a new one. */
     private static volatile @Nullable Object source;
     private static volatile List<SieveRoll> converted = List.of();
+    /** The same for what the recipe viewers are sent, which the self-test's stand-in recipes never touch. */
+    private static volatile @Nullable Object viewerSource;
+    private static volatile List<SieveRoll> viewerConverted = List.of();
 
     private SieveImports() {
     }
@@ -64,10 +67,23 @@ public final class SieveImports {
         List<JsonObject> forTest = testRecipes;
         Object current = forTest != null ? forTest : recipes;
         if (current != source) {
-            converted = convertAll(forTest != null ? forTest : loaded(level));
+            converted = convertAll(forTest != null ? forTest : loaded(level), true);
             source = current;
         }
         return converted;
+    }
+
+    /**
+     * Every sieve drop as a recipe viewer should list it: the loaded recipes only, whatever the
+     * self-test put in their place. Worked out again only when the server's recipes change.
+     */
+    public static List<SieveRoll> forViewer(ServerLevel level) {
+        RecipeManager recipes = level.getRecipeManager();
+        if (recipes != viewerSource) {
+            viewerConverted = convertAll(loaded(level), false);
+            viewerSource = recipes;
+        }
+        return viewerConverted;
     }
 
     /** The loaded sieve recipes of both mods, as their files write them. */
@@ -110,7 +126,7 @@ public final class SieveImports {
         testRecipes = recipes == null ? null : List.copyOf(recipes);
     }
 
-    private static List<SieveRoll> convertAll(List<JsonObject> recipes) {
+    private static List<SieveRoll> convertAll(List<JsonObject> recipes, boolean log) {
         List<SieveRoll> rolls = new ArrayList<>();
         for (JsonObject json : recipes) {
             try {
@@ -119,7 +135,7 @@ public final class SieveImports {
                 // A shape this reader does not know; the recipe is simply not imported.
             }
         }
-        if (!rolls.isEmpty()) {
+        if (log && !rolls.isEmpty()) {
             AeroFlux.LOGGER.info("Imported {} sieve drop(s) for the Flux Sifter", rolls.size());
         }
         return List.copyOf(rolls);

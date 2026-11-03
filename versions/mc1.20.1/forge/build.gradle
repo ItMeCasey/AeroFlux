@@ -160,7 +160,17 @@ dependencies {
     // never compiles against it. It stays out of data generation, which needs none of it.
     if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
         runtimeOnly fg.deobf("maven.modrinth:ex-deorum:${exdeorum_version}")
+        // EMI, WTHIT (with Bad Packets, which it needs) and CraftTweaker run in the dev client and the
+        // self-test too, and stay out of data generation the same way.
+        runtimeOnly fg.deobf("maven.modrinth:emi:${emi_version}")
+        runtimeOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
+        runtimeOnly fg.deobf("maven.modrinth:badpackets:${badpackets_version}")
+        runtimeOnly fg.deobf("maven.modrinth:crafttweaker:${crafttweaker_version}")
     }
+    compileOnly fg.deobf("maven.modrinth:emi:${emi_version}")
+    compileOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
+    compileOnly fg.deobf("maven.modrinth:badpackets:${badpackets_version}")
+    compileOnly fg.deobf("maven.modrinth:crafttweaker:${crafttweaker_version}")
     compileOnly fg.deobf("maven.modrinth:jei:${jei_version}")
     runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
     compileOnly fg.deobf("maven.modrinth:kubejs:${kubejs_version}")

@@ -168,7 +168,17 @@ dependencies {
         modLocalRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
         modLocalRuntime "maven.modrinth:exnihilosequentia:${exnihilo_version}"
         modLocalRuntime "maven.modrinth:novacore:${novacore_version}"
+        // EMI, WTHIT (with Bad Packets, which it needs) and CraftTweaker run in the dev client and the
+        // self-test too, and stay out of data generation the same way.
+        modLocalRuntime "maven.modrinth:emi:${emi_version}"
+        modLocalRuntime "maven.modrinth:wthit:${wthit_version}"
+        modLocalRuntime "maven.modrinth:badpackets:${badpackets_version}"
+        modLocalRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
     }
+    modCompileOnly "maven.modrinth:emi:${emi_version}"
+    modCompileOnly "maven.modrinth:wthit:${wthit_version}"
+    modCompileOnly "maven.modrinth:badpackets:${badpackets_version}"
+    modCompileOnly "maven.modrinth:crafttweaker:${crafttweaker_version}"
     modCompileOnly "maven.modrinth:jei:${jei_version}"
     modLocalRuntime "maven.modrinth:jei:${jei_version}"
     modCompileOnly "maven.modrinth:kubejs:${kubejs_version}"

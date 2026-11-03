@@ -1,9 +1,9 @@
 package com.itmecasey.aeroflux.compat.rei;
 
 import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.compat.ViewerRecipes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.machine.MachineRecipes;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class AeroFluxReiPlugin implements REIClientPlugin {
         }
         for (MachineType machine : MachineType.values()) {
             if (machine.hasOwnRecipes()) {
-                for (FluxRecipe recipe : MachineRecipes.of(minecraft.level, machine)) {
+                for (FluxRecipe recipe : ViewerRecipes.machine(minecraft.level, machine)) {
                     registry.add(new MachineDisplay(recipe, Optional.of(recipe.getId())));
                 }
             }
@@ -134,7 +134,7 @@ public class AeroFluxReiPlugin implements REIClientPlugin {
 
         @Override
         public int getDisplayHeight() {
-            return 52;
+            return 62;
         }
 
         @Override
@@ -157,6 +157,8 @@ public class AeroFluxReiPlugin implements REIClientPlugin {
                     ? Component.translatable("jei.aeroflux.time_and_flux", recipe.time(), recipe.flux())
                     : Component.translatable("jei.aeroflux.time", recipe.time());
             widgets.add(Widgets.createLabel(new Point(x, y + 24), cost).leftAligned().noShadow().color(0xFF606060));
+            display.getDisplayLocation().map(ViewerRecipes::importedLine).ifPresent(imported ->
+                    widgets.add(Widgets.createLabel(new Point(x, y + 34), imported).leftAligned().noShadow().color(0xFF808080)));
             return widgets;
         }
     }

@@ -1,9 +1,9 @@
 package com.itmecasey.aeroflux.compat.jei;
 
 import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.compat.ViewerRecipes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.machine.MachineRecipes;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.Arrays;
@@ -22,9 +22,11 @@ import net.minecraft.world.level.ItemLike;
 
 /**
  * JEI support: a page type for each recipe machine with every tier of that machine as its
- * station, the Flux Furnace on JEI's own smelting pages, and an info page for the Enchanter and
- * Disenchanter, which follow rules rather than recipes. JEI finds this class by its annotation and
- * only when JEI is installed.
+ * station, listing the machine's own recipes and the ones imported from other mods, a page type
+ * for the Flux Sifter's sieve drops, the Flux Furnace on JEI's own smelting pages, and an info page
+ * for the Enchanter and Disenchanter, which follow rules rather than recipes. The lists come from
+ * {@link ViewerRecipes}, which the REI and EMI plugins share. JEI finds this class by its
+ * annotation and only when JEI is installed.
  */
 @JeiPlugin
 public class AeroFluxJeiPlugin implements IModPlugin {
@@ -42,6 +44,7 @@ public class AeroFluxJeiPlugin implements IModPlugin {
                 registration.addRecipeCategories(new MachineRecipeCategory(machine, registration.getJeiHelpers().getGuiHelper()));
             }
         }
+        registration.addRecipeCategories(new SifterRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
@@ -52,10 +55,10 @@ public class AeroFluxJeiPlugin implements IModPlugin {
         }
         for (MachineType machine : MachineType.values()) {
             if (machine.hasOwnRecipes()) {
-                List<FluxRecipe> recipes = List.copyOf(MachineRecipes.of(minecraft.level, machine));
-                registration.addRecipes(MachineRecipeCategory.typeFor(machine), recipes);
+                registration.addRecipes(MachineRecipeCategory.typeFor(machine), ViewerRecipes.machine(minecraft.level, machine));
             }
         }
+        registration.addRecipes(SifterRecipeCategory.TYPE, ViewerRecipes.sifter());
         for (MachineType machine : List.of(MachineType.ENCHANTER, MachineType.DISENCHANTER)) {
             registration.addItemStackInfo(Arrays.stream(tiers(machine)).map(ItemStack::new).toList(),
                     Component.translatable("jei.aeroflux.info." + machine.id()));
@@ -69,6 +72,7 @@ public class AeroFluxJeiPlugin implements IModPlugin {
                 registration.addRecipeCatalysts(MachineRecipeCategory.typeFor(machine), tiers(machine));
             }
         }
+        registration.addRecipeCatalysts(SifterRecipeCategory.TYPE, tiers(MachineType.SIFTER));
         registration.addRecipeCatalysts(RecipeTypes.SMELTING, tiers(MachineType.FURNACE));
     }
 

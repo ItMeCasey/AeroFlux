@@ -1,0 +1,10 @@
+{
+  "aeroflux:look_info": {
+    "entrypoints": {
+      "common": "com.itmecasey.aeroflux.compat.wthit.AeroFluxWthitCommonPlugin",
+      "client": "com.itmecasey.aeroflux.compat.wthit.AeroFluxWthitClientPlugin"
+    },
+    "side": "*",
+    "required": []
+  }
+}

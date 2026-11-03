@@ -47,7 +47,14 @@ description='''${mod_description}'''
     ordering="AFTER"
     side="CLIENT"
 
-# Look-at tooltips. Both send block data from the server, so they count on both sides.
+[[dependencies.${mod_id}]]
+    modId="emi"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+# Look-at tooltips. All three send block data from the server, so they count on both sides.
 [[dependencies.${mod_id}]]
     modId="jade"
     mandatory=false
@@ -62,9 +69,23 @@ description='''${mod_description}'''
     ordering="AFTER"
     side="BOTH"
 
+[[dependencies.${mod_id}]]
+    modId="wthit"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
 # Machine recipes from scripts.
 [[dependencies.${mod_id}]]
     modId="kubejs"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="crafttweaker"
     mandatory=false
     versionRange="[0,)"
     ordering="AFTER"

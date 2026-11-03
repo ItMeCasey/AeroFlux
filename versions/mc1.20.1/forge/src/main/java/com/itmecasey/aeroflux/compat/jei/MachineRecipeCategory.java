@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.compat.jei;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.compat.ViewerRecipes;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
@@ -21,12 +22,13 @@ import net.minecraft.world.item.crafting.Ingredient;
 
 /**
  * One JEI page type for one recipe machine (Grinder, Sawmill, Alloy Smelter, Infuser, Plant
- * Grower): the inputs, an arrow that runs as long as the copper machine takes, the outputs with
- * their chance, and the Flux the job costs on top of the running cost.
+ * Grower, Purifier): the inputs, an arrow that runs as long as the copper machine takes, the
+ * outputs with their chance, and the Flux the job costs on top of the running cost. A recipe
+ * imported from another mod says which one below that.
  */
 final class MachineRecipeCategory implements IRecipeCategory<FluxRecipe> {
     private static final int WIDTH = 150;
-    private static final int HEIGHT = 44;
+    private static final int HEIGHT = 54;
     private static final int SLOT = 18;
     private static final int OUTPUT_X = 92;
 
@@ -101,6 +103,10 @@ final class MachineRecipeCategory implements IRecipeCategory<FluxRecipe> {
                 ? Component.translatable("jei.aeroflux.time_and_flux", recipe.time(), recipe.flux())
                 : Component.translatable("jei.aeroflux.time", recipe.time());
         builder.addText(cost, WIDTH, 10).setPosition(0, 30).setColor(0xFF606060);
+        Component imported = ViewerRecipes.importedLine(recipe.getId());
+        if (imported != null) {
+            builder.addText(imported, WIDTH, 10).setPosition(0, 42).setColor(0xFF808080);
+        }
     }
 
     /** The items an ingredient accepts, each in the amount the recipe needs. */
