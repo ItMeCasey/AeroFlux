@@ -15,6 +15,7 @@ import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.conduit.RunPlanner;
+import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +23,18 @@ import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 
 /**
  * What each mode of the Conduit Tool does to the world. Everything here works on a level, a
- * position or bundle and plain arguments, never on a player, so it can be run from the
- * self-test. The item class only finds the target, calls one of these and hands the result to
- * the player.
+ * position or bundle and plain arguments, never on a player (a player only comes in as the
+ * {@link Supply} a paste draws pipes from), so it can be run from the self-test. The item class
+ * only finds the target, calls one of these and hands the result to the player.
  */
 public final class ConduitToolActions {
     private ConduitToolActions() {
@@ -216,24 +221,177 @@ public final class ConduitToolActions {
 
     // --- Copy and paste ----------------------------------------------------------------------
 
+    /**
+     * Where a paste gets the pipes and upgrades it adds to a bundle. A player's supply takes them
+     * out of the inventory; in creative mode it has everything.
+     */
+    @FunctionalInterface
+    public interface Supply {
+        /** Gives nothing, so a paste only changes settings. */
+        Supply NONE = item -> false;
+        /** Has everything, for creative mode. */
+        Supply UNLIMITED = item -> true;
+
+        /** Takes one of an item; false if there is none. */
+        boolean take(Item item);
+    }
+
+    /** The supply of a player: their inventory, or everything in creative mode. */
+    public static Supply supplyOf(Player player) {
+        if (player == null) {
+            return Supply.NONE;
+        }
+        if (player.getAbilities().instabuild) {
+            return Supply.UNLIMITED;
+        }
+        return item -> {
+            Inventory inventory = player.getInventory();
+            for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+                ItemStack stack = inventory.getItem(slot);
+                if (stack.is(item)) {
+                    stack.shrink(1);
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
     /** Remembers the bundle's state on the tool. */
     public static Result copy(ItemStack tool, ConduitBundleBlockEntity entity) {
         ToolStackData.setCopiedBundle(tool, entity.bundle().serialize());
         return Result.of(true, "message.aeroflux.tool_copied", entity.bundle().set().size());
     }
 
-    /** Applies the remembered modes and distribution to the pipes this bundle shares with the copy. */
+    /** Applies the remembered modes and distribution to the pipes this bundle shares with the copy, adding nothing. */
     public static Result paste(ItemStack tool, ConduitBundleBlockEntity entity) {
+        return paste(tool, entity, Supply.NONE);
+    }
+
+    /**
+     * Pastes the remembered bundle. Pipes the copy has and the bundle lacks are added at the
+     * copy's tier, with its Speed and Capacity upgrades, as far as {@code supply} has the items;
+     * then every shared pipe takes the copy's modes and distribution. Pipes the bundle already has
+     * keep their tier: changing it would mean handing items back and forth, which the tier upgrade
+     * by hand already does.
+     */
+    public static Result paste(ItemStack tool, ConduitBundleBlockEntity entity, Supply supply) {
         int[] stored = ToolStackData.copiedBundle(tool);
         if (stored == null) {
             return Result.of(false, "message.aeroflux.tool_nothing_copied");
         }
-        int changed = BundleConfig.from(BundleState.deserialize(stored)).applyTo(entity.bundle());
-        if (changed > 0) {
+        PasteCount count = pasteInto(BundleState.deserialize(stored), entity, supply);
+        if (count.missing() > 0) {
+            return Result.of(count.changed() > 0, "message.aeroflux.tool_pasted_missing", count.changed(), count.added(),
+                    count.missing());
+        }
+        if (count.added() > 0) {
+            return Result.of(true, "message.aeroflux.tool_pasted_added", count.changed(), count.added());
+        }
+        return Result.of(count.changed() > 0, "message.aeroflux.tool_pasted", count.changed());
+    }
+
+    /**
+     * What one paste did to one bundle.
+     *
+     * @param changed pipes that took the copy's settings
+     * @param added   pipes added from the supply
+     * @param missing pipes the supply did not have
+     */
+    private record PasteCount(int changed, int added, int missing) {
+    }
+
+    private static PasteCount pasteInto(BundleState copy, ConduitBundleBlockEntity entity, Supply supply) {
+        BundleState bundle = entity.bundle();
+        int added = 0;
+        int missing = 0;
+        for (PipeType type : copy.set().types()) {
+            // A lane holding this pipe, or another kind sharing its lane, is left as it is.
+            if (bundle.set().hasLaneFor(type)) {
+                continue;
+            }
+            int lane = type.lane();
+            Tier tier = copy.tier(lane);
+            if (!supply.take(ModItems.pipe(type, tier).get())) {
+                missing++;
+                continue;
+            }
+            entity.addPipe(type, tier);
+            added++;
+            // The new pipe has the copy's tier, so the copy's upgrades always fit.
+            for (int i = 0; i < copy.speedUpgrades(lane) && supply.take(ModItems.SPEED_UPGRADE.get()); i++) {
+                bundle.addUpgrade(lane, PipeUpgrades.Kind.SPEED);
+            }
+            for (int i = 0; i < copy.capacityUpgrades(lane) && supply.take(ModItems.CAPACITY_UPGRADE.get()); i++) {
+                bundle.addUpgrade(lane, PipeUpgrades.Kind.CAPACITY);
+            }
+        }
+        int changed = BundleConfig.from(copy).applyTo(bundle);
+        if (changed > 0 || added > 0) {
             entity.refreshConnections();
             entity.changed();
         }
-        return Result.of(changed > 0, "message.aeroflux.tool_pasted", changed);
+        return new PasteCount(changed, added, missing);
+    }
+
+    /**
+     * Handles one sneak-use in paste mode. The first remembers where the run starts; the second
+     * pastes the remembered bundle onto every block of the straight line between the two:
+     * bundles on the line take the paste, and empty spots (air, grass, anything a block can
+     * replace) get a new bundle built from the supply. Solid blocks in the way are skipped.
+     *
+     * @param pos the bundle that was clicked, or the free spot in front of the clicked block
+     */
+    public static Result pasteRun(ServerLevel level, ItemStack tool, BlockPos pos, Supply supply) {
+        int[] stored = ToolStackData.copiedBundle(tool);
+        if (stored == null) {
+            return Result.of(false, "message.aeroflux.tool_nothing_copied");
+        }
+        BundleState copy = BundleState.deserialize(stored);
+        if (copy.set().isEmpty()) {
+            return Result.of(false, "message.aeroflux.tool_nothing_copied");
+        }
+        String dimension = level.dimension().location().toString();
+        ToolStackData.RunStart start = ToolStackData.runStart(tool);
+        if (start == null || !start.dimension().equals(dimension)) {
+            ToolStackData.setRunStart(tool, new ToolStackData.RunStart(
+                    new RunPlanner.Pos(pos.getX(), pos.getY(), pos.getZ()), copy.set().types().get(0), dimension));
+            return Result.of(true, "message.aeroflux.tool_paste_run_start");
+        }
+
+        ToolStackData.clearRunStart(tool);
+        List<RunPlanner.Pos> run = RunPlanner.line(start.pos(), new RunPlanner.Pos(pos.getX(), pos.getY(), pos.getZ()));
+        if (run.isEmpty()) {
+            return Result.of(false, "message.aeroflux.tool_run_invalid", RunPlanner.MAX_LENGTH);
+        }
+
+        int bundles = 0;
+        int built = 0;
+        int missing = 0;
+        for (RunPlanner.Pos step : run) {
+            BlockPos at = new BlockPos(step.x(), step.y(), step.z());
+            if (!level.isLoaded(at)) {
+                continue;
+            }
+            if (level.getBlockEntity(at) instanceof ConduitBundleBlockEntity entity) {
+                missing += pasteInto(copy, entity, supply).missing();
+                bundles++;
+            } else if (level.getBlockState(at).canBeReplaced()) {
+                level.setBlock(at, ModBlocks.CONDUIT_BUNDLE.get().defaultBlockState(), Block.UPDATE_ALL);
+                if (!(level.getBlockEntity(at) instanceof ConduitBundleBlockEntity entity)) {
+                    continue;
+                }
+                missing += pasteInto(copy, entity, supply).missing();
+                if (entity.bundle().set().isEmpty()) {
+                    // The supply ran dry before this spot; leave it as it was.
+                    level.removeBlock(at, false);
+                } else {
+                    bundles++;
+                    built++;
+                }
+            }
+        }
+        return Result.of(bundles > 0, "message.aeroflux.tool_paste_run", bundles, built, missing);
     }
 
     // --- Inspect -----------------------------------------------------------------------------
@@ -260,6 +418,12 @@ public final class ConduitToolActions {
         }
         return Result.of(true, "message.aeroflux.tool_inspect", pipeName(pipe), network.members().size(), sources,
                 sinks, speed(network));
+    }
+
+    /** Every bundle of a pipe's network, for the inspect outline; empty if the pipe is in no network. */
+    public static List<BlockPos> networkMembers(ServerLevel level, BlockPos pos, PipeType pipe) {
+        LaneNetwork network = TransferNetworks.networkFor(level, pos, pipe);
+        return network == null ? List.of() : network.members();
     }
 
     /** The network's speed limit in words: items per batch for item pipes, an amount per tick for the rest. */

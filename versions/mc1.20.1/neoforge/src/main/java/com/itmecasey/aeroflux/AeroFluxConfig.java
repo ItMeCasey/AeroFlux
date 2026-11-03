@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux;
 
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.chunkloader.ChunkLoaderMath;
+import com.itmecasey.aeroflux.core.configurator.ConfigArea;
 import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.EnchantRules;
@@ -189,6 +190,18 @@ public final class AeroFluxConfig {
         BUILDER.pop();
     }
 
+    static {
+        BUILDER.comment("Tools.").push("tools");
+    }
+
+    private static final ForgeConfigSpec.IntValue CONFIGURATOR_AREA_LIMIT = BUILDER
+            .comment("Most machines one Flux Configurator area paste may change. A marked box holding more is refused.")
+            .defineInRange("configuratorAreaLimit", ConfigArea.DEFAULT_LIMIT, 1, 4_096);
+
+    static {
+        BUILDER.pop();
+    }
+
     /** The finished spec, registered with the mod container in the mod constructor. */
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -209,6 +222,11 @@ public final class AeroFluxConfig {
         }
         String id = text.trim().startsWith("#") ? text.trim().substring(1) : text.trim();
         return ResourceLocation.tryParse(id) != null;
+    }
+
+    /** The most machines one Flux Configurator area paste may change. */
+    public static int configuratorAreaLimit() {
+        return CONFIGURATOR_AREA_LIMIT.get();
     }
 
     /** The chance that chopping a log by hand also drops a piece of Sawdust. */

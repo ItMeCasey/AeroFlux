@@ -3,6 +3,7 @@ package com.itmecasey.aeroflux.devtest;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.client.screen.ConfiguratorScreen;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.machine.FluxCost;
@@ -10,6 +11,7 @@ import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
 import com.itmecasey.aeroflux.creative.CreativeFluxTankBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
+import com.itmecasey.aeroflux.machine.configurator.ConfiguratorActions;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
@@ -178,6 +180,7 @@ public final class ShotTour {
 
         sceneShots();
         fluxScreenShots();
+        configuratorShot();
 
         then(40, () -> {
             Minecraft minecraft = Minecraft.getInstance();
@@ -325,6 +328,36 @@ public final class ShotTour {
         openShot(collector, "screen_collector");
         openShot(covered, "screen_collector_blocked");
         openShot(tank, "screen_tank");
+    }
+
+    /**
+     * The Flux Configurator's preset screen: a side-configured furnace in a named preset, a second
+     * preset from a Magnet, and the furnace's preset selected so its face grid shows.
+     */
+    private static void configuratorShot() {
+        BlockPos furnace = at(80, 6);
+        BlockPos magnet = at(82, 6);
+        placeBlock(ModBlocks.machine(MachineType.FURNACE, Tier.IRON).get().asItem(), furnace);
+        placeBlock(ModBlocks.machine(MachineType.MAGNET, Tier.IRON).get().asItem(), magnet);
+        then(SETTLE, () -> onServer(server -> {
+            ServerLevel level = server.overworld();
+            ItemStack configurator = new ItemStack(ModItems.FLUX_CONFIGURATOR.get());
+            if (level.getBlockEntity(furnace) instanceof FluxMachineBlockEntity source
+                    && level.getBlockEntity(magnet) instanceof FluxMachineBlockEntity other) {
+                ConfiguratorActions.copy(configurator, source);
+                ConfiguratorActions.renamePreset(configurator, 0, "Ore line");
+                ConfiguratorActions.selectPreset(configurator, 1);
+                ConfiguratorActions.copy(configurator, other);
+                ConfiguratorActions.selectPreset(configurator, 0);
+            }
+            server.getPlayerList().getPlayers().get(0).setItemInHand(InteractionHand.MAIN_HAND, configurator);
+        }));
+        then(10, () -> {
+            Minecraft.getInstance().options.hideGui = false;
+            ConfiguratorScreen.open(InteractionHand.MAIN_HAND);
+        });
+        shoot("screen_configurator", 10);
+        then(2, () -> Minecraft.getInstance().setScreen(null));
     }
 
     /** Opens the screen of the block at {@code pos} the way the server opens it for a player, and shoots it. */

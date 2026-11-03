@@ -139,6 +139,19 @@ public class ModRecipeProvider extends RecipeProvider {
                 .pattern(" F ")
                 .unlockedBy(getHasName(ModItems.FLUXSTEEL_INGOT.get()), has(ModItems.FLUXSTEEL_INGOT.get()))
                 .save(output);
+        // The Configurator is for setting up a row of machines, which players do well before
+        // Fluxsteel, so it is copper, glass and redstone around the Moon Crystal its art shows.
+        shaped(RecipeCategory.TOOLS, ModItems.FLUX_CONFIGURATOR.get())
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('G', Tags.Items.GLASS_PANES)
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('M', ModItems.MOON_CRYSTAL.get())
+                .define('D', ModItems.FLUX_DUST.get())
+                .pattern("CGC")
+                .pattern("RMR")
+                .pattern("CDC")
+                .unlockedBy(getHasName(ModItems.MOON_CRYSTAL.get()), has(ModItems.MOON_CRYSTAL.get()))
+                .save(output);
 
         shaped(RecipeCategory.MISC, ModItems.SPEED_UPGRADE.get())
                 .define('R', Tags.Items.DUSTS_REDSTONE)

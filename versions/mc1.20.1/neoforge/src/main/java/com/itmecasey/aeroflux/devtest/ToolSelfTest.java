@@ -15,17 +15,24 @@ import com.itmecasey.aeroflux.core.conduit.ToolMode;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
+import com.itmecasey.aeroflux.world.OutlineParticles;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fluids.FluidStack;
 
 /**
@@ -72,6 +79,9 @@ final class ToolSelfTest {
         checkBadRuns();
         checkReplaceTier();
         checkCopyPaste();
+        checkPasteAddsPipes();
+        checkPasteRun();
+        checkTierUpgradeByHand();
         checkInspect();
         finished = true;
     }
@@ -298,6 +308,115 @@ final class ToolSelfTest {
                 source.bundle().mode(fluid, Face.NORTH) == ConnectionMode.EXPORT && source.bundle().set().contains(PipeType.ITEM));
     }
 
+    /** A paste adds the pipes the bundle lacks, at the copy's tier and with its upgrades, from the supply. */
+    private static void checkPasteAddsPipes() {
+        int y = 272;
+        ConduitBundleBlockEntity source = place(new BlockPos(X, y, Z), PipeType.FLUID, Tier.GOLD);
+        source.addPipe(PipeType.ITEM, Tier.IRON);
+        int item = PipeType.ITEM.lane();
+        source.bundle().addUpgrade(item, PipeUpgrades.Kind.SPEED);
+        source.bundle().setMode(item, Face.UP, ConnectionMode.EXPORT);
+        ItemStack tool = new ItemStack(ModItems.CONDUIT_TOOL.get());
+        ConduitToolActions.copy(tool, source);
+
+        ConduitBundleBlockEntity target = place(new BlockPos(X + 3, y, Z), PipeType.FLUID, Tier.COPPER);
+        List<ItemStack> inventory = new ArrayList<>(List.of(
+                new ItemStack(ModItems.pipe(PipeType.ITEM, Tier.IRON).get()), new ItemStack(ModItems.SPEED_UPGRADE.get(), 3)));
+        ConduitToolActions.Result result = ConduitToolActions.paste(tool, target, supplyOf(inventory));
+        SelfTest.check("tool paste: a pipe the bundle lacks is added at the copied tier",
+                "message.aeroflux.tool_pasted_added".equals(result.key()) && target.bundle().set().contains(PipeType.ITEM)
+                        && target.bundle().tier(item) == Tier.IRON);
+        SelfTest.check("tool paste: the added pipe gets the copied upgrades and modes",
+                target.bundle().speedUpgrades(item) == 1 && target.bundle().mode(item, Face.UP) == ConnectionMode.EXPORT);
+        SelfTest.check("tool paste: the pipe and upgrade are taken from the supply",
+                inventory.get(0).isEmpty() && inventory.get(1).getCount() == 2);
+        SelfTest.check("tool paste: a pipe the bundle already has keeps its tier",
+                target.bundle().tier(PipeType.FLUID.lane()) == Tier.COPPER);
+
+        ConduitBundleBlockEntity poor = place(new BlockPos(X + 6, y, Z), PipeType.FLUID, Tier.COPPER);
+        ConduitToolActions.Result missing = ConduitToolActions.paste(tool, poor, supplyOf(new ArrayList<>()));
+        SelfTest.check("tool paste: a pipe missing from the supply is reported and not added",
+                "message.aeroflux.tool_pasted_missing".equals(missing.key()) && Integer.valueOf(1).equals(missing.args().get(2))
+                        && !poor.bundle().set().contains(PipeType.ITEM));
+    }
+
+    /** Sneak-use twice in paste mode: the copy is pasted onto every bundle and free spot of the line. */
+    private static void checkPasteRun() {
+        int y = 274;
+        ConduitBundleBlockEntity source = place(new BlockPos(X, y - 2, Z + 4), PipeType.FLUID, Tier.GOLD);
+        source.addPipe(PipeType.ITEM, Tier.IRON);
+        source.bundle().setMode(PipeType.ITEM.lane(), Face.UP, ConnectionMode.EXPORT);
+        ItemStack tool = new ItemStack(ModItems.CONDUIT_TOOL.get());
+        ConduitToolActions.copy(tool, source);
+        ToolStackData.setMode(tool, ToolMode.PASTE);
+
+        place(new BlockPos(X, y, Z), PipeType.ENERGY, Tier.COPPER);
+        BlockPos stone = new BlockPos(X + 2, y, Z);
+        level.setBlock(stone, Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
+
+        ConduitToolActions.Result start = ConduitToolActions.pasteRun(level, tool, new BlockPos(X, y, Z),
+                ConduitToolActions.Supply.UNLIMITED);
+        SelfTest.check("tool paste run: the first sneak-use only marks the start",
+                "message.aeroflux.tool_paste_run_start".equals(start.key()) && !hasPipe(new BlockPos(X, y, Z), PipeType.FLUID));
+        ConduitToolActions.Result run = ConduitToolActions.pasteRun(level, tool, new BlockPos(X + 4, y, Z),
+                ConduitToolActions.Supply.UNLIMITED);
+        SelfTest.check("tool paste run: the run is pasted onto four spots, three of them new bundles",
+                "message.aeroflux.tool_paste_run".equals(run.key()) && Integer.valueOf(4).equals(run.args().get(0))
+                        && Integer.valueOf(3).equals(run.args().get(1)));
+        boolean everyBundle = true;
+        for (int i : new int[] {0, 1, 3, 4}) {
+            ConduitBundleBlockEntity entity = bundleAt(new BlockPos(X + i, y, Z));
+            everyBundle &= entity != null && entity.bundle().set().contains(PipeType.FLUID)
+                    && entity.bundle().set().contains(PipeType.ITEM)
+                    && entity.bundle().mode(PipeType.ITEM.lane(), Face.UP) == ConnectionMode.EXPORT;
+        }
+        SelfTest.check("tool paste run: every spot holds the copied pipes and modes", everyBundle
+                && bundleAt(new BlockPos(X + 1, y, Z)).bundle().tier(PipeType.FLUID.lane()) == Tier.GOLD);
+        SelfTest.check("tool paste run: a bundle already on the line keeps its own pipes",
+                hasPipe(new BlockPos(X, y, Z), PipeType.ENERGY));
+        SelfTest.check("tool paste run: a solid block on the line is left alone", level.getBlockState(stone).is(Blocks.STONE));
+
+        // With nothing to build from, empty spots stay empty.
+        int emptyY = y + 2;
+        ConduitToolActions.pasteRun(level, tool, new BlockPos(X, emptyY, Z), ConduitToolActions.Supply.NONE);
+        ConduitToolActions.Result dry = ConduitToolActions.pasteRun(level, tool, new BlockPos(X + 2, emptyY, Z),
+                ConduitToolActions.Supply.NONE);
+        SelfTest.check("tool paste run: without pipes in the supply no bundle is left behind",
+                !dry.success() && level.getBlockState(new BlockPos(X, emptyY, Z)).isAir()
+                        && level.getBlockState(new BlockPos(X + 1, emptyY, Z)).isAir());
+    }
+
+    /**
+     * The tier upgrade by hand, through the pipe item itself as a player's click reaches it: the
+     * bundle keeps its connections, modes and upgrades, and a lower tier never downgrades.
+     */
+    private static void checkTierUpgradeByHand() {
+        int y = 278;
+        BlockPos pos = new BlockPos(X, y, Z);
+        ConduitBundleBlockEntity entity = place(pos, PipeType.FLUID, Tier.COPPER);
+        place(pos.east(), PipeType.FLUID, Tier.COPPER);
+        int lane = PipeType.FLUID.lane();
+        entity.bundle().addUpgrade(lane, PipeUpgrades.Kind.SPEED);
+        setMode(pos, PipeType.FLUID, Face.NORTH, ConnectionMode.OFF);
+        boolean joinedBefore = entity.bundle().isConnected(lane, Face.EAST);
+
+        ItemStack iron = new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.IRON).get(), 2);
+        iron.useOn(new UseOnContext(level, null, InteractionHand.MAIN_HAND, iron,
+                new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false)));
+        SelfTest.check("pipe tier by hand: a higher-tier pipe used on the bundle raises the pipe in place",
+                entity.bundle().tier(lane) == Tier.IRON && iron.getCount() == 1 && level.getBlockState(pos.above()).isAir());
+        SelfTest.check("pipe tier by hand: connections, modes and upgrades are kept",
+                joinedBefore && entity.bundle().isConnected(lane, Face.EAST) && entity.bundle().mode(lane, Face.NORTH) == ConnectionMode.OFF
+                        && entity.bundle().speedUpgrades(lane) == 1);
+
+        ItemStack copper = new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.COPPER).get());
+        copper.useOn(new UseOnContext(level, null, InteractionHand.MAIN_HAND, copper,
+                new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false)));
+        SelfTest.check("pipe tier by hand: a lower tier never downgrades; it is laid as a new bundle beside",
+                entity.bundle().tier(lane) == Tier.IRON && hasPipe(pos.above(), PipeType.FLUID)
+                        && bundleAt(pos.above()).bundle().tier(lane) == Tier.COPPER);
+    }
+
     private static void checkInspect() {
         // Fluid: a source tank, three bundles in a row, a sink at the end and a second sink beside the middle one.
         int y = 268;
@@ -323,6 +442,17 @@ final class ToolSelfTest {
         ConduitToolActions.Result fromEnd = ConduitToolActions.inspect(level, new BlockPos(X + 1, y, Z), PipeType.FLUID);
         SelfTest.check("tool inspect: any bundle of the network gives the same answer",
                 fromEnd.args().get(1).equals(result.args().get(1)) && fromEnd.args().get(3).equals(result.args().get(3)));
+
+        // The outline: every bundle of the network, and the edges two neighbors share drawn once.
+        List<BlockPos> members = ConduitToolActions.networkMembers(level, new BlockPos(X + 2, y, Z), PipeType.FLUID);
+        SelfTest.check("tool inspect: the outline covers every bundle of the network",
+                members.size() == 3 && members.contains(new BlockPos(X + 1, y, Z)) && members.contains(new BlockPos(X + 3, y, Z)));
+        // A block's outline at half a block has its 8 corners and 12 edge middles; three in a row share two faces.
+        SelfTest.check("tool inspect: the outline of one block has 20 points, three in a row 44",
+                OutlineParticles.blockOutlines(List.of(new BlockPos(X, y, Z))).size() == 20
+                        && OutlineParticles.blockOutlines(members).size() == 44);
+        SelfTest.check("tool inspect: a pipe in no network has no outline",
+                ConduitToolActions.networkMembers(level, new BlockPos(X, y, Z), PipeType.FLUID).isEmpty());
 
         // Items: one bundle with a chest it pulls from.
         int itemY = 270;
@@ -370,6 +500,19 @@ final class ToolSelfTest {
     private static boolean hasPipe(BlockPos pos, PipeType type) {
         ConduitBundleBlockEntity entity = bundleAt(pos);
         return entity != null && entity.bundle().set().contains(type);
+    }
+
+    /** A supply that takes from a list of stacks, the way a player's inventory would. */
+    private static ConduitToolActions.Supply supplyOf(List<ItemStack> stacks) {
+        return item -> {
+            for (ItemStack stack : stacks) {
+                if (stack.is(item)) {
+                    stack.shrink(1);
+                    return true;
+                }
+            }
+            return false;
+        };
     }
 
     /** How many of one item a result hands back, over all its stacks. */

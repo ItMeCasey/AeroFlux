@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux;
 
 import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
+import com.itmecasey.aeroflux.machine.configurator.ConfiguratorPayload;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModCreativeTabs;
@@ -53,6 +54,7 @@ public class AeroFlux {
         // Sound and particle settings only matter where the game is drawn.
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, AeroFluxClientConfig.SPEC);
         StorageSizesSync.register();
+        ConfiguratorPayload.register();
         // The loader checks the chunk loaders' saved tickets as the world loads; this hands it the check.
         ChunkLoaderTickets.register();
 

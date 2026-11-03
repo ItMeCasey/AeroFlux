@@ -87,6 +87,7 @@ public final class SelfTest {
         EnchantConfigSelfTest.setUp(level);
         FluxScreenSelfTest.setUp(level);
         PolishSelfTest.setUp(level);
+        ConfiguratorSelfTest.setUp(level);
         command("time set day");
         phase = 0;
         ticks = 0;
@@ -120,6 +121,8 @@ public final class SelfTest {
             MachineExtrasSelfTest.tick();
             // The tank, comparator, hopper and dropper checks build in a layer of their own too.
             BlockIoSelfTest.tick();
+            // So do the Flux Configurator checks.
+            ConfiguratorSelfTest.tick();
         }
         // The enchanting config checks change global settings, so they wait until the machine checks,
         // which test the defaults, are done.
@@ -131,7 +134,8 @@ public final class SelfTest {
             if (TransferSelfTest.finished() && ToolSelfTest.finished() && ScreenSelfTest.finished()
                     && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()
                     && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished()
-                    && FluxScreenSelfTest.finished() && PolishSelfTest.finished()) {
+                    && FluxScreenSelfTest.finished() && PolishSelfTest.finished()
+                    && ConfiguratorSelfTest.finished()) {
                 finish();
             }
             return;
@@ -268,6 +272,15 @@ public final class SelfTest {
 
     private static void command(String command) {
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
+    }
+
+    /**
+     * Whether blocks at a position tick <em>and</em> its block entities do. A chunk's block entities
+     * load a little after its blocks start ticking, so a test that begins counting ticks on the
+     * blocks alone can start before collectors and machines run, which makes its timed checks flaky.
+     */
+    static boolean blockEntitiesTick(ServerLevel level, BlockPos pos) {
+        return level.shouldTickBlocksAt(pos) && level.isPositionEntityTicking(pos);
     }
 
     /** Whether the collector checks, which need day and night on time, are done with the clock. */
