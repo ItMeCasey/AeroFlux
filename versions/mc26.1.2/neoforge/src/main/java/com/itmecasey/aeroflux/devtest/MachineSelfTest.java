@@ -131,6 +131,7 @@ final class MachineSelfTest {
     private static BlockPos alloy;
     private static BlockPos bulkAlloy;
     private static BlockPos infuser;
+    private static BlockPos sawdustInfuser;
     private static BlockPos shortInfuser;
     private static BlockPos enchanter;
     private static BlockPos clashEnchanter;
@@ -236,6 +237,8 @@ final class MachineSelfTest {
         shortInfuser = placed(13, Y, 3, MachineType.INFUSER, 160, FluxType.MOON,
                 new ItemStack(Items.AMETHYST_SHARD), new ItemStack(ModItems.FLUX_DUST.get()));
         infuserStartFlux = flux(infuser);
+        // The early-game recipe: Sawdust becomes Flux Dust on Aero Flux alone.
+        sawdustInfuser = placed(15, Y, 3, MachineType.INFUSER, 5_000, FluxType.AERO, new ItemStack(ModItems.SAWDUST.get(), 2));
 
         ItemStack sword = new ItemStack(Items.IRON_SWORD);
         enchanter = placed(1, Y, 5, MachineType.ENCHANTER, 10_000, FluxType.MOON,
@@ -554,6 +557,12 @@ final class MachineSelfTest {
         SelfTest.check("infuser: with too little Flux for the extra cost it waits and makes nothing",
                 output(shortInfuser, 0).isEmpty() && machine(shortInfuser).status() == MachineStatus.NO_FLUX
                         && input(shortInfuser, 0).is(Items.AMETHYST_SHARD));
+
+        SelfTest.check("infuser: it takes Aero Flux as well as Moon Flux",
+                machine(sawdustInfuser).acceptsFlux(FluidResource.of(ModFluids.AERO_FLUX.get()))
+                        && machine(sawdustInfuser).acceptsFlux(FluidResource.of(ModFluids.MOON_FLUX.get())));
+        SelfTest.check("infuser: Sawdust became Flux Dust on Aero Flux alone",
+                output(sawdustInfuser, 0).is(ModItems.FLUX_DUST.get()) && output(sawdustInfuser, 0).getCount() == 2);
 
         checkEnchanter();
         checkDisenchanter();

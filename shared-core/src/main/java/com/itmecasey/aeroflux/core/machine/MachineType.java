@@ -20,8 +20,11 @@ public enum MachineType {
     SAWMILL("flux_sawmill", "Sawmill", 1, 2, EnumSet.of(FluxType.AERO)),
     /** Two or three ingredients into an alloy. */
     ALLOY_SMELTER("alloy_smelter", "Alloy Smelter", 3, 1, EnumSet.of(FluxType.AERO)),
-    /** An item and an additive soaked in Moon Flux become something new. */
-    INFUSER("flux_infuser", "Infuser", 2, 1, EnumSet.of(FluxType.MOON)),
+    /**
+     * An item and an additive soaked in Flux become something new. Most recipes call for Moon Flux, but
+     * the first one, Sawdust into Flux Dust, runs on Aero Flux alone, so the Infuser takes either.
+     */
+    INFUSER("flux_infuser", "Infuser", 2, 1, EnumSet.of(FluxType.AERO, FluxType.MOON)),
     /** Applies the enchantments of a book to an item for lapis and Moon Flux. */
     ENCHANTER("flux_enchanter", "Enchanter", 3, 1, EnumSet.of(FluxType.MOON)),
     /** Strips the enchantments from an item onto a fresh book. The item survives. */

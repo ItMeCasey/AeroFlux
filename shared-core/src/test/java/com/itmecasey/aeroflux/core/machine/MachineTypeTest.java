@@ -40,10 +40,12 @@ class MachineTypeTest {
         for (MachineType type : new MachineType[] {MachineType.FURNACE, MachineType.GRINDER, MachineType.SAWMILL, MachineType.ALLOY_SMELTER}) {
             assertEquals(java.util.Set.of(FluxType.AERO), type.acceptedFlux(), type.id());
         }
-        for (MachineType type : new MachineType[] {MachineType.INFUSER, MachineType.ENCHANTER, MachineType.DISENCHANTER}) {
+        for (MachineType type : new MachineType[] {MachineType.ENCHANTER, MachineType.DISENCHANTER}) {
             assertEquals(java.util.Set.of(FluxType.MOON), type.acceptedFlux(), type.id());
         }
         assertEquals(java.util.Set.of(FluxType.AERO, FluxType.MOON), MachineType.PLANT_GROWER.acceptedFlux());
+        // The Infuser's Sawdust recipe runs on Aero Flux, its crystal recipes on Moon Flux.
+        assertEquals(java.util.Set.of(FluxType.AERO, FluxType.MOON), MachineType.INFUSER.acceptedFlux());
     }
 
     @Test
