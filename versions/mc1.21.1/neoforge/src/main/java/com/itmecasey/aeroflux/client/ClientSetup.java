@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.client.model.PlantGrowerModel;
 import com.itmecasey.aeroflux.client.render.FluxTankRenderer;
 import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
 import com.itmecasey.aeroflux.client.screen.CollectorScreen;
+import com.itmecasey.aeroflux.client.screen.ConfiguratorScreen;
 import com.itmecasey.aeroflux.client.screen.ConverterScreen;
 import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
@@ -19,6 +20,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
+import com.itmecasey.aeroflux.machine.configurator.FluxConfiguratorItem;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluidTypes;
@@ -105,6 +107,7 @@ public final class ClientSetup {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_TWILIGHT_FLUX.get(), translucent);
             // The guidebook item opens its screen through here, so the item itself never names a screen.
             GuidebookItem.setOpener(GuideScreen::open);
+            FluxConfiguratorItem.setOpener(ConfiguratorScreen::open);
             // The machines' client tick only starts their running sounds, which exist only here.
             FluxMachineBlock.setClientTicker(MachineSounds::tick);
         });

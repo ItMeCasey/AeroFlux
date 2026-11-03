@@ -3,6 +3,7 @@ package com.itmecasey.aeroflux.devtest;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
+import com.itmecasey.aeroflux.client.screen.ConfiguratorScreen;
 import com.itmecasey.aeroflux.client.screen.FluxMachineScreen;
 import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.compat.create.CreateContent;
@@ -26,6 +27,7 @@ import com.itmecasey.aeroflux.core.machine.SideResource;
 import com.itmecasey.aeroflux.creative.CreativeFluxTankBlockEntity;
 import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.MachineConfigActions;
+import com.itmecasey.aeroflux.machine.configurator.ConfiguratorActions;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModItems;
@@ -459,6 +461,25 @@ public final class ShotTour {
             shoot("screen_" + type.id(), 10);
             then(2, () -> player().closeContainer());
         }
+
+        // The Flux Configurator's preset screen: the side-configured furnace in a named preset, a
+        // second preset from the Magnet, and the furnace's preset selected so its face grid shows.
+        then(2, () -> onServer(server -> {
+            ServerLevel level = server.overworld();
+            ItemStack configurator = new ItemStack(ModItems.FLUX_CONFIGURATOR.get());
+            if (level.getBlockEntity(machinePos) instanceof FluxMachineBlockEntity furnace
+                    && level.getBlockEntity(at(58, 6)) instanceof FluxMachineBlockEntity magnet) {
+                ConfiguratorActions.copy(configurator, furnace);
+                ConfiguratorActions.renamePreset(configurator, 0, "Ore line");
+                ConfiguratorActions.selectPreset(configurator, 1);
+                ConfiguratorActions.copy(configurator, magnet);
+                ConfiguratorActions.selectPreset(configurator, 0);
+            }
+            serverPlayer(server).setItemInHand(InteractionHand.MAIN_HAND, configurator);
+        }));
+        then(10, () -> ConfiguratorScreen.open(InteractionHand.MAIN_HAND));
+        shoot("screen_configurator", 10);
+        then(2, () -> Minecraft.getInstance().setScreen(null));
         fluxScreenShots();
     }
 

@@ -129,7 +129,7 @@ final class CompatSelfTest {
             return;
         }
         if (!built) {
-            if (level.shouldTickBlocksAt(new BlockPos(2, Y, 2))) {
+            if (SelfTest.blockEntitiesTick(level, new BlockPos(2, Y, 2))) {
                 build();
                 built = true;
             }

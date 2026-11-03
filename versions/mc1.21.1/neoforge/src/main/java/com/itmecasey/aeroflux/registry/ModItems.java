@@ -18,6 +18,7 @@ import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.item.UpgradeCardItem;
 import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.machine.MachineUpgradeItem;
+import com.itmecasey.aeroflux.machine.configurator.FluxConfiguratorItem;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.world.item.BlockItem;
@@ -101,6 +102,10 @@ public final class ModItems {
 
     /** Edits, removes, copies and inspects pipes; its mode is kept on the stack. */
     public static final DeferredItem<ConduitToolItem> CONDUIT_TOOL = ITEMS.registerItem("conduit_tool", ConduitToolItem::new, new Item.Properties().stacksTo(1));
+
+    /** Copies machine settings and pastes them onto other machines, one at a time or a whole area; holds eight presets. */
+    public static final DeferredItem<FluxConfiguratorItem> FLUX_CONFIGURATOR = ITEMS.registerItem("flux_configurator",
+            FluxConfiguratorItem::new, new Item.Properties().stacksTo(1));
 
     static {
         for (PipeType type : PipeType.values()) {

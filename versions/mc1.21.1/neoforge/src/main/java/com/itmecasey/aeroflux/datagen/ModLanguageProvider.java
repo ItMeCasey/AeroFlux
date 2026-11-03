@@ -9,6 +9,7 @@ import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.conduit.ToolMode;
+import com.itmecasey.aeroflux.core.configurator.Setting;
 import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
@@ -462,6 +463,71 @@ public class ModLanguageProvider extends LanguageProvider {
 
         addConduitToolTranslations();
         addPipeScreenTranslations();
+        addConfiguratorTranslations();
+    }
+
+    /** The Flux Configurator: its modes, messages, tooltip and preset screen. */
+    private void addConfiguratorTranslations() {
+        addItem(ModItems.FLUX_CONFIGURATOR, "Flux Configurator");
+        add("configurator_mode." + AeroFlux.MODID + ".paste", "Paste");
+        add("configurator_mode." + AeroFlux.MODID + ".area", "Area paste");
+        for (Setting setting : Setting.values()) {
+            add("setting." + AeroFlux.MODID + "." + setting.id(), settingName(setting));
+        }
+
+        String message = "message." + AeroFlux.MODID + ".configurator_";
+        add(message + "mode", "Flux Configurator: %s");
+        add(message + "copied", "Copied the %s into %s");
+        add(message + "empty", "The selected preset is empty. Sneak-use a machine to copy it.");
+        add(message + "not_machine", "That block has no settings to paste");
+        add(message + "pasted", "Pasted onto the %s");
+        add(message + "pasted_skipped", "Pasted onto the %s; it has no %s");
+        add(message + "corner_first", "First corner marked. Use the Configurator on the opposite corner.");
+        add(message + "area_marked", "%s machines in the area. Use again to paste, or sneak-use the air to cancel.");
+        add(message + "area_too_large", "An area can be at most %s blocks along each side");
+        add(message + "no_area", "No area marked");
+        add(message + "area_empty", "There are no machines in the area");
+        add(message + "area_limit", "The area holds %s machines; one paste may change at most %s");
+        add(message + "area_pasted", "Pasted onto %s machines (%s changed)");
+        add(message + "area_pasted_skipped", "Pasted onto %s machines (%s changed); skipped what some lack: %s");
+        add(message + "undone", "Undid the last paste on %s machines");
+        add(message + "nothing_to_undo", "Nothing to undo. A paste can be undone once, for a minute.");
+        add(message + "selected", "Selected %s");
+        add(message + "renamed", "Renamed to %s");
+        add(message + "rename_failed", "Only a filled preset can be named, and the name cannot be blank");
+        add(message + "cleared", "Cleared preset %s");
+        add(message + "slot_empty", "That preset is already empty");
+        add(message + "bad_slot", "There is no such preset");
+
+        add("tooltip." + AeroFlux.MODID + ".configurator_mode", "Mode: %s");
+        add("tooltip." + AeroFlux.MODID + ".configurator_preset", "%s: %s");
+
+        String gui = "gui." + AeroFlux.MODID + ".configurator.";
+        add(gui + "slot", "Preset %s");
+        add(gui + "empty", "Empty");
+        add(gui + "hint", "Sneak-use a machine to copy it here.");
+        add(gui + "name", "Preset name");
+        add(gui + "rename", "Rename");
+        add(gui + "clear", "Clear");
+        add(gui + "undo", "Undo last paste");
+        add(gui + "auto", "Import %s, Export %s");
+        add(gui + "on", "on");
+        add(gui + "off", "off");
+    }
+
+    private static String settingName(Setting setting) {
+        return switch (setting) {
+            case ITEM_SIDES -> "item faces";
+            case FLUID_SIDES -> "fluid faces";
+            case ENERGY_SIDES -> "energy faces";
+            case GAS_SIDES -> "gas faces";
+            case REDSTONE_SIDES -> "redstone faces";
+            case REDSTONE_MODE -> "redstone mode";
+            case AUTO_IMPORT -> "Auto Import";
+            case AUTO_EXPORT -> "Auto Export";
+            case AUTO_INSERT -> "seed refill";
+            case MACHINE_MODE -> "machine switch";
+        };
     }
 
     /** Texts of the pipe screen: headings, the speed lines and the button tooltips. */
@@ -533,6 +599,12 @@ public class ModLanguageProvider extends LanguageProvider {
         add("message." + AeroFlux.MODID + ".pipe_tier_not_higher", "The %s pipe is already %s or better");
         add("message." + AeroFlux.MODID + ".tool_copied", "Copied the settings of %s pipes");
         add("message." + AeroFlux.MODID + ".tool_pasted", "Pasted settings onto %s pipes");
+        add("message." + AeroFlux.MODID + ".tool_pasted_added", "Pasted settings onto %s pipes and added %s from your inventory");
+        add("message." + AeroFlux.MODID + ".tool_pasted_missing",
+                "Pasted settings onto %s pipes and added %s; %s pipes were not in your inventory");
+        add("message." + AeroFlux.MODID + ".tool_paste_run_start", "Run started. Sneak-use the other end to paste along it.");
+        add("message." + AeroFlux.MODID + ".tool_paste_run",
+                "Pasted onto %s bundles along the run (%s new); %s pipes were not in your inventory");
         add("message." + AeroFlux.MODID + ".tool_nothing_copied", "Nothing copied yet");
         add("message." + AeroFlux.MODID + ".tool_no_network", "The %s pipe is not part of a network");
         add("message." + AeroFlux.MODID + ".tool_inspect",
