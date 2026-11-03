@@ -1,9 +1,10 @@
 """Draws the Flux Configurator's 32x32 item icon.
 
-A handheld tablet in the tools' colors: dark Fluxsteel body with a copper rim, a screen showing
+A flat handheld tablet in the tools' colors: dark Fluxsteel body with a copper rim, a screen showing
 an unfolded side-config cube in the side panel's face colors (blue import, orange export, green
 both, red blocked), the blue-white Moon Crystal gem of the concept art, and a copy and a paste
-button. Drawn pixel by pixel rather than cut from the concept, so it stays crisp at 32 px.
+button. Kept plain, with no wear marks, so it reads at a glance, and held upright (its model uses the flat
+generated parent, not the diagonal handheld one).
 
 Run from anywhere: python -I gen_configurator.py [--all]
 Without --all it writes only the 26.1.2 NeoForge build, where new items start; --all writes every
@@ -70,16 +71,6 @@ def body(im):
         im.putpixel((x, y), (0, 0, 0, 0))
     bevel(im, 7, 2, 24, 29, COPPER, COPPER_LIGHT, COPPER_DARK)
     bevel(im, 8, 3, 23, 28, STEEL, STEEL_LIGHT, STEEL_DARK)
-    # A few darker specks on the steel, so it matches the worn metal of the other tools.
-    for y in range(4, 28):
-        for x in range(9, 23):
-            if (x * 7 + y * 3) % 11 == 0:
-                im.putpixel((x, y), STEEL_DARK)
-    # The copper rim gets the same wear.
-    for y in range(3, 29):
-        for x in (7, 24):
-            if (y * 5 + x) % 9 == 0:
-                im.putpixel((x, y), COPPER_DARK)
 
 
 def screen(im):
