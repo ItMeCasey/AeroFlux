@@ -62,7 +62,7 @@ public class ModBlockTagProvider extends BlockTagsProvider {
                 "mysticalagriculture:prudentium_farmland", "mysticalagriculture:tertium_farmland",
                 "mysticalagriculture:imperium_farmland", "mysticalagriculture:supremium_farmland",
                 "mysticalagriculture:awakened_supremium_farmland")) {
-            getOrCreateRawBuilder(ModTags.SOIL_FARMLAND).addOptionalElement(new ResourceLocation(farmland));
+            getOrCreateRawBuilder(ModTags.SOIL_FARMLAND).addOptionalElement(ResourceLocation.tryParse(farmland));
         }
         // What each lamp helps grow; packs can add their own plants to these.
         tag(ModTags.SUN_LAMP_PLANTS)
