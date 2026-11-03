@@ -11,6 +11,7 @@ import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.conduit.ToolMode;
 import com.itmecasey.aeroflux.core.configurator.Setting;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.guide.GuideBook;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
@@ -205,22 +206,8 @@ public class ModLanguageProvider extends LanguageProvider {
         add("advancements." + AeroFlux.MODID + ".chunk_loader.title", "Never Sleeps");
         add("advancements." + AeroFlux.MODID + ".chunk_loader.description", "Build a Flux Chunk Loader");
         addItem(ModItems.GUIDEBOOK, "AeroFlux Guide");
-        add("guide." + AeroFlux.MODID + ".start.title", "Welcome to AeroFlux");
-        add("guide." + AeroFlux.MODID + ".start.body", "AeroFlux gathers Flux from the sky: Aero Flux from the sun by day and Moon Flux from the moon by night. Both are fluids that power every AeroFlux machine.\nChopping trees shakes loose Sawdust now and then; two make a Flux Dust. Then build a Flux Collector, a Flux Tank and a Furnace.");
-        add("guide." + AeroFlux.MODID + ".flux.title", "Aero and Moon Flux");
-        add("guide." + AeroFlux.MODID + ".flux.body", "A collector makes Aero Flux in daylight and Moon Flux at night, faster in clear weather and, for Moon Flux, on brighter moon phases. A collector holds one kind at a time.\nMost machines take either kind; a few recipes need Moon Flux.");
-        add("guide." + AeroFlux.MODID + ".collectors.title", "Collectors and Tanks");
-        add("guide." + AeroFlux.MODID + ".collectors.body", "Collectors need open sky above them. Each tier collects faster and holds more.\nTanks store one fluid at a time and show their fill level. Pipe Flux from collectors into tanks, and from tanks into machines.");
-        add("guide." + AeroFlux.MODID + ".pipes.title", "Pipes");
-        add("guide." + AeroFlux.MODID + ".pipes.body", "Pipes carry fluids, items, energy, redstone, and with the right mods, gas and ME channels. Several kinds share one block: use a pipe on a pipe block to add it.\nEach kind connects to the same kind next to it, and to machines that take what it carries. Right-click a connector for its settings. Use a higher-tier pipe on a pipe to upgrade it in place.");
-        add("guide." + AeroFlux.MODID + ".machines.title", "Machines");
-        add("guide." + AeroFlux.MODID + ".machines.body", "Every machine runs on Flux: Furnace, Grinder, Sawmill, Alloy Smelter, Infuser, Enchanter, Disenchanter and Plant Grower. The side panel sets what each face takes in or puts out.\nThe front lights up while a machine works.");
-        add("guide." + AeroFlux.MODID + ".upgrades.title", "Upgrades and Tiers");
-        add("guide." + AeroFlux.MODID + ".upgrades.body", "Speed Upgrades make a machine or pipe faster; Capacity Upgrades let it hold or move more. Filter and Priority Upgrades fine-tune pipe connections.\nEvery block comes in six tiers: copper, iron, gold, diamond, netherite and fluxium. An Upgrade Card raises a placed machine, collector or tank one tier and keeps everything in it: sneak and use it on the block.");
-        add("guide." + AeroFlux.MODID + ".chunk_loader.title", "Flux Chunk Loader");
-        add("guide." + AeroFlux.MODID + ".chunk_loader.body", "Keeps the chunks around it loaded while it has Flux, from 1x1 at copper to 11x11 at fluxium. Higher tiers cost less Flux per chunk.\nWhen it runs dry it waits a few seconds before letting the chunks go.");
-        add("guide." + AeroFlux.MODID + ".dimensions.title", "Other Dimensions");
-        add("guide." + AeroFlux.MODID + ".dimensions.body", "By default only the Overworld has Flux to collect. Data packs can change that per dimension, including whether chunk loaders are allowed there.");
+        // The book itself is written once, in shared-core.
+        GuideBook.translations().forEach((key, text) -> add(key, text));
         for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
             for (Tier tier : Tier.values()) {
                 addBlock(ModBlocks.converter(type, tier), tier == Tier.COPPER ? type.displayName() : displayName(tier) + " " + type.displayName());
@@ -244,8 +231,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui." + AeroFlux.MODID + ".sky.night.tooltip", "Moves the clock to nightfall. Costs Moon Flux from the second tank.");
         add("gui." + AeroFlux.MODID + ".sky.weather", "Clear / Rain");
         add("gui." + AeroFlux.MODID + ".sky.weather.tooltip", "Stops the rain, or starts it. Costs Aero Flux.");
-        add("guide." + AeroFlux.MODID + ".more_machines.title", "More Machines");
-        add("guide." + AeroFlux.MODID + ".more_machines.body", "Crafter: lay a recipe in its grid; it keeps one item in each slot and crafts with the rest. Purifier: ore and water into three times the raw metal. Sifter: a block and a mesh from Ex Deorum or Ex Nihilo Sequentia; the mesh decides the drops. Blender: Aero and Moon Flux into Twilight Flux.\nSky Controller: day, night and rain at a button. Magnet: pulls dropped items in. Breeder, Repairer and Moon Spawner do what their names say. Sun and Moon Lamps keep monsters away and help plants grow.");
         add("screen." + AeroFlux.MODID + ".side_config.auto_import", "Auto Import");
         add("screen." + AeroFlux.MODID + ".side_config.auto_import.tooltip",
                 "Pulls items and Flux from the blocks next to every Import or Both face, no pipe needed.");
