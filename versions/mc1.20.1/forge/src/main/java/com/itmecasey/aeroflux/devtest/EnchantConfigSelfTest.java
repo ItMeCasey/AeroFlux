@@ -126,9 +126,23 @@ final class EnchantConfigSelfTest {
                         && level(newBook, Enchantments.SHARPNESS) == 3 && level(newBook, Enchantments.UNBREAKING) == 0);
         int xp = 0;
         for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, new AABB(disenchanter).inflate(4))) {
-            xp += orb.getValue();
+            xp += orb.getValue() * orbCount(orb);
         }
         SelfTest.check("enchanting: the Disenchanter gives back experience when switched on", xp == 3 * XP_PER_LEVEL);
+    }
+
+    /**
+     * How many orbs one orb stands for. Orbs of the same value spawned close together merge, and
+     * which ones do depends on their entity ids, so summing the values alone can come up short.
+     */
+    private static int orbCount(ExperienceOrb orb) {
+        try {
+            java.lang.reflect.Field count = ExperienceOrb.class.getDeclaredField("count");
+            count.setAccessible(true);
+            return count.getInt(orb);
+        } catch (ReflectiveOperationException e) {
+            return 1;
+        }
     }
 
     // --- Helpers -----------------------------------------------------------------------------
