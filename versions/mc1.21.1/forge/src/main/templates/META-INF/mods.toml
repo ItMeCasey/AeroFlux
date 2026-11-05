@@ -31,6 +31,13 @@ description='''${mod_description}'''
 # Optional mods. JEI is the recipe viewer with a Forge build for 1.21.1; the Sifter runs the sieve
 # recipes of Ex Deorum and Ex Nihilo Sequentia and is only craftable with one installed.
 [[dependencies.${mod_id}]]
+    modId="bei"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
     modId="jei"
     mandatory=false
     versionRange="[0,)"

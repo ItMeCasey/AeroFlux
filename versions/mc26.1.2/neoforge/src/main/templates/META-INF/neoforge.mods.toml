@@ -31,6 +31,13 @@ description='''${mod_description}'''
 
 # Recipe viewers, client only.
 [[dependencies.${mod_id}]]
+    modId="bei"
+    type="optional"
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
     modId="jei"
     type="optional"
     versionRange="[0,)"

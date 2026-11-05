@@ -171,6 +171,9 @@ dependencies {
     compileOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
     compileOnly fg.deobf("maven.modrinth:badpackets:${badpackets_version}")
     compileOnly fg.deobf("maven.modrinth:crafttweaker:${crafttweaker_version}")
+    // BEI (Barely Enough Items), a recipe viewer of ours. Only its API is compiled against, from the jar
+    // in libs (built by BEI's apiJar task); the viewer itself is an optional dependency.
+    compileOnly files('libs/bei-forge-1.20.1-2026.11.4-api.jar')
     compileOnly fg.deobf("maven.modrinth:jei:${jei_version}")
     runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
     compileOnly fg.deobf("maven.modrinth:kubejs:${kubejs_version}")
