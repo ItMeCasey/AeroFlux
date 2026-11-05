@@ -81,6 +81,9 @@ dependencies {
     // KubeJS, CraftTweaker, AE2, Mekanism, Create) have no Forge build for 1.21.1.
     // BEI (Barely Enough Items), a recipe viewer of ours. Only its API is compiled against, from the jar
     // in libs (built by BEI's apiJar task); the viewer itself is an optional dependency.
+    // SMWTI (Show Me What This Is), a look-at overlay of ours. Only its API is compiled against, from the jar
+    // in libs (the api package of SMWTI's own jar); the overlay itself is an optional dependency.
+    compileOnly files('libs/smwti-forge-1.21.1-2026.11.2-api.jar')
     compileOnly files('libs/bei-forge-1.21.1-2026.11.4-api.jar')
     compileOnly("maven.modrinth:jei:${jei_version}") { transitive = false }
 }
