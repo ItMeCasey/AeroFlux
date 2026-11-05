@@ -45,7 +45,7 @@ Notes:
 | All six builds compile and package | yes, 2026-11-05 (`gradlew build -x test`; BEI plugin included in five of them) |
 | Built jars contain the BEI plugin class and no BEI API classes | yes for the five builds that have it |
 | In-game server self-test (headless) after adding BEI | not run locally; the Build workflow runs it on push |
-| BEI plugin loaded in a real client, cards shown | not tested: needs a game client, which was not launched for this change |
+
 | REI, JEI, EMI, Jade, SMWTI, The One Probe, WTHIT shown in a real client | not tested on any build in this pass |
 
 The CurseForge description's "Tested" line should say so until the client checks are done: frames go in `docs/frames/`, one per integration per Minecraft version.
