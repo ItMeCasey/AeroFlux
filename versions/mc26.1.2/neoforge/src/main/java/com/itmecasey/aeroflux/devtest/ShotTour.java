@@ -96,6 +96,8 @@ public final class ShotTour {
     private static final boolean SCREENS_ONLY = "screens".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=bei} the tour opens the inventory with Barely Enough Items and shoots its browser and recipe popup. */
     private static final boolean BEI = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    /** With {@code AEROFLUX_SHOTS=smwti} the tour looks at a furnace and a collector and shoots the Show Me What This Is overlay. */
+    private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     private static final String WORLD = "aeroflux_shots";
     /** Slots in the player inventory screen: three rows plus the hotbar. */
     private static final int INVENTORY_SLOTS = 36;
@@ -204,6 +206,8 @@ public final class ShotTour {
 
         if (BEI) {
             beiShots();
+        } else if (SMWTI) {
+            smwtiShots();
         } else {
             if (!SCREENS_ONLY) {
                 sceneShots();
@@ -705,6 +709,26 @@ public final class ShotTour {
         } catch (ReflectiveOperationException e) {
             AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not click", e);
         }
+    }
+
+    // --- Show Me What This Is --------------------------------------------------------------
+
+    /**
+     * Puts a furnace and a collector in front of the player with vanilla commands, looks at each
+     * through the game's own camera (a teleport with a rotation) and shoots the overlay SMWTI
+     * draws for the block under the crosshair.
+     */
+    private static void smwtiShots() {
+        then(2, () -> {
+            int y = (int) Math.floor(player().getY());
+            server("setblock 0 " + y + " 3 aeroflux:flux_furnace", "setblock 3 " + y + " 3 aeroflux:copper_collector",
+                    "tp @a 0.5 " + y + " 0.5 0 18");
+        });
+        then(60, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS SMWTI furnace in view"));
+        shoot("smwti_furnace", 60);
+        then(5, () -> server("tp @a 3.5 " + (int) Math.floor(player().getY()) + " 0.5 0 18"));
+        then(60, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS SMWTI collector in view"));
+        shoot("smwti_collector", 60);
     }
 
     private static void shoot(String name, int delay) {

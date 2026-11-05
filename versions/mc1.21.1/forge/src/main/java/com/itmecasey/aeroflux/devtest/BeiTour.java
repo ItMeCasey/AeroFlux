@@ -35,7 +35,8 @@ import net.minecraftforge.fml.common.Mod;
  */
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID, value = Dist.CLIENT)
 public final class BeiTour {
-    private static final boolean ENABLED = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    private static final boolean ENABLED = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || SMWTI;
     private static final String WORLD = "aeroflux_shots";
 
     private enum Stage { WAITING_FOR_MENU, LOADING_WORLD, TOURING, DONE }
@@ -122,6 +123,16 @@ public final class BeiTour {
 
     private static void plan() {
         // Forge crashes on fire ticks in a fresh world, so fire is switched off before anything else.
+        if (SMWTI) {
+            then(0, () -> server("gamerule doFireTick false", "gamerule doDaylightCycle false", "time set noon"));
+            smwtiShots();
+            then(40, () -> {
+                AeroFlux.LOGGER.info("AEROFLUX-SHOTS DONE");
+                stage = Stage.DONE;
+                Minecraft.getInstance().stop();
+            });
+            return;
+        }
         then(0, () -> server("gamerule doFireTick false", "gamerule doDaylightCycle false", "time set noon", "gamemode survival @a"));
         then(20, () -> Minecraft.getInstance().setScreen(new InventoryScreen(player())));
         then(40, () -> search("@aeroflux"));
@@ -207,6 +218,26 @@ public final class BeiTour {
         } catch (ReflectiveOperationException e) {
             AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not click", e);
         }
+    }
+
+    // --- Show Me What This Is --------------------------------------------------------------
+
+    /**
+     * Puts a furnace and a collector in front of the player with vanilla commands, looks at each
+     * through the game's own camera (a teleport with a rotation) and shoots the overlay SMWTI
+     * draws for the block under the crosshair.
+     */
+    private static void smwtiShots() {
+        then(2, () -> {
+            int y = (int) Math.floor(player().getY());
+            server("setblock 0 " + y + " 3 aeroflux:flux_furnace", "setblock 3 " + y + " 3 aeroflux:copper_collector",
+                    "tp @a 0.5 " + y + " 0.5 0 18");
+        });
+        then(60, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS SMWTI furnace in view"));
+        shoot("smwti_furnace", 60);
+        then(5, () -> server("tp @a 3.5 " + (int) Math.floor(player().getY()) + " 0.5 0 18"));
+        then(60, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS SMWTI collector in view"));
+        shoot("smwti_collector", 60);
     }
 
     private static void shoot(String name, int delay) {
