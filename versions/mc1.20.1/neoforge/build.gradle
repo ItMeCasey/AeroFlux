@@ -125,6 +125,9 @@ obfuscation {
     createRemappingConfiguration(configurations.localRuntime)
 }
 
+// -PbeiCheck leaves the other mods out of the dev client, so a recipe viewer check shows AeroFlux with BEI alone.
+def devMods = !project.hasProperty('beiCheck')
+
 dependencies {
     // If you wish to declare dependencies against mods, make sure to use the 'mod*' configurations so that they're remapped.
 	// See https://github.com/neoforged/ModDevGradle/blob/main/LEGACY.md#remapping-mod-dependencies for more information.
@@ -154,26 +157,26 @@ dependencies {
     // Optional mods, the same Forge 1.20.1 builds the Forge project uses. AeroFlux compiles against
     // them and runs with the ones the dev runs need; none of them is required at play time.
     modCompileOnly "maven.modrinth:jade:${jade_version}"
-    modLocalRuntime "maven.modrinth:jade:${jade_version}"
+    if (devMods) modLocalRuntime "maven.modrinth:jade:${jade_version}"
     modCompileOnly "maven.modrinth:the-one-probe:${top_version}"
-    modLocalRuntime "maven.modrinth:the-one-probe:${top_version}"
+    if (devMods) modLocalRuntime "maven.modrinth:the-one-probe:${top_version}"
     modCompileOnly "maven.modrinth:ae2:${ae2_version}"
-    modLocalRuntime "maven.modrinth:ae2:${ae2_version}"
-    modLocalRuntime "maven.modrinth:guideme:${guideme_version}"
+    if (devMods) modLocalRuntime "maven.modrinth:ae2:${ae2_version}"
+    if (devMods) modLocalRuntime "maven.modrinth:guideme:${guideme_version}"
     modCompileOnly "maven.modrinth:mekanism:${mekanism_version}"
-    modLocalRuntime "maven.modrinth:mekanism:${mekanism_version}"
+    if (devMods) modLocalRuntime "maven.modrinth:mekanism:${mekanism_version}"
     // The sieve mods are only here so the self-test can read their real sieve and hammer recipes;
     // AeroFlux never compiles against them. They stay out of data generation, which needs none of them.
     if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
-        modLocalRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
-        modLocalRuntime "maven.modrinth:exnihilosequentia:${exnihilo_version}"
-        modLocalRuntime "maven.modrinth:novacore:${novacore_version}"
+        if (devMods) modLocalRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
+        if (devMods) modLocalRuntime "maven.modrinth:exnihilosequentia:${exnihilo_version}"
+        if (devMods) modLocalRuntime "maven.modrinth:novacore:${novacore_version}"
         // EMI, WTHIT (with Bad Packets, which it needs) and CraftTweaker run in the dev client and the
         // self-test too, and stay out of data generation the same way.
-        modLocalRuntime "maven.modrinth:emi:${emi_version}"
-        modLocalRuntime "maven.modrinth:wthit:${wthit_version}"
-        modLocalRuntime "maven.modrinth:badpackets:${badpackets_version}"
-        modLocalRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
+        if (devMods) modLocalRuntime "maven.modrinth:emi:${emi_version}"
+        if (devMods) modLocalRuntime "maven.modrinth:wthit:${wthit_version}"
+        if (devMods) modLocalRuntime "maven.modrinth:badpackets:${badpackets_version}"
+        if (devMods) modLocalRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
     }
     modCompileOnly "maven.modrinth:emi:${emi_version}"
     modCompileOnly "maven.modrinth:wthit:${wthit_version}"
@@ -183,7 +186,7 @@ dependencies {
     // in libs (built by BEI's apiJar task); the viewer itself is an optional dependency.
     compileOnly files('libs/bei-neoforge-1.20.1-2026.11.4-api.jar')
     modCompileOnly "maven.modrinth:jei:${jei_version}"
-    modLocalRuntime "maven.modrinth:jei:${jei_version}"
+    if (devMods) modLocalRuntime "maven.modrinth:jei:${jei_version}"
     modCompileOnly "maven.modrinth:kubejs:${kubejs_version}"
     modCompileOnly "maven.modrinth:rhino:${rhino_version}"
     modCompileOnly "maven.modrinth:rei:${rei_version}"
