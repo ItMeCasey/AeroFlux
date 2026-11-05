@@ -49,3 +49,8 @@ versions/*-results.txt
 versions/*/*/run-data/logs/
 versions/*/*/run-data/config/ae2/
 .claude/
+
+# Throwaway pipe texture previews
+assets-src/preview_pipes_*.png
+assets-src/_cur_pipes.png
+assets-src/_current_pipe_textures.png
