@@ -65,6 +65,9 @@ repositories {
     }
 }
 
+// -PbeiCheck leaves the other mods (WTHIT here) out of the dev client, so an overlay or viewer check shows AeroFlux with the one mod alone.
+def devMods = !project.hasProperty('beiCheck')
+
 dependencies {
     implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
@@ -78,8 +81,8 @@ dependencies {
     // KubeJS and AE2 have no Forge build for this Minecraft version, so nothing else is compiled against.
     compileOnly "maven.modrinth:wthit:${wthit_version}"
     compileOnly "maven.modrinth:badpackets:${badpackets_version}"
-    runtimeOnly "maven.modrinth:wthit:${wthit_version}"
-    runtimeOnly "maven.modrinth:badpackets:${badpackets_version}"
+    if (devMods) runtimeOnly "maven.modrinth:wthit:${wthit_version}"
+    if (devMods) runtimeOnly "maven.modrinth:badpackets:${badpackets_version}"
 
     // SMWTI (Show Me What This Is), a look-at overlay of ours. Only its API is compiled against, from
     // the jar in libs (built by SMWTI's apiJar task); the overlay itself is an optional dependency.
