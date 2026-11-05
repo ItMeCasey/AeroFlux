@@ -1,6 +1,6 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-04
+Updated: 2026-11-05
 Summary: All six builds (Forge and NeoForge on 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test in CI, and 2026.11.5 went out by tag as six CurseForge betas, while client-side screens and art are still unseen in a real client and Modrinth is on hold.
 Spend: none
 
@@ -62,6 +62,10 @@ Spend: none
 - [~] Fluid and pipe interop with other mods (c:aero_flux style fluid tags; Mekanism tank interop on 1.21.1; self-tested with AeroFlux's own tanks on 26.1) (w:2)
 - [~] ME and Dense ME pipes (Applied Energistics 2 soft dependency; grid nodes on NeoForge 26.1/1.21.1 and both 1.20.1 builds, self-tested on 1.20.1) (w:3)
 - [~] Jade, The One Probe, WTHIT and SMWTI plugins (SMWTI on 26.1 Forge only, through its API jar; Jade, The One Probe and WTHIT where those mods exist, none seen in a client) (w:3)
+- [~] BEI recipe viewer plugin (cards for every recipe machine and the Sifter on five builds, compiled and packaged, not seen in a client; 26.1.2 Forge needs the recipe sync port first) (w:3)
+- [ ] SMWTI plugin on the other five builds (26.1.2 Forge has it; 1.21.1 Forge has no other overlay, so it comes first) (w:2)
+- [ ] Client check of every viewer and overlay integration, one frame each per version (docs/frames) (w:3)
+- [x] Compatibility table (docs/COMPATIBILITY.md: which BEI, REI, JEI, EMI, Jade and SMWTI builds exist per version and loader, what AeroFlux has) (w:1)
 
 ## Cross-cutting
 - [~] Ownership and claim-mod protection (26.1 and 1.21.1, both loaders; not on 1.20.1; self-tested) (w:3)
