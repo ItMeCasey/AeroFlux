@@ -1,0 +1,116 @@
+name: release
+
+# Push a tag such as v2026.11.5 to build and self-test all six jars, publish a GitHub prerelease and upload them to CurseForge.
+# The tag must match mod_version in every build's gradle.properties.
+# Needs the repository secret CURSEFORGE_TOKEN (a CurseForge upload API token).
+# Run by hand (Actions, release, Run workflow) it builds and tests only, unless "publish" is ticked.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: CurseForge release type
+        type: choice
+        options: [beta, alpha, release]
+        default: beta
+      publish:
+        description: Upload to CurseForge (off builds and attaches the jars to the run only)
+        type: boolean
+        default: false
+      dry_run:
+        description: Check the CurseForge plan (jars, game version ids, relations) without uploading
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  # The same unit tests, builds and in-game self-tests as every push.
+  build:
+    uses: ./.github/workflows/build.yml
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: aeroflux-*
+
+      - name: Check the version
+        id: version
+        run: |
+          versions=$(grep -h '^mod_version=' versions/*/*/gradle.properties | sort -u)
+          if [ "$(echo "$versions" | wc -l)" != "1" ]; then echo "Builds disagree on mod_version:"; echo "$versions"; exit 1; fi
+          version="${versions#mod_version=}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v$version" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match mod_version $version"; exit 1
+          fi
+
+      # The hand-written changelog for this version wins; without one the notes are the commit subjects since the last tag.
+      - name: Write the release notes
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          previous=$(git describe --tags --abbrev=0 --match 'v*' "${GITHUB_SHA}^" 2>/dev/null || true)
+          {
+            if [ -f "curseforge/CHANGELOG_${version}.md" ]; then
+              sed '1{/^## /d}' "curseforge/CHANGELOG_${version}.md"
+            else
+              echo "Changes:"
+              if [ -n "$previous" ]; then git log --no-merges --pretty='format:- %s' "$previous..${GITHUB_SHA}"; else git log --no-merges -n 20 --pretty='format:- %s'; fi
+            fi
+            echo
+            echo
+            echo "Builds for Minecraft 26.1.2, 1.21.1 and 1.20.1 on Forge and NeoForge. Guide: https://itmecasey.com/wiki/aeroflux/"
+          } > notes.md
+          cat notes.md
+
+      - name: Collect the jars
+        run: python3 .github/scripts/publish_curseforge.py --artifacts artifacts --version "${{ steps.version.outputs.version }}" --collect dist
+
+      - name: GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/*.jar \
+            --title "AeroFlux ${{ steps.version.outputs.version }}" \
+            --notes-file notes.md \
+            --prerelease
+
+      - name: Check the CurseForge plan
+        if: inputs.dry_run
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        run: |
+          python3 .github/scripts/publish_curseforge.py \
+            --artifacts artifacts \
+            --version "${{ steps.version.outputs.version }}" \
+            --changelog-file notes.md \
+            --release-type "${{ inputs.release_type || 'beta' }}" \
+            --dry-run
+
+      - name: Upload to CurseForge
+        if: (github.ref_type == 'tag' || inputs.publish) && !inputs.dry_run
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        run: |
+          python3 .github/scripts/publish_curseforge.py \
+            --artifacts artifacts \
+            --version "${{ steps.version.outputs.version }}" \
+            --changelog-file notes.md \
+            --release-type "${{ inputs.release_type || 'beta' }}"
+
+      - name: Keep the jars with the run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-jars
+          path: dist/*.jar
