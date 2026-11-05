@@ -144,7 +144,8 @@ repositories {
 def devMods = !project.hasProperty('beiCheck')
 
 dependencies {
-    if (!devMods) runtimeOnly fg.deobf('local.dev:bei-forge-1.20.1:2026.11.4')
+    if (!devMods && file('devlibs/bei-forge-1.20.1-2026.11.4.jar').exists()) runtimeOnly fg.deobf('local.dev:bei-forge-1.20.1:2026.11.4')
+    if (!devMods && file('devlibs/smwti-forge-1.20.1-2026.11.2.jar').exists()) runtimeOnly fg.deobf('local.dev:smwti-forge-1.20.1:2026.11.2')
     // Specify the version of Minecraft to use.
     // Any artifact can be supplied so long as it has a "userdev" classifier artifact and is a compatible patcher artifact.
     // The "userdev" classifier will be requested and setup by ForgeGradle.
