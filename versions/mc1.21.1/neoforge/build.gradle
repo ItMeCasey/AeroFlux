@@ -149,34 +149,37 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+// -PbeiCheck leaves the other mods out of the dev client, so a recipe viewer check shows AeroFlux with BEI alone.
+def devMods = !project.hasProperty('beiCheck')
+
 dependencies {
     // Optional mods: compiled against, never required. The look-at, recipe viewer and AE2 mods
     // also run in the dev client and the self-test; the rest are compile-only.
     compileOnly "maven.modrinth:jade:${jade_version}"
-    localRuntime "maven.modrinth:jade:${jade_version}"
+    if (devMods) localRuntime "maven.modrinth:jade:${jade_version}"
     compileOnly "maven.modrinth:the-one-probe:${top_version}"
-    localRuntime "maven.modrinth:the-one-probe:${top_version}"
+    if (devMods) localRuntime "maven.modrinth:the-one-probe:${top_version}"
 
     compileOnly "maven.modrinth:ae2:${ae2_version}"
-    localRuntime "maven.modrinth:ae2:${ae2_version}"
-    localRuntime "maven.modrinth:guideme:${guideme_version}"
+    if (devMods) localRuntime "maven.modrinth:ae2:${ae2_version}"
+    if (devMods) localRuntime "maven.modrinth:guideme:${guideme_version}"
 
     compileOnly "maven.modrinth:mekanism:${mekanism_version}"
-    localRuntime "maven.modrinth:mekanism:${mekanism_version}"
+    if (devMods) localRuntime "maven.modrinth:mekanism:${mekanism_version}"
     // Ex Deorum is only here so the self-test can read its real sieve and hammer recipes; AeroFlux
     // never compiles against it. It stays out of data generation, which needs none of it.
     // EMI, WTHIT (with Bad Packets, which it needs), CraftTweaker and Create run in the dev client
     // and the self-test too, and stay out of data generation the same way.
     if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
-        localRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
-        localRuntime "maven.modrinth:emi:${emi_version}"
-        localRuntime "maven.modrinth:wthit:${wthit_version}"
-        localRuntime "maven.modrinth:badpackets:${badpackets_version}"
-        localRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
-        localRuntime "maven.modrinth:create:${create_version}"
+        if (devMods) localRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
+        if (devMods) localRuntime "maven.modrinth:emi:${emi_version}"
+        if (devMods) localRuntime "maven.modrinth:wthit:${wthit_version}"
+        if (devMods) localRuntime "maven.modrinth:badpackets:${badpackets_version}"
+        if (devMods) localRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
+        if (devMods) localRuntime "maven.modrinth:create:${create_version}"
     }
     compileOnly "maven.modrinth:jei:${jei_version}"
-    localRuntime "maven.modrinth:jei:${jei_version}"
+    if (devMods) localRuntime "maven.modrinth:jei:${jei_version}"
 
     compileOnly "maven.modrinth:kubejs:${kubejs_version}"
     compileOnly "maven.modrinth:rhino:${rhino_version}"
