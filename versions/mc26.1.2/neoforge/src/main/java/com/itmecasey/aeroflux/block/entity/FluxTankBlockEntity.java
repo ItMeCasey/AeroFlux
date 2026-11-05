@@ -13,6 +13,7 @@ import com.itmecasey.aeroflux.registry.ModDataComponents;
 import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.component.DataComponentGetter;
@@ -68,6 +69,18 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
             @Override
             public long getCapacityAsLong(int index, FluidResource resource) {
                 return Math.max(super.getCapacityAsLong(index, resource), getAmountAsLong(index));
+            }
+
+            /**
+             * A save that names a fluid no longer installed decodes to no slots at all, which would
+             * crash the next tick that looks at slot 0; the tank keeps its one (empty) slot instead.
+             */
+            @Override
+            public void deserialize(ValueInput input) {
+                super.deserialize(input);
+                if (size() == 0) {
+                    setStacks(NonNullList.withSize(1, FluidStack.EMPTY));
+                }
             }
 
             @Override
