@@ -122,6 +122,41 @@ public final class RecipeImports {
     private RecipeImports() {
     }
 
+    /**
+     * The imported recipes the server sent this client (see {@link RecipeSync}), for the recipe
+     * viewers. Since 26.1 a client gets no recipes of other mods, so the server works the imports
+     * out and sends the result.
+     */
+    private static volatile Map<MachineType, List<RecipeHolder<FluxRecipe>>> syncedForViewer = Map.of();
+
+    /**
+     * The recipes imported for one machine as a recipe viewer should list them: the ones the machine
+     * runs on the server, the ones the server sent on a client.
+     */
+    public static List<RecipeHolder<FluxRecipe>> forViewer(net.minecraft.world.level.Level level, MachineType machine) {
+        if (level instanceof ServerLevel server) {
+            return of(server, machine);
+        }
+        return syncedForViewer.getOrDefault(machine, List.of());
+    }
+
+    /** Every machine's imports as the server would send them now. */
+    static Map<MachineType, List<RecipeHolder<FluxRecipe>>> forSync(ServerLevel level) {
+        Map<MachineType, List<RecipeHolder<FluxRecipe>>> all = new EnumMap<>(MachineType.class);
+        for (MachineType machine : MachineType.values()) {
+            List<RecipeHolder<FluxRecipe>> imported = of(level, machine);
+            if (!imported.isEmpty()) {
+                all.put(machine, List.copyOf(imported));
+            }
+        }
+        return all;
+    }
+
+    /** Takes the imports a server sent. */
+    static void useSynced(Map<MachineType, List<RecipeHolder<FluxRecipe>>> imports) {
+        syncedForViewer = Map.copyOf(imports);
+    }
+
     /** The recipes imported for one machine, worked out again whenever the server's recipes change. */
     public static synchronized List<RecipeHolder<FluxRecipe>> of(ServerLevel level, MachineType machine) {
         Collection<RecipeHolder<?>> recipes = level.recipeAccess().getRecipes();

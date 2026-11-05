@@ -65,6 +65,22 @@ public final class SieveImports {
     private SieveImports() {
     }
 
+    /** The drops the server sent this client, for the recipe viewers. */
+    private static volatile List<SieveRoll> syncedForViewer = List.of();
+
+    /**
+     * Every sieve drop as a recipe viewer should list it: the ones the Sifter runs on the server,
+     * the ones the server sent on a client (a 26.1 client gets no recipes of other mods).
+     */
+    public static List<SieveRoll> forViewer(net.minecraft.world.level.Level level) {
+        return level instanceof ServerLevel server ? of(server) : syncedForViewer;
+    }
+
+    /** Takes the drops a server sent. */
+    static void useSynced(List<SieveRoll> drops) {
+        syncedForViewer = List.copyOf(drops);
+    }
+
     /** Every sieve drop, worked out again only when the server's recipes have changed since last time. */
     public static List<SieveRoll> of(ServerLevel level) {
         Collection<RecipeHolder<?>> recipes = level.recipeAccess().getRecipes();
