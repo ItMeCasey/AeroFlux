@@ -73,6 +73,8 @@ import net.minecraftforge.network.NetworkHooks;
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID, value = Dist.CLIENT)
 public final class ShotTour {
     private static final boolean ENABLED = System.getenv("AEROFLUX_SHOTS") != null;
+    /** With {@code AEROFLUX_SHOTS=bei} the tour opens the inventory with Barely Enough Items and shoots its browser and recipe popup. */
+    private static final boolean BEI = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     private static final String WORLD = "aeroflux_shots";
     /** Ticks for the chunk renderer to catch up after blocks change. */
     private static final int SETTLE = 30;
@@ -178,9 +180,14 @@ public final class ShotTour {
             Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
         });
 
-        sceneShots();
-        fluxScreenShots();
-        configuratorShot();
+        if (BEI) {
+            beiShots();
+        } else {
+            sceneShots();
+            fluxScreenShots();
+            configuratorShot();
+
+        }
 
         then(40, () -> {
             Minecraft minecraft = Minecraft.getInstance();
@@ -427,6 +434,96 @@ public final class ShotTour {
             player().getAbilities().flying = true;
             player().onUpdateAbilities();
         });
+    }
+
+    // --- Barely Enough Items ---------------------------------------------------------------
+
+    /**
+     * Opens the player inventory with the BEI browser, searches for AeroFlux items, opens the
+     * recipe popup of two of them and shoots each state. BEI is reached through reflection and the
+     * game's own mouse handler, so nothing here touches the desktop cursor or keyboard.
+     */
+    private static void beiShots() {
+        then(2, () -> server("gamemode survival @a", "gamerule doFireTick false"));
+        then(20, () -> Minecraft.getInstance().setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(player())));
+        then(40, () -> beiSearch("@aeroflux"));
+        beiHoverFirst();
+        shoot("bei_browser", 20);
+        beiOpenRecipes("flux dust", "bei_popup_dust");
+        beiOpenRecipes("fluxsteel ingot", "bei_popup_fluxsteel");
+        then(10, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS BEI popup open={}", beiPopupOpen()));
+    }
+
+    private static void beiOpenRecipes(String query, String shot) {
+        then(20, () -> {
+            try {
+                Class.forName("com.itmecasey.bei.client.RecipePopup").getMethod("close").invoke(null);
+            } catch (ReflectiveOperationException e) {
+                AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not close the popup", e);
+            }
+            beiSearch(query);
+        });
+        beiHoverFirst();
+        then(5, () -> mouseClick());
+        then(30, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS BEI '{}' popup open={}", query, beiPopupOpen()));
+        shoot(shot, 10);
+    }
+
+    private static void beiHoverFirst() {
+        then(30, () -> beiMoveToFirstCell());
+        then(10, () -> beiMoveToFirstCell());
+    }
+
+    private static Object beiField(String name) throws ReflectiveOperationException {
+        java.lang.reflect.Field field = Class.forName("com.itmecasey.bei.client.BrowserPanel").getDeclaredField(name);
+        field.setAccessible(true);
+        return field.get(null);
+    }
+
+    private static void beiSearch(String text) {
+        try {
+            ((net.minecraft.client.gui.components.EditBox) beiField("box")).setValue(text);
+        } catch (ReflectiveOperationException e) {
+            AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not reach BEI's search box", e);
+        }
+    }
+
+    private static boolean beiPopupOpen() {
+        try {
+            return (Boolean) Class.forName("com.itmecasey.bei.client.RecipePopup").getMethod("isOpen").invoke(null);
+        } catch (ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
+    /** Moves the game's own cursor over the first cell of BEI's grid (twice: the game ignores a first move). */
+    private static void beiMoveToFirstCell() {
+        try {
+            Minecraft game = Minecraft.getInstance();
+            int gx = (Integer) beiField("gridX") + 9;
+            int gy = (Integer) beiField("gridY") + 9;
+            double sx = gx * (double) game.getWindow().getScreenWidth() / game.getWindow().getGuiScaledWidth();
+            double sy = gy * (double) game.getWindow().getScreenHeight() / game.getWindow().getGuiScaledHeight();
+            java.lang.reflect.Method move = net.minecraft.client.MouseHandler.class.getDeclaredMethod("onMove", long.class, double.class, double.class);
+            move.setAccessible(true);
+            move.invoke(game.mouseHandler, game.getWindow().getWindow(), sx + 3, sy);
+            move.invoke(game.mouseHandler, game.getWindow().getWindow(), sx, sy);
+        } catch (ReflectiveOperationException e) {
+            AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not move the game cursor", e);
+        }
+    }
+
+    /** A left click through the game's own mouse handler, at wherever the game cursor is. */
+    private static void mouseClick() {
+        try {
+            Minecraft game = Minecraft.getInstance();
+            java.lang.reflect.Method press = net.minecraft.client.MouseHandler.class.getDeclaredMethod("onPress", long.class, int.class, int.class, int.class);
+            press.setAccessible(true);
+            press.invoke(game.mouseHandler, game.getWindow().getWindow(), 0, 1, 0);
+            press.invoke(game.mouseHandler, game.getWindow().getWindow(), 0, 0, 0);
+        } catch (ReflectiveOperationException e) {
+            AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not click", e);
+        }
     }
 
     private static void shoot(String name, int delay) {
