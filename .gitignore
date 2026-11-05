@@ -31,7 +31,6 @@ reference/
 
 # Private planning notes (kept locally only)
 PLAN.md
-PROJECT_STATUS.md
 RODIN_PROMPTS.md
 
 # Secrets and local config; never commit these
