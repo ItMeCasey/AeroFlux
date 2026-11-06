@@ -142,6 +142,8 @@ repositories {
 
 // -PbeiCheck leaves the other mods out of the dev client and runs BEI beside AeroFlux, so a recipe viewer check shows the two alone.
 def devMods = !project.hasProperty('beiCheck')
+// -PdevOnly=jade (comma list) puts just those mods back into a -PbeiCheck run.
+def devOnly = (project.findProperty('devOnly') ?: '').toString().split(',') as List
 
 dependencies {
     if (!devMods && file('devlibs/bei-forge-1.20.1-2026.11.4.jar').exists()) runtimeOnly fg.deobf('local.dev:bei-forge-1.20.1:2026.11.4')
@@ -156,24 +158,24 @@ dependencies {
     // Optional mods. AeroFlux compiles against them and runs with the ones the dev runs need;
     // none of them is required at play time. fg.deobf maps their jars to our mappings.
     compileOnly fg.deobf("maven.modrinth:jade:${jade_version}")
-    if (devMods) runtimeOnly fg.deobf("maven.modrinth:jade:${jade_version}")
+    if (devMods || devOnly.contains('jade')) runtimeOnly fg.deobf("maven.modrinth:jade:${jade_version}")
     compileOnly fg.deobf("maven.modrinth:the-one-probe:${top_version}")
-    if (devMods) runtimeOnly fg.deobf("maven.modrinth:the-one-probe:${top_version}")
+    if (devMods || devOnly.contains('the-one-probe')) runtimeOnly fg.deobf("maven.modrinth:the-one-probe:${top_version}")
     compileOnly fg.deobf("maven.modrinth:ae2:${ae2_version}")
-    if (devMods) runtimeOnly fg.deobf("maven.modrinth:ae2:${ae2_version}")
-    if (devMods) runtimeOnly fg.deobf("maven.modrinth:guideme:${guideme_version}")
+    if (devMods || devOnly.contains('ae2')) runtimeOnly fg.deobf("maven.modrinth:ae2:${ae2_version}")
+    if (devMods || devOnly.contains('guideme')) runtimeOnly fg.deobf("maven.modrinth:guideme:${guideme_version}")
     compileOnly fg.deobf("maven.modrinth:mekanism:${mekanism_version}")
-    if (devMods) runtimeOnly fg.deobf("maven.modrinth:mekanism:${mekanism_version}")
+    if (devMods || devOnly.contains('mekanism')) runtimeOnly fg.deobf("maven.modrinth:mekanism:${mekanism_version}")
     // Ex Deorum is only here so the self-test can read its real sieve and hammer recipes; AeroFlux
     // never compiles against it. It stays out of data generation, which needs none of it.
     if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
-        if (devMods) runtimeOnly fg.deobf("maven.modrinth:ex-deorum:${exdeorum_version}")
+        if (devMods || devOnly.contains('ex-deorum')) runtimeOnly fg.deobf("maven.modrinth:ex-deorum:${exdeorum_version}")
         // EMI, WTHIT (with Bad Packets, which it needs) and CraftTweaker run in the dev client and the
         // self-test too, and stay out of data generation the same way.
-        if (devMods) runtimeOnly fg.deobf("maven.modrinth:emi:${emi_version}")
-        if (devMods) runtimeOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
-        if (devMods) runtimeOnly fg.deobf("maven.modrinth:badpackets:${badpackets_version}")
-        if (devMods) runtimeOnly fg.deobf("maven.modrinth:crafttweaker:${crafttweaker_version}")
+        if (devMods || devOnly.contains('emi')) runtimeOnly fg.deobf("maven.modrinth:emi:${emi_version}")
+        if (devMods || devOnly.contains('wthit')) runtimeOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
+        if (devMods || devOnly.contains('badpackets')) runtimeOnly fg.deobf("maven.modrinth:badpackets:${badpackets_version}")
+        if (devMods || devOnly.contains('crafttweaker')) runtimeOnly fg.deobf("maven.modrinth:crafttweaker:${crafttweaker_version}")
     }
     compileOnly fg.deobf("maven.modrinth:emi:${emi_version}")
     compileOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
@@ -186,7 +188,7 @@ dependencies {
     compileOnly files('libs/smwti-forge-1.20.1-2026.11.2-api.jar')
     compileOnly files('libs/bei-forge-1.20.1-2026.11.4-api.jar')
     compileOnly fg.deobf("maven.modrinth:jei:${jei_version}")
-    if (devMods) runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
+    if (devMods || devOnly.contains('jei')) runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
     compileOnly fg.deobf("maven.modrinth:kubejs:${kubejs_version}")
     compileOnly fg.deobf("maven.modrinth:rhino:${rhino_version}")
     compileOnly fg.deobf("maven.modrinth:rei:${rei_version}")

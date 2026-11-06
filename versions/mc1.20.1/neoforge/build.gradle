@@ -127,6 +127,8 @@ obfuscation {
 
 // -PbeiCheck leaves the other mods out of the dev client, so a recipe viewer check shows AeroFlux with BEI alone.
 def devMods = !project.hasProperty('beiCheck')
+// -PdevOnly=jade (comma list) puts just those mods back into a -PbeiCheck run.
+def devOnly = (project.findProperty('devOnly') ?: '').toString().split(',') as List
 
 dependencies {
     // If you wish to declare dependencies against mods, make sure to use the 'mod*' configurations so that they're remapped.
@@ -157,26 +159,26 @@ dependencies {
     // Optional mods, the same Forge 1.20.1 builds the Forge project uses. AeroFlux compiles against
     // them and runs with the ones the dev runs need; none of them is required at play time.
     modCompileOnly "maven.modrinth:jade:${jade_version}"
-    if (devMods) modLocalRuntime "maven.modrinth:jade:${jade_version}"
+    if (devMods || devOnly.contains('jade')) modLocalRuntime "maven.modrinth:jade:${jade_version}"
     modCompileOnly "maven.modrinth:the-one-probe:${top_version}"
-    if (devMods) modLocalRuntime "maven.modrinth:the-one-probe:${top_version}"
+    if (devMods || devOnly.contains('the-one-probe')) modLocalRuntime "maven.modrinth:the-one-probe:${top_version}"
     modCompileOnly "maven.modrinth:ae2:${ae2_version}"
-    if (devMods) modLocalRuntime "maven.modrinth:ae2:${ae2_version}"
-    if (devMods) modLocalRuntime "maven.modrinth:guideme:${guideme_version}"
+    if (devMods || devOnly.contains('ae2')) modLocalRuntime "maven.modrinth:ae2:${ae2_version}"
+    if (devMods || devOnly.contains('guideme')) modLocalRuntime "maven.modrinth:guideme:${guideme_version}"
     modCompileOnly "maven.modrinth:mekanism:${mekanism_version}"
-    if (devMods) modLocalRuntime "maven.modrinth:mekanism:${mekanism_version}"
+    if (devMods || devOnly.contains('mekanism')) modLocalRuntime "maven.modrinth:mekanism:${mekanism_version}"
     // The sieve mods are only here so the self-test can read their real sieve and hammer recipes;
     // AeroFlux never compiles against them. They stay out of data generation, which needs none of them.
     if (!gradle.startParameter.taskNames.any { it.toLowerCase().contains('rundata') }) {
-        if (devMods) modLocalRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
-        if (devMods) modLocalRuntime "maven.modrinth:exnihilosequentia:${exnihilo_version}"
-        if (devMods) modLocalRuntime "maven.modrinth:novacore:${novacore_version}"
+        if (devMods || devOnly.contains('ex-deorum')) modLocalRuntime "maven.modrinth:ex-deorum:${exdeorum_version}"
+        if (devMods || devOnly.contains('exnihilosequentia')) modLocalRuntime "maven.modrinth:exnihilosequentia:${exnihilo_version}"
+        if (devMods || devOnly.contains('novacore')) modLocalRuntime "maven.modrinth:novacore:${novacore_version}"
         // EMI, WTHIT (with Bad Packets, which it needs) and CraftTweaker run in the dev client and the
         // self-test too, and stay out of data generation the same way.
-        if (devMods) modLocalRuntime "maven.modrinth:emi:${emi_version}"
-        if (devMods) modLocalRuntime "maven.modrinth:wthit:${wthit_version}"
-        if (devMods) modLocalRuntime "maven.modrinth:badpackets:${badpackets_version}"
-        if (devMods) modLocalRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
+        if (devMods || devOnly.contains('emi')) modLocalRuntime "maven.modrinth:emi:${emi_version}"
+        if (devMods || devOnly.contains('wthit')) modLocalRuntime "maven.modrinth:wthit:${wthit_version}"
+        if (devMods || devOnly.contains('badpackets')) modLocalRuntime "maven.modrinth:badpackets:${badpackets_version}"
+        if (devMods || devOnly.contains('crafttweaker')) modLocalRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
     }
     modCompileOnly "maven.modrinth:emi:${emi_version}"
     modCompileOnly "maven.modrinth:wthit:${wthit_version}"
@@ -189,7 +191,7 @@ dependencies {
     compileOnly files('libs/smwti-neoforge-1.20.1-2026.11.2-api.jar')
     compileOnly files('libs/bei-neoforge-1.20.1-2026.11.4-api.jar')
     modCompileOnly "maven.modrinth:jei:${jei_version}"
-    if (devMods) modLocalRuntime "maven.modrinth:jei:${jei_version}"
+    if (devMods || devOnly.contains('jei')) modLocalRuntime "maven.modrinth:jei:${jei_version}"
     modCompileOnly "maven.modrinth:kubejs:${kubejs_version}"
     modCompileOnly "maven.modrinth:rhino:${rhino_version}"
     modCompileOnly "maven.modrinth:rei:${rei_version}"

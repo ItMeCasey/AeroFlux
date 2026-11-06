@@ -64,7 +64,7 @@ Spend: none
 - [~] Jade, The One Probe, WTHIT and SMWTI plugins (SMWTI on 26.1 Forge only, through its API jar; Jade, The One Probe and WTHIT where those mods exist, none seen in a client) (w:3)
 - [x] BEI recipe viewer plugin (cards for every recipe machine and the Sifter on all six builds, seen in a client on all six: browser, Copper Infuser card, Copper Alloy Smelter cards; 26.1.2 Forge got a recipe sync of its own first) (w:3)
 - [x] SMWTI plugin on all six builds (seen in a client on all six: Copper Furnace and Copper Flux Collector panels read correctly) (w:2)
-- [~] Client check of every viewer and overlay integration (BEI and SMWTI done on all six, frames in docs/frames; REI, JEI, EMI, Jade, The One Probe and WTHIT not checked) (w:3)
+- [~] Client check of every viewer and overlay integration (BEI and SMWTI on all six, Jade on four builds, frames in docs/frames; JEI, REI, EMI, The One Probe and WTHIT not checked) (w:3)
 - [x] Compatibility table (docs/COMPATIBILITY.md: which BEI, REI, JEI, EMI, Jade and SMWTI builds exist per version and loader, what AeroFlux has) (w:1)
 
 ## Cross-cutting

@@ -48,7 +48,9 @@ Client checks use the dev-only tours (`AEROFLUX_SHOTS=bei` and `AEROFLUX_SHOTS=s
 | BEI in a real client: browser lists AeroFlux items, recipe popup opens, Infuser card and two Alloy Smelter cards drawn | yes on all six builds. Frames: `docs/frames/bei-<version>-<loader>-browser.png`, `-popup_dust.png`, `-popup_fluxsteel.png` |
 | SMWTI in a real client: look at a Copper Furnace and a Copper Flux Collector, read the panel | yes on all six builds (furnace: Empty 0 / 1000 mB, Idle; collector: Aero Flux about 1900 / 8000 mB). Frames: `docs/frames/smwti-<version>-<loader>-furnace.png` and `-collector.png`. Retaken on 26.1.2 Forge with SMWTI alone: one panel, correct lines. The first 26.1.2 Forge frames showed a second faint panel because WTHIT was also loaded in the dev run; WTHIT is now opt-in there (`-PbeiCheck`), as on the other builds. The 26.1.2 Forge BEI frames were retaken with BEI alone (WTHIT off) on 2026-11-06 and look the same |
 | In-game server self-test after these changes | not run locally; the Build workflow runs it on push |
-| REI, JEI, EMI, Jade, The One Probe, WTHIT in a real client | not tested on any build in this pass |
+| Jade in a real client (Jade alone in the dev run): look at a Copper Furnace and a Copper Flux Collector | yes on 26.1.2 NeoForge, 1.21.1 NeoForge, 1.20.1 NeoForge and 1.20.1 Forge, 2026-11-06 (furnace: Idle, Empty 1,000 mB; collector: Aero Flux about 1,900 mB). Frames `docs/frames/jade-<version>-<loader>-*.png` |
+| JEI, REI, EMI in a real client | not tested. REI needs Architectury and Cloth Config in the dev run, which are not set up; JEI and EMI would need a hook to open AeroFlux's recipe pages from inside the game, which the tours do not have. The plugins compile and their unit and self-test coverage runs in CI |
+| The One Probe, WTHIT in a real client | not tested |
 | Jade on 1.21.1 Forge | no usable build: Jade has none for Forge 1.21.1 |
 
 The CurseForge description's "Tested" line should say BEI and SMWTI were checked in a client on all six builds and the other viewers were not.
