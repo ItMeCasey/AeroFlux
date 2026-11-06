@@ -274,7 +274,11 @@ public final class BeiTour {
         targets.add(new Object[] {"tank_fluxium", com.itmecasey.aeroflux.registry.ModBlocks.tank(com.itmecasey.aeroflux.core.Tier.FLUXIUM).get(), null});
         targets.add(new Object[] {"chunk_loader_gold", com.itmecasey.aeroflux.registry.ModBlocks.chunkLoader(com.itmecasey.aeroflux.core.Tier.GOLD).get(), null});
         targets.add(new Object[] {"converter_energy_gold", com.itmecasey.aeroflux.registry.ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.ENERGY, com.itmecasey.aeroflux.core.Tier.GOLD).get(), null});
-        targets.add(new Object[] {"converter_ae_gold", com.itmecasey.aeroflux.registry.ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, com.itmecasey.aeroflux.core.Tier.GOLD).get(), null});
+        try {
+            targets.add(new Object[] {"converter_ae_gold", com.itmecasey.aeroflux.registry.ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, com.itmecasey.aeroflux.core.Tier.GOLD).get(), null});
+        } catch (RuntimeException e) {
+            // No AE2 converter on this build.
+        }
         for (int i = 0; i < targets.size(); i++) {
             String name = (String) targets.get(i)[0];
             net.minecraft.world.level.block.Block block = (net.minecraft.world.level.block.Block) targets.get(i)[1];

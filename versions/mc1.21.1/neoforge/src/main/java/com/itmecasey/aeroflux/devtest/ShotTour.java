@@ -799,7 +799,11 @@ public final class ShotTour {
         targets.add(new Object[] {"tank_fluxium", ModBlocks.tank(Tier.FLUXIUM).get(), null});
         targets.add(new Object[] {"chunk_loader_gold", ModBlocks.chunkLoader(Tier.GOLD).get(), null});
         targets.add(new Object[] {"converter_energy_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.ENERGY, Tier.GOLD).get(), null});
-        targets.add(new Object[] {"converter_ae_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, Tier.GOLD).get(), null});
+        try {
+            targets.add(new Object[] {"converter_ae_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, Tier.GOLD).get(), null});
+        } catch (RuntimeException e) {
+            // No AE2 converter on this build.
+        }
         for (int i = 0; i < targets.size(); i++) {
             String name = (String) targets.get(i)[0];
             net.minecraft.world.level.block.Block block = (net.minecraft.world.level.block.Block) targets.get(i)[1];
