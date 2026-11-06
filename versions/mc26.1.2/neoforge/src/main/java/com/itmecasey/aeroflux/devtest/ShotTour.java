@@ -793,6 +793,25 @@ public final class ShotTour {
             });
             openShot(pos, "gui_" + name);
         }
+        // The guidebook: its contents page, then three pages (a chapter opener, a middle page, the last).
+        then(2, () -> {
+            player().closeContainer();
+            com.itmecasey.aeroflux.client.screen.GuideScreen.open();
+        });
+        shoot("gui_guide_contents", 20);
+        for (int page : new int[] {1, 9, 22}) {
+            then(5, () -> {
+                try {
+                    java.lang.reflect.Method show = com.itmecasey.aeroflux.client.screen.GuideScreen.class.getDeclaredMethod("show", int.class);
+                    show.setAccessible(true);
+                    show.invoke(Minecraft.getInstance().screen, page);
+                } catch (ReflectiveOperationException e) {
+                    AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not turn the guide page", e);
+                }
+            });
+            shoot("gui_guide_page_" + page, 15);
+        }
+        then(2, () -> Minecraft.getInstance().setScreen(null));
     }
 
     private static void shoot(String name, int delay) {

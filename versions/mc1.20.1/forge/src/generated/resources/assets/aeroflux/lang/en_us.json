@@ -369,7 +369,7 @@
   "guide.aeroflux.chunk_loader.title": "Flux Chunk Loader",
   "guide.aeroflux.collectors.body": "Collectors need open sky above them. Each tier collects faster and holds more; clear weather and a bright moon speed them up.\nRight-click one to see its screen: the buffer, the rate now, and a sky panel that names what blocks the sky.",
   "guide.aeroflux.collectors.title": "Collectors",
-  "guide.aeroflux.compat.body": "Jade, The One Probe and WTHIT show Flux levels. JEI, REI and EMI list the recipes, including ones AeroFlux machines run from other mods: Create, Mekanism, Thermal, Immersive Engineering and more.\nScripts can add and remove recipes with KubeJS or CraftTweaker where they exist.",
+  "guide.aeroflux.compat.body": "Show Me What This Is, Jade, The One Probe and WTHIT show Flux levels. Barely Enough Items, JEI, REI and EMI list the recipes, including ones AeroFlux machines run from other mods: Create, Mekanism, Thermal, Immersive Engineering and more.\nScripts can add and remove recipes with KubeJS or CraftTweaker where they exist.",
   "guide.aeroflux.compat.title": "Other Mods",
   "guide.aeroflux.conduit_tool.body": "Six modes, switched by sneaking in the air: edit, remove, remove run, copy, paste and inspect. Removing gives the pipe and its upgrades back; sneak to take the whole bundle.\nA run removes one kind of pipe along a straight line of up to 64 blocks. Copy and paste moves face settings between bundles, and inspect describes a network in chat.",
   "guide.aeroflux.conduit_tool.title": "Conduit Tool",

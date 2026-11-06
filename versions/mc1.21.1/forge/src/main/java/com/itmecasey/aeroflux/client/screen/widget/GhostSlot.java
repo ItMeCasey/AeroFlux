@@ -47,7 +47,11 @@ public class GhostSlot extends AbstractWidget {
             graphics.renderFakeItem(stack, x + 1, y + 1);
         } else if (!hint.isEmpty()) {
             graphics.renderFakeItem(hint, x + 1, y + 1);
+            // A fake item is drawn well in front of the screen, so the veil has to go in front of it.
+            graphics.pose().pushPose();
+            graphics.pose().translate(0.0F, 0.0F, 200.0F);
             graphics.fill(x + 1, y + 1, x + 17, y + 17, HINT_VEIL);
+            graphics.pose().popPose();
         }
         if (isMouseOver(mouseX, mouseY)) {
             // The same white wash vanilla lays over a hovered slot.

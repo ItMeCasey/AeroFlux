@@ -59,14 +59,14 @@ public class GuideScreen extends Screen {
     private void layoutWidgets() {
         clearWidgets();
         if (page == CONTENTS) {
-            int y = top + MARGIN + 34;
+            int y = top + MARGIN + 30;
             for (GuideBook.Chapter chapter : GuideBook.chapters()) {
                 int first = PAGES.indexOf(chapter.pages().get(0));
                 Component label = Component.literal((GuideBook.chapters().indexOf(chapter) + 1) + ". ")
                         .append(Component.translatable(GuideBook.PREFIX + "chapter." + chapter.id()));
                 addRenderableWidget(Button.builder(label, button -> show(first))
-                        .bounds(left + MARGIN, y, WIDTH - 2 * MARGIN, 18).build());
-                y += 22;
+                        .bounds(left + MARGIN, y, WIDTH - 2 * MARGIN, 16).build());
+                y += 20;
             }
         } else {
             addRenderableWidget(Button.builder(Component.literal("≡"), button -> show(CONTENTS))

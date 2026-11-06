@@ -104,7 +104,7 @@ public final class GuideBook {
                             "Machines hum while they work and chime when they finish. The client settings can turn the machine sounds off.\n"
                                     + "Rates, storage sizes and recipe rules live in the config files, and the storage sizes sync from the server."),
                     new Page("compat", "compatibility", "Other Mods",
-                            "Jade, The One Probe and WTHIT show Flux levels. JEI, REI and EMI list the recipes, including ones AeroFlux machines run from other mods: Create, Mekanism, Thermal, Immersive Engineering and more.\n"
+                            "Show Me What This Is, Jade, The One Probe and WTHIT show Flux levels. Barely Enough Items, JEI, REI and EMI list the recipes, including ones AeroFlux machines run from other mods: Create, Mekanism, Thermal, Immersive Engineering and more.\n"
                                     + "Scripts can add and remove recipes with KubeJS or CraftTweaker where they exist."))));
 
     private GuideBook() {
