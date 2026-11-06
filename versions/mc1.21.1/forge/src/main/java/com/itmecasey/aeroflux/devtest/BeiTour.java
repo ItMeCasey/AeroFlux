@@ -36,7 +36,8 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = AeroFlux.MODID, value = Dist.CLIENT)
 public final class BeiTour {
     private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
-    private static final boolean ENABLED = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || SMWTI;
+    private static final boolean GUIS = "guis".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    private static final boolean ENABLED = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || SMWTI || GUIS;
     private static final String WORLD = "aeroflux_shots";
 
     private enum Stage { WAITING_FOR_MENU, LOADING_WORLD, TOURING, DONE }
@@ -123,6 +124,16 @@ public final class BeiTour {
 
     private static void plan() {
         // Forge crashes on fire ticks in a fresh world, so fire is switched off before anything else.
+        if (GUIS) {
+            then(0, () -> server("gamerule doFireTick false", "gamerule doDaylightCycle false", "time set noon"));
+            guisShots();
+            then(40, () -> {
+                AeroFlux.LOGGER.info("AEROFLUX-SHOTS DONE");
+                stage = Stage.DONE;
+                Minecraft.getInstance().stop();
+            });
+            return;
+        }
         if (SMWTI) {
             then(0, () -> server("gamerule doFireTick false", "gamerule doDaylightCycle false", "time set noon"));
             smwtiShots();
@@ -238,6 +249,86 @@ public final class BeiTour {
         then(5, () -> server("tp @a 3.5 " + (int) Math.floor(player().getY()) + " 0.5 0 18"));
         then(60, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS SMWTI collector in view"));
         shoot("smwti_collector", 60);
+    }
+
+    // --- Every screen ----------------------------------------------------------------------
+
+    /**
+     * Opens the screen of every machine (at gold, plus the furnace at copper and fluxium), the
+     * converters, the chunk loader, and the collector and tank at copper and fluxium, each with some
+     * Flux in it, and shoots each one. The blocks are set by the server, the player is teleported
+     * next to each so the menu stays valid, and the screen opens the way the server opens it.
+     */
+    private static void guisShots() {
+        then(0, () -> server("gamemode survival @a"));
+        java.util.List<Object[]> targets = new java.util.ArrayList<>();
+        for (com.itmecasey.aeroflux.core.machine.MachineType type : com.itmecasey.aeroflux.core.machine.MachineType.values()) {
+            targets.add(new Object[] {"machine_" + type.id() + "_gold", com.itmecasey.aeroflux.registry.ModBlocks.machine(type, com.itmecasey.aeroflux.core.Tier.GOLD).get(), type});
+        }
+        com.itmecasey.aeroflux.core.machine.MachineType furnace = com.itmecasey.aeroflux.core.machine.MachineType.FURNACE;
+        targets.add(new Object[] {"machine_" + furnace.id() + "_copper", com.itmecasey.aeroflux.registry.ModBlocks.machine(furnace, com.itmecasey.aeroflux.core.Tier.COPPER).get(), furnace});
+        targets.add(new Object[] {"machine_" + furnace.id() + "_fluxium", com.itmecasey.aeroflux.registry.ModBlocks.machine(furnace, com.itmecasey.aeroflux.core.Tier.FLUXIUM).get(), furnace});
+        targets.add(new Object[] {"collector_copper", com.itmecasey.aeroflux.registry.ModBlocks.collector(com.itmecasey.aeroflux.core.Tier.COPPER).get(), null});
+        targets.add(new Object[] {"collector_fluxium", com.itmecasey.aeroflux.registry.ModBlocks.collector(com.itmecasey.aeroflux.core.Tier.FLUXIUM).get(), null});
+        targets.add(new Object[] {"tank_copper", com.itmecasey.aeroflux.registry.ModBlocks.tank(com.itmecasey.aeroflux.core.Tier.COPPER).get(), null});
+        targets.add(new Object[] {"tank_fluxium", com.itmecasey.aeroflux.registry.ModBlocks.tank(com.itmecasey.aeroflux.core.Tier.FLUXIUM).get(), null});
+        targets.add(new Object[] {"chunk_loader_gold", com.itmecasey.aeroflux.registry.ModBlocks.chunkLoader(com.itmecasey.aeroflux.core.Tier.GOLD).get(), null});
+        targets.add(new Object[] {"converter_energy_gold", com.itmecasey.aeroflux.registry.ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.ENERGY, com.itmecasey.aeroflux.core.Tier.GOLD).get(), null});
+        targets.add(new Object[] {"converter_ae_gold", com.itmecasey.aeroflux.registry.ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, com.itmecasey.aeroflux.core.Tier.GOLD).get(), null});
+        for (int i = 0; i < targets.size(); i++) {
+            String name = (String) targets.get(i)[0];
+            net.minecraft.world.level.block.Block block = (net.minecraft.world.level.block.Block) targets.get(i)[1];
+            com.itmecasey.aeroflux.core.machine.MachineType type = (com.itmecasey.aeroflux.core.machine.MachineType) targets.get(i)[2];
+            int x = 2 * i;
+            int z = 12;
+            then(2, () -> {
+                int y = (int) Math.floor(player().getY());
+                net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(x, y, z);
+                server("tp @a " + x + ".5 " + y + " " + (z - 3) + ".5 0 30");
+                MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+                if (server != null) {
+                    server.execute(() -> {
+                        net.minecraft.server.level.ServerLevel level = server.overworld();
+                        level.setBlockAndUpdate(pos, block.defaultBlockState());
+                        net.minecraft.world.level.block.entity.BlockEntity entity = level.getBlockEntity(pos);
+                        if (entity instanceof com.itmecasey.aeroflux.machine.FluxMachineBlockEntity machine && type != null) {
+                            boolean moonOnly = !type.acceptedFlux().contains(com.itmecasey.aeroflux.core.FluxType.AERO);
+                            machine.setFlux(new net.minecraftforge.fluids.FluidStack(moonOnly ? com.itmecasey.aeroflux.registry.ModFluids.MOON_FLUX.get() : com.itmecasey.aeroflux.registry.ModFluids.AERO_FLUX.get(), 3_000));
+                        } else if (entity instanceof com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity tank) {
+                            tank.tank().fill(new net.minecraftforge.fluids.FluidStack(com.itmecasey.aeroflux.registry.ModFluids.AERO_FLUX.get(), 5_000), net.minecraftforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+                        }
+                    });
+                }
+            });
+            then(20, () -> {
+            });
+            then(5, () -> {
+                int y = (int) Math.floor(player().getY());
+                net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(x, y, z);
+                MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+                if (server != null) {
+                    server.execute(() -> {
+                        net.minecraft.server.level.ServerPlayer player = server.getPlayerList().getPlayers().get(0);
+                        net.minecraft.world.level.block.entity.BlockEntity entity = server.overworld().getBlockEntity(pos);
+                        if (entity instanceof com.itmecasey.aeroflux.machine.FluxMachineBlockEntity machine) {
+                            player.openMenu(machine, machine::writeOpenData);
+                        } else if (entity instanceof com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity collector) {
+                            player.openMenu(collector, collector::writeOpenData);
+                        } else if (entity instanceof com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity tank) {
+                            player.openMenu(tank, tank::writeOpenData);
+                        } else if (entity instanceof com.itmecasey.aeroflux.converter.FluxConverterBlockEntity converter) {
+                            player.openMenu(converter, converter::writeOpenData);
+                        } else if (entity instanceof com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity loader) {
+                            player.openMenu(loader, loader::writeOpenData);
+                        } else {
+                            AeroFlux.LOGGER.warn("AEROFLUX-SHOTS nothing to open for {}", name);
+                        }
+                    });
+                }
+            });
+            shoot("gui_" + name, 10);
+            then(2, () -> player().closeContainer());
+        }
     }
 
     private static void shoot(String name, int delay) {

@@ -77,6 +77,8 @@ public final class ShotTour {
     private static final boolean BEI = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=smwti} the tour looks at a furnace and a collector and shoots the Show Me What This Is overlay. */
     private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    /** With {@code AEROFLUX_SHOTS=guis} the tour opens the screen of every machine, converter, chunk loader, collector and tank. */
+    private static final boolean GUIS = "guis".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     private static final String WORLD = "aeroflux_shots";
     /** Ticks for the chunk renderer to catch up after blocks change. */
     private static final int SETTLE = 30;
@@ -184,6 +186,8 @@ public final class ShotTour {
 
         if (BEI) {
             beiShots();
+        } else if (GUIS) {
+            guisShots();
         } else if (SMWTI) {
             smwtiShots();
         } else {
@@ -382,6 +386,8 @@ public final class ShotTour {
                 NetworkHooks.openScreen(player, collector, collector::writeOpenData);
             } else if (entity instanceof FluxTankBlockEntity tank) {
                 NetworkHooks.openScreen(player, tank, tank::writeOpenData);
+            } else if (entity instanceof com.itmecasey.aeroflux.converter.FluxConverterBlockEntity converter) {
+                NetworkHooks.openScreen(player, converter, converter::writeOpenData);
             } else {
                 AeroFlux.LOGGER.warn("AEROFLUX-SHOTS nothing to open for {}", name);
             }
@@ -548,6 +554,54 @@ public final class ShotTour {
         then(5, () -> server("tp @a 3.5 " + (int) Math.floor(player().getY()) + " 0.5 0 18"));
         then(60, () -> AeroFlux.LOGGER.info("AEROFLUX-SHOTS SMWTI collector in view"));
         shoot("smwti_collector", 60);
+    }
+
+    // --- Every screen ----------------------------------------------------------------------
+
+    /**
+     * Opens the screen of every machine (at gold, plus the furnace at copper and fluxium), the
+     * converters, the chunk loader where there is one, and the collector and tank at copper and
+     * fluxium, each with some Flux in it, and shoots each one. The blocks are set by the server,
+     * the player is moved next to each so the menu stays valid, and the screen opens the way the
+     * server opens it for a player.
+     */
+    private static void guisShots() {
+        then(0, () -> server("gamemode survival @a"));
+        java.util.List<Object[]> targets = new java.util.ArrayList<>();
+        for (MachineType type : MachineType.values()) {
+            targets.add(new Object[] {"machine_" + type.id() + "_gold", ModBlocks.machine(type, Tier.GOLD).get(), type});
+        }
+        targets.add(new Object[] {"machine_" + MachineType.FURNACE.id() + "_copper", ModBlocks.machine(MachineType.FURNACE, Tier.COPPER).get(), MachineType.FURNACE});
+        targets.add(new Object[] {"machine_" + MachineType.FURNACE.id() + "_fluxium", ModBlocks.machine(MachineType.FURNACE, Tier.FLUXIUM).get(), MachineType.FURNACE});
+        targets.add(new Object[] {"collector_copper", ModBlocks.collector(Tier.COPPER).get(), null});
+        targets.add(new Object[] {"collector_fluxium", ModBlocks.collector(Tier.FLUXIUM).get(), null});
+        targets.add(new Object[] {"tank_copper", ModBlocks.tank(Tier.COPPER).get(), null});
+        targets.add(new Object[] {"tank_fluxium", ModBlocks.tank(Tier.FLUXIUM).get(), null});
+        targets.add(new Object[] {"converter_energy_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.ENERGY, Tier.GOLD).get(), null});
+        targets.add(new Object[] {"converter_ae_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, Tier.GOLD).get(), null});
+        for (int i = 0; i < targets.size(); i++) {
+            String name = (String) targets.get(i)[0];
+            net.minecraft.world.level.block.Block block = (net.minecraft.world.level.block.Block) targets.get(i)[1];
+            MachineType type = (MachineType) targets.get(i)[2];
+            BlockPos pos = at(2 * i, 12);
+            then(2, () -> {
+                moveTo(new Vec3(pos.getX() + 0.5, pos.getY() + 1.62, pos.getZ() - 2.5), 0.0F, 30.0F);
+                onServer(server -> {
+                    ServerLevel level = server.overworld();
+                    level.setBlockAndUpdate(pos, block.defaultBlockState());
+                    BlockEntity entity = level.getBlockEntity(pos);
+                    if (entity instanceof FluxMachineBlockEntity machine && type != null) {
+                        boolean moonOnly = !type.acceptedFlux().contains(com.itmecasey.aeroflux.core.FluxType.AERO);
+                        machine.setFlux(new FluidStack(moonOnly ? ModFluids.MOON_FLUX.get() : ModFluids.AERO_FLUX.get(), 3_000));
+                    } else if (entity instanceof FluxTankBlockEntity tank) {
+                        tank.tank().fill(new FluidStack(ModFluids.AERO_FLUX.get(), 5_000), IFluidHandler.FluidAction.EXECUTE);
+                    }
+                });
+            });
+            then(20, () -> {
+            });
+            openShot(pos, "gui_" + name);
+        }
     }
 
     private static void shoot(String name, int delay) {
