@@ -105,7 +105,7 @@ public class TankScreen extends AbstractContainerScreen<TankMenu> {
         if (filled > 0 && !empty) {
             graphics.fill(barX + 1, barY + 1, barX + 1 + filled, barY + BAR_HEIGHT - 1, color);
         }
-        String percentText = Component.translatable("gui.aeroflux.tank.percent", percent).getString();
+        String percentText = percent == 0 && amount > 0 ? "<1%" : Component.translatable("gui.aeroflux.tank.percent", percent).getString();
         graphics.text(font, percentText, leftPos + INFO_X + INFO_WIDTH - 5 - font.width(percentText), barY - 1, TEXT, false);
 
         // The flows over the last second, and where they lead.

@@ -86,7 +86,11 @@ public class UpgradeSlots extends AbstractWidget implements HoverInfo {
                 int x = panelX + strip.slot(i).x();
                 int y = panelY + strip.slot(i).y();
                 graphics.renderFakeItem(ghost, x, y);
+                // A fake item is drawn well in front of the screen, so the veil has to go in front of it.
+                graphics.pose().pushPose();
+                graphics.pose().translate(0.0F, 0.0F, 200.0F);
                 graphics.fill(x, y, x + 16, y + 16, GHOST_VEIL);
+                graphics.pose().popPose();
             }
         }
     }
