@@ -93,4 +93,4 @@ Spend: none
 - [x] Release workflow (tag v* runs build.yml, checks mod_version against the tag, makes a GitHub prerelease, uploads six jars to CurseForge; dry run green; release run 41944925123 for v2026.11.5) (w:3)
 - [x] CurseForge release 2026.11.5 (six betas uploaded by the tag, all six approved on CurseForge) (w:2)
 - [x] CurseForge releases 2026.11.6 and 2026.11.7 (six builds each by tag; 2026.11.7 fixes upgrade-slot hint icons, the guidebook contents page and the Other Mods page) (w:1)
-- [ ] Modrinth release (on hold; project dN4XaJU1 has the page text and 2026.11.1 (NeoForge 26.1.2 only) and the six builds of 2026.11.2 to 2026.11.4 uploaded by hand, 2026.11.5 not uploaded, a duplicate 2026.11.3 version still to delete) (w:2)
+- [x] Modrinth release: frozen indefinitely by Casey (2026-11-06), existing uploads stay as they are (was on hold; project dN4XaJU1 has the page text and 2026.11.1 (NeoForge 26.1.2 only) and the six builds of 2026.11.2 to 2026.11.4 uploaded by hand, 2026.11.5 not uploaded, a duplicate 2026.11.3 version still to delete) (w:2)
