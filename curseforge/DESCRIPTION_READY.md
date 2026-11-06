@@ -95,7 +95,7 @@ AeroFlux doesn't need any other mod. If you have them, it works with:
 
 - **Recipe imports:** the machines can run other mods' processing recipes as the game loaded them: Create, Mekanism, Immersive Engineering, Thermal, Ender IO, Occultism, Oritech, Silent Gear, Mystical Agriculture, Ars Nouveau, Botany Pots, Actually Additions, Modern Industrialization, Industrial Foregoing and Crossroads.
 - **Mekanism** gas pipes (on the versions Mekanism exists for), **Applied Energistics 2** channels and power, and **Create** stress.
-- **Recipe viewers:** JEI, EMI and REI list the machines' recipes, including imported ones.
+- **Recipe viewers:** BEI, JEI, EMI and REI list the machines' recipes, including imported ones.
 - **Overlays:** Jade, The One Probe, WTHIT and our own **Show Me What This Is** show Flux levels and machine status.
 - **Scripting:** KubeJS and CraftTweaker can add, remove and change machine recipes.
 
