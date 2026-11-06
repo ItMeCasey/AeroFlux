@@ -56,3 +56,6 @@ assets-src/_current_pipe_textures.png
 
 # Jars a recipe viewer check runs against, never committed
 versions/*/*/devlibs/
+
+# dev run logs
+versions/*/*/run-data/logs/
