@@ -1,6 +1,6 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-05
+Updated: 2026-11-06
 Summary: All six builds (Forge and NeoForge on 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test in CI, and 2026.11.5 went out by tag as six CurseForge betas, while client-side screens and art are still unseen in a real client and Modrinth is on hold.
 Spend: none
 
@@ -14,9 +14,9 @@ Spend: none
 - [x] Registries, tier config, datagen pipeline (w:3)
 
 ## HUDs and GUIs
-- [~] Shared widget library (gauge, progress, status, side panel, upgrade slots, redstone button on all six; flux type badge and cost bar server side self-tested; screens never seen in a real client) (w:4)
-- [~] Machine screens (built on all six, opening and menu logic self-tested, never seen rendered) (w:4)
-- [~] Collector screen with sky panel and tank screen (files on all six, empty-hand opening self-tested on all six, never seen in a client) (w:3)
+- [x] Shared widget library (gauge, progress, status, side panel, upgrade slots, redstone button on all six; opened in a real client on all six builds, 2026-11-06, no clipping or overlap; upgrade-slot hints and the tank percent fixed in 2026.11.6) (w:4)
+- [x] Machine screens (every machine at gold, the furnace at copper and fluxium, opened in a real client on all six builds with the game's own handlers and read frame by frame; frames in docs/frames/gui-*) (w:4)
+- [x] Collector screen with sky panel and tank screen (copper and fluxium, opened in a real client on all six builds and read; the tank now shows <1% below one percent) (w:3)
 - [~] In-world look-at overlays (Jade, The One Probe, WTHIT and SMWTI plugins; see Phase 8-9) (w:3)
 
 ## Phase 2-4: Fluids, collectors, storage
