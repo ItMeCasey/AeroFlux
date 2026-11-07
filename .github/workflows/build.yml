@@ -33,6 +33,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - { name: neoforge-26.3, dir: versions/mc26.3/neoforge }
+          - { name: forge-26.3,    dir: versions/mc26.3/forge }
+          - { name: neoforge-26.2, dir: versions/mc26.2/neoforge }
+          - { name: forge-26.2,    dir: versions/mc26.2/forge }
           - { name: neoforge-26.1.2, dir: versions/mc26.1.2/neoforge }
           - { name: forge-26.1.2,    dir: versions/mc26.1.2/forge }
           - { name: neoforge-1.21.1, dir: versions/mc1.21.1/neoforge }
@@ -53,6 +57,9 @@ jobs:
             21
       - name: Build jar
         working-directory: ${{ matrix.dir }}
+        env:
+          IMC_MAVEN_USER: ${{ secrets.IMC_MAVEN_USER }}
+          IMC_MAVEN_PASSWORD: ${{ secrets.IMC_MAVEN_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew build --no-daemon
@@ -72,6 +79,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - { name: neoforge-26.3, dir: versions/mc26.3/neoforge }
+          - { name: forge-26.3,    dir: versions/mc26.3/forge }
+          - { name: neoforge-26.2, dir: versions/mc26.2/neoforge }
+          - { name: forge-26.2,    dir: versions/mc26.2/forge }
           - { name: neoforge-26.1.2, dir: versions/mc26.1.2/neoforge }
           - { name: forge-26.1.2,    dir: versions/mc26.1.2/forge }
           - { name: neoforge-1.21.1, dir: versions/mc1.21.1/neoforge }
@@ -92,6 +103,8 @@ jobs:
       - name: Run the server self-test
         working-directory: ${{ matrix.dir }}
         env:
+          IMC_MAVEN_USER: ${{ secrets.IMC_MAVEN_USER }}
+          IMC_MAVEN_PASSWORD: ${{ secrets.IMC_MAVEN_PASSWORD }}
           AEROFLUX_SELFTEST: "1"
           SELFTEST_PORT: "25599"
         run: |

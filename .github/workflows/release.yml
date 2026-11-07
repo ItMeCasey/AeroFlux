@@ -1,6 +1,6 @@
 name: release
 
-# Push a tag such as v2026.11.5 to build and self-test all six jars, publish a GitHub prerelease and upload them to CurseForge.
+# Push a tag such as v2026.11.5 to build and self-test all ten jars, publish a GitHub prerelease and upload them to CurseForge.
 # The tag must match mod_version in every build's gradle.properties.
 # Needs the repository secret CURSEFORGE_TOKEN (a CurseForge upload API token).
 # Run by hand (Actions, release, Run workflow) it builds and tests only, unless "publish" is ticked.
@@ -68,7 +68,7 @@ jobs:
             fi
             echo
             echo
-            echo "Builds for Minecraft 26.1.2, 1.21.1 and 1.20.1 on Forge and NeoForge. Guide: https://itmecasey.com/wiki/aeroflux/"
+            echo "Builds for Minecraft 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1 on Forge and NeoForge. Guide: https://itmecasey.com/wiki/aeroflux/"
           } > notes.md
           cat notes.md
 

@@ -23,10 +23,16 @@ API = "https://minecraft.curseforge.com/api"
 
 # Optional mods AeroFlux works with, as CurseForge slugs. Which ones exist depends on the Minecraft version and loader.
 RELATIONS_26_NEO = ["jade", "the-one-probe", "jei", "roughly-enough-items", "kubejs", "applied-energistics-2"]
+RELATIONS_26_2_NEO = ["jade", "the-one-probe", "jei", "roughly-enough-items", "applied-energistics-2", "wthit"]
+RELATIONS_26_3_NEO = ["jade", "the-one-probe", "jei", "roughly-enough-items", "applied-energistics-2"]
 RELATIONS_OLDER = ["jade", "the-one-probe", "jei", "roughly-enough-items", "emi", "kubejs", "applied-energistics-2", "wthit", "crafttweaker"]
 
 # module -> (Minecraft version, loader name on CurseForge, Java version name on CurseForge, optional mods)
 BUILDS = {
+    "forge-26.3": ("26.3", "Forge", "Java 25", []),
+    "neoforge-26.3": ("26.3", "NeoForge", "Java 25", RELATIONS_26_3_NEO),
+    "forge-26.2": ("26.2", "Forge", "Java 25", ["wthit"]),
+    "neoforge-26.2": ("26.2", "NeoForge", "Java 25", RELATIONS_26_2_NEO),
     "forge-26.1.2": ("26.1.2", "Forge", "Java 25", ["wthit"]),
     "neoforge-26.1.2": ("26.1.2", "NeoForge", "Java 25", RELATIONS_26_NEO),
     "forge-1.21.1": ("1.21.1", "Forge", "Java 21", ["jei"]),

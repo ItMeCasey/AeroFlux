@@ -54,3 +54,25 @@ Client checks use the dev-only tours (`AEROFLUX_SHOTS=bei` and `AEROFLUX_SHOTS=s
 | Jade on 1.21.1 Forge | no usable build: Jade has none for Forge 1.21.1 |
 
 The CurseForge description's "Tested" line should say BEI and SMWTI were checked in a client on all six builds and the other viewers were not.
+
+## 26.2 and 26.3 (added 2026.11.8)
+
+Checked 2026-11-06 against Modrinth's version lists (the other tables above were checked on CurseForge). "Code" means the integration is in the build and compiles; "no build" means the other mod has none for that version and loader, so AeroFlux's part is left out or stays inert.
+
+| Mod | 26.2 NeoForge | 26.2 Forge | 26.3 NeoForge | 26.3 Forge |
+|---|---|---|---|---|
+| BEI | code | code | code | code |
+| SMWTI | code | code | code | code |
+| Jade | code | no build | code | no build |
+| The One Probe | code | no build | code | no build |
+| JEI | code | no build | code | no build |
+| REI | code | no build | code | no build |
+| EMI | no build | no build | no build | no build |
+| WTHIT | code | code | no build (plugin removed) | no build (plugin removed) |
+| Applied Energistics 2 (ME pipes, AE converter) | code | no build | code | no build |
+| KubeJS | no build (hooks removed) | no build | no build (hooks removed) | no build |
+| Mekanism, Create, CraftTweaker | no build | no build | no build | no build |
+
+- The 26.2 and 26.3 builds were compiled and self-tested with Jade, The One Probe, AE2, JEI and WTHIT (26.2) in the dev run where those mods have a build. Only the server self-test ran with them; nothing was opened in a client except as listed in the status file.
+- The FTB Chunks claim provider is compiled against the 26.1.2 API (FTB Chunks has no 26.2 or 26.3 build) and only loads when that mod is installed.
+- 26.3 Forge leaves out the six Flux Sifter recipe-unlock advancements, and both 26.3 builds have no data generators; see [PORTING_26.2_26.3.md](PORTING_26.2_26.3.md).
