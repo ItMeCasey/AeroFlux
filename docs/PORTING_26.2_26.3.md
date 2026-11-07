@@ -41,4 +41,8 @@ The four new builds (`versions/mc26.2` and `mc26.3`, NeoForge and Forge) start f
 
 ## Our own API jars
 
-`smwti-api` and `bei-api` are meant to come from the private Maven (`com.itmecasey:<name>:<mc>-<loader>-<version>`, credentials `IMC_MAVEN_USER` and `IMC_MAVEN_PASSWORD`). Without a login, or with `-PapiFromLibs`, the builds read the jars in each build's `libs/` folder. The 26.2 and 26.3 artifacts must be published with `Mod-Playbook\maven\publish_api.py` before a Maven build works: `bei-api` `<mc>-<loader>-2026.11.7` and `smwti-api` `<mc>-<loader>-2026.11.3`.
+`smwti-api` and `bei-api` come from the private Maven (`com.itmecasey:<name>:<mc>-<loader>-<version>`: `bei-api` 2026.11.7, `smwti-api` 2026.11.3) when `IMC_MAVEN_USER` and `IMC_MAVEN_PASSWORD` are set. Without a login, or with `-PapiFromLibs`, the build reads the jars in the build's `libs/` folder.
+
+## Checks (2026-11-06)
+
+Server self-test: 628 (26.2 NeoForge), 621 (26.2 Forge), 623 (26.3 NeoForge), 620 (26.3 Forge) checks, 0 failures. Client: the machine and pipe screens were opened in a real client on all four builds (frames `docs/frames/port-<mc>-<loader>-*-screen.png`).
