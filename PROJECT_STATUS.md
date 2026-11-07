@@ -94,3 +94,13 @@ Spend: none
 - [x] CurseForge release 2026.11.5 (six betas uploaded by the tag, all six approved on CurseForge) (w:2)
 - [x] CurseForge releases 2026.11.6 and 2026.11.7 (six builds each by tag; 2026.11.7 fixes upgrade-slot hint icons, the guidebook contents page and the Other Mods page) (w:1)
 - [x] Modrinth release: frozen indefinitely by Casey (2026-11-06), existing uploads stay as they are (was on hold; project dN4XaJU1 has the page text and 2026.11.1 (NeoForge 26.1.2 only) and the six builds of 2026.11.2 to 2026.11.4 uploaded by hand, 2026.11.5 not uploaded, a duplicate 2026.11.3 version still to delete) (w:2)
+
+## Port to 26.2 and 26.3
+- [x] Four new builds (versions/mc26.2 and mc26.3, NeoForge and Forge) compile, package and keep the 26.1.2 feature set (2026.11.8 in those four; the other six stay at 2026.11.7 until a release bumps all ten) (w:4)
+- [x] Headless self-test on all four (620 to 628 checks, 0 failures; ports 8996 to 8999) (w:3)
+- [x] Unit tests of shared-core pass (w:1)
+- [~] One real-client check per new build (see the note in the final report: the shared isolated desktop was contended by another session) (w:3)
+- [~] 26.3 data generators (not ported: recipes, advancements and loot tables use a new bootstrap system; generated data was converted by script; docs/PORTING_26.2_26.3.md) (w:3)
+- [~] Integrations on 26.2 and 26.3 (compiled and self-tested with Jade, The One Probe, AE2, JEI and WTHIT where those mods have a build; KubeJS hooks left out, WTHIT left out on 26.3; none seen in a client) (w:2)
+- [~] API jars from the private Maven (builds read com.itmecasey:bei-api and smwti-api when IMC_MAVEN_* is set and fall back to libs/ jars; the 26.2 and 26.3 artifacts are not published yet) (w:2)
+- [x] CI and release workflows, CurseForge script, README, changelog, compatibility table and wiki draft cover the four new builds (w:2)
