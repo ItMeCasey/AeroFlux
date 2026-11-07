@@ -1,0 +1,24 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "X": "minecraft:glass_bottle"
+  },
+  "pattern": [
+    "CCC",
+    "DXD",
+    "CCC"
+  ],
+  "result": {
+    "count": 8,
+    "id": "aeroflux:copper_gas_pipe"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": "#c:gems/diamond",
+    "F": "aeroflux:fluxsteel_ingot",
+    "L": "#c:gems/lapis"
+  },
+  "pattern": [
+    "LFL",
+    "FDF",
+    "LFL"
+  ],
+  "result": {
+    "id": "aeroflux:fortune_upgrade"
+  }
+}

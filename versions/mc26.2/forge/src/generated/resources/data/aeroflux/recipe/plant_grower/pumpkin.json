@@ -1,0 +1,23 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": "minecraft:pumpkin_seeds"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "id": "minecraft:pumpkin"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:pumpkin_seeds"
+      }
+    }
+  ],
+  "time": 400
+}

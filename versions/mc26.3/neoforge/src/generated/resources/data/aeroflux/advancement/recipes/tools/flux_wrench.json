@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_flux_dust": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:flux_dust"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": [
+          "aeroflux:flux_wrench"
+        ]
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_flux_dust"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:flux_wrench"
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_copper_tank": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:copper_tank"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": [
+          "aeroflux:iron_tank"
+        ]
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_copper_tank"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:iron_tank"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:redstone",
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "M": "minecraft:hopper",
+    "S": "#c:ingots/iron"
+  },
+  "pattern": [
+    "CAC",
+    "SMS",
+    "CDC"
+  ],
+  "result": {
+    "id": "aeroflux:flux_magnet"
+  }
+}

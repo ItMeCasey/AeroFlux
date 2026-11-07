@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:purifier",
+  "inputs": [
+    {
+      "ingredient": "#c:ores/lapis"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 12,
+        "id": "minecraft:lapis_lazuli"
+      }
+    }
+  ],
+  "water": 50
+}

@@ -1,0 +1,5 @@
+{
+  "plants": ["minecraft:sugar_cane"],
+  "soils": ["#minecraft:dirt", "#minecraft:sand"],
+  "replaces_default": true
+}

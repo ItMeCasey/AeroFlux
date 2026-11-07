@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "#c:ingots/iron",
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "M": "minecraft:crafting_table",
+    "S": "#c:ingots/copper"
+  },
+  "pattern": [
+    "CAC",
+    "SMS",
+    "CDC"
+  ],
+  "result": {
+    "id": "aeroflux:flux_crafter"
+  }
+}

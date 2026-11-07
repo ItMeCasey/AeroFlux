@@ -1,0 +1,44 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": "minecraft:birch_sapling"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:birch_log"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:birch_sapling"
+      }
+    }
+  ],
+  "silk_outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:birch_log"
+      }
+    },
+    {
+      "item": {
+        "count": 2,
+        "id": "minecraft:birch_leaves"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:birch_sapling"
+      }
+    }
+  ],
+  "time": 600
+}

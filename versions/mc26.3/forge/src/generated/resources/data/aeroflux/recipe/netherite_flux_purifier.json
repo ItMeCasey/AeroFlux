@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "aeroflux:aerogold_ingot",
+    "P": "aeroflux:diamond_flux_purifier",
+    "S": "aeroflux:aerogold_ingot",
+    "T": "#c:ingots/netherite"
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "id": "aeroflux:netherite_flux_purifier"
+  }
+}

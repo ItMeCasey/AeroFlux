@@ -1,0 +1,16 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": "#c:ores/lapis"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 8,
+        "id": "minecraft:lapis_lazuli"
+      }
+    }
+  ]
+}

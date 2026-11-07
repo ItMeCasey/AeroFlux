@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "#c:gems/diamond",
+    "P": "aeroflux:gold_sky_controller",
+    "S": "aeroflux:fluxsteel_ingot",
+    "T": "#c:gems/diamond"
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "id": "aeroflux:diamond_sky_controller"
+  }
+}

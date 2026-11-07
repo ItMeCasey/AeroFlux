@@ -1,0 +1,18 @@
+{
+  "type": "aeroflux:alloy_smelter",
+  "inputs": [
+    {
+      "ingredient": "minecraft:iron_ingot"
+    },
+    {
+      "ingredient": "aeroflux:flux_dust"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "id": "aeroflux:fluxsteel_ingot"
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "parent": "aeroflux:block/flux_sifter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_sifter_side",
+    "back": "aeroflux:block/flux_sifter_back",
+    "top": "aeroflux:block/flux_sifter_top",
+    "bottom": "aeroflux:block/flux_sifter_bottom",
+    "front": "aeroflux:block/flux_sifter_front",
+    "particle": "aeroflux:block/flux_sifter_side",
+    "tray": "aeroflux:block/flux_sifter_tray"
+  }
+}

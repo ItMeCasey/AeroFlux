@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gold_flux_furnace": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:gold_flux_furnace"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:diamond_flux_furnace"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gold_flux_furnace"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:diamond_flux_furnace"
+    ]
+  }
+}

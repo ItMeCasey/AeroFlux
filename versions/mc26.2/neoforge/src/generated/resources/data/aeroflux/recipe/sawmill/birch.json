@@ -1,0 +1,23 @@
+{
+  "type": "aeroflux:sawmill",
+  "inputs": [
+    {
+      "ingredient": "#minecraft:birch_logs"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 6,
+        "id": "minecraft:birch_planks"
+      }
+    },
+    {
+      "chance": 0.25,
+      "item": {
+        "id": "aeroflux:sawdust"
+      }
+    }
+  ],
+  "time": 100
+}

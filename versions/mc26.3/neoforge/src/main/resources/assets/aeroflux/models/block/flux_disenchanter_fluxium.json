@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_disenchanter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_disenchanter_side_fluxium",
+    "back": "aeroflux:block/flux_disenchanter_back_fluxium",
+    "top": "aeroflux:block/flux_disenchanter_top_fluxium",
+    "bottom": "aeroflux:block/flux_disenchanter_bottom_fluxium",
+    "front": "aeroflux:block/flux_disenchanter_front_fluxium",
+    "particle": "aeroflux:block/flux_disenchanter_side_fluxium"
+  }
+}

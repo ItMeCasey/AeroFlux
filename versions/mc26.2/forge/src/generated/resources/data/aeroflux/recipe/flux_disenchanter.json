@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "aeroflux:moon_crystal",
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "M": "minecraft:grindstone",
+    "S": "aeroflux:fluxsteel_ingot"
+  },
+  "pattern": [
+    "CAC",
+    "SMS",
+    "CDC"
+  ],
+  "result": {
+    "id": "aeroflux:flux_disenchanter"
+  }
+}

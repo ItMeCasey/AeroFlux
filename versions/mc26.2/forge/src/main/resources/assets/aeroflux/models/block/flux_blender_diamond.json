@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_blender_base",
+  "textures": {
+    "side": "aeroflux:block/flux_blender_side_diamond",
+    "back": "aeroflux:block/flux_blender_back_diamond",
+    "top": "aeroflux:block/flux_blender_top_diamond",
+    "bottom": "aeroflux:block/flux_blender_bottom_diamond",
+    "front": "aeroflux:block/flux_blender_front_diamond",
+    "particle": "aeroflux:block/flux_blender_side_diamond"
+  }
+}

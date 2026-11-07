@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:grinder",
+  "inputs": [
+    {
+      "ingredient": "minecraft:blaze_rod"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 4,
+        "id": "minecraft:blaze_powder"
+      }
+    }
+  ],
+  "time": 100
+}

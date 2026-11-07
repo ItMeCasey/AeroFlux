@@ -1,0 +1,34 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "exdeorum"
+        },
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "exnihilosequentia"
+        }
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:string",
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "M": "minecraft:scaffolding",
+    "S": "#c:ingots/copper"
+  },
+  "pattern": [
+    "CAC",
+    "SMS",
+    "CDC"
+  ],
+  "result": {
+    "id": "aeroflux:flux_sifter"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/moon_spawner_base",
+  "textures": {
+    "side": "aeroflux:block/moon_spawner_side_fluxium",
+    "back": "aeroflux:block/moon_spawner_back_fluxium",
+    "top": "aeroflux:block/moon_spawner_top_fluxium",
+    "bottom": "aeroflux:block/moon_spawner_bottom_fluxium",
+    "front": "aeroflux:block/moon_spawner_front_active_fluxium",
+    "particle": "aeroflux:block/moon_spawner_side_fluxium"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gold_animal_breeder": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:gold_animal_breeder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": [
+          "aeroflux:diamond_animal_breeder"
+        ]
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gold_animal_breeder"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:diamond_animal_breeder"
+    ]
+  }
+}

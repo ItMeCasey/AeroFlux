@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "aeroflux:item/copper_redstone_pipe",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -2608596
+      }
+    ]
+  }
+}

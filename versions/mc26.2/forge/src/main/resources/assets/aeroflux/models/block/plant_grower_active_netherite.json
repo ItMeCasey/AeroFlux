@@ -1,0 +1,15 @@
+{
+  "parent": "aeroflux:block/plant_grower_base",
+  "textures": {
+    "side": "aeroflux:block/plant_grower_side_netherite",
+    "back": "aeroflux:block/plant_grower_back_netherite",
+    "top": "aeroflux:block/plant_grower_top_netherite",
+    "bottom": "aeroflux:block/plant_grower_bottom_netherite",
+    "front": "aeroflux:block/plant_grower_front_active_netherite",
+    "particle": "aeroflux:block/plant_grower_side_netherite",
+    "inner": "aeroflux:block/plant_grower_inner",
+    "soil": "aeroflux:block/plant_grower_soil",
+    "lamp": "aeroflux:block/plant_grower_lamp_active",
+    "glass": "aeroflux:block/plant_grower_glass"
+  }
+}

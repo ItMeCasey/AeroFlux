@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_sawmill_base",
+  "textures": {
+    "side": "aeroflux:block/flux_sawmill_side_fluxium",
+    "back": "aeroflux:block/flux_sawmill_back_fluxium",
+    "top": "aeroflux:block/flux_sawmill_top_fluxium",
+    "bottom": "aeroflux:block/flux_sawmill_bottom_fluxium",
+    "front": "aeroflux:block/flux_sawmill_front_active_fluxium",
+    "particle": "aeroflux:block/flux_sawmill_side_fluxium"
+  }
+}

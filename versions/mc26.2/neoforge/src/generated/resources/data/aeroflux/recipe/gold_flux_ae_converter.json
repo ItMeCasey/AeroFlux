@@ -1,0 +1,24 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": "#c:ingots/gold",
+    "P": "aeroflux:iron_flux_ae_converter",
+    "S": "#c:gems/amethyst",
+    "T": "#c:ingots/gold"
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "id": "aeroflux:gold_flux_ae_converter"
+  }
+}

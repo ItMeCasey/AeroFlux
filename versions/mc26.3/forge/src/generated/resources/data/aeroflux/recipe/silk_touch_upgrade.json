@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "F": "aeroflux:fluxsteel_ingot",
+    "M": "aeroflux:moon_crystal",
+    "S": "#c:strings"
+  },
+  "pattern": [
+    "SFS",
+    "FMF",
+    "SFS"
+  ],
+  "result": {
+    "id": "aeroflux:silk_touch_upgrade"
+  }
+}

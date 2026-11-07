@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:comparator",
+    "F": "aeroflux:fluxsteel_ingot",
+    "R": "#c:dusts/redstone"
+  },
+  "pattern": [
+    "FRF",
+    "RCR",
+    "FRF"
+  ],
+  "result": {
+    "id": "aeroflux:priority_upgrade"
+  }
+}

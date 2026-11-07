@@ -1,0 +1,40 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_flux_dust": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:flux_dust"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": [
+          "aeroflux:copper_gas_pipe"
+        ]
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_flux_dust"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:copper_gas_pipe"
+    ]
+  }
+}

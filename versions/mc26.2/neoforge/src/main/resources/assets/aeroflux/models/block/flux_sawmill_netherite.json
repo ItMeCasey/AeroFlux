@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_sawmill_base",
+  "textures": {
+    "side": "aeroflux:block/flux_sawmill_side_netherite",
+    "back": "aeroflux:block/flux_sawmill_back_netherite",
+    "top": "aeroflux:block/flux_sawmill_top_netherite",
+    "bottom": "aeroflux:block/flux_sawmill_bottom_netherite",
+    "front": "aeroflux:block/flux_sawmill_front_netherite",
+    "particle": "aeroflux:block/flux_sawmill_side_netherite"
+  }
+}

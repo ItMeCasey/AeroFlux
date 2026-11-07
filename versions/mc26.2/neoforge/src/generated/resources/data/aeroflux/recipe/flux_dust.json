@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "aeroflux:sawdust",
+    "aeroflux:sawdust"
+  ],
+  "result": {
+    "id": "aeroflux:flux_dust"
+  }
+}

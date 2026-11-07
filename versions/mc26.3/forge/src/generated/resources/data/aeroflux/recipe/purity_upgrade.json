@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "aeroflux:aero_crystal",
+    "F": "aeroflux:fluxsteel_ingot",
+    "P": "minecraft:prismarine_crystals"
+  },
+  "pattern": [
+    "PFP",
+    "FAF",
+    "PFP"
+  ],
+  "result": {
+    "id": "aeroflux:purity_upgrade"
+  }
+}

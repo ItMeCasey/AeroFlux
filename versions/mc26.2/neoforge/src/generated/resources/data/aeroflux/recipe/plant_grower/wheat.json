@@ -1,0 +1,24 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": "minecraft:wheat_seeds"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 2,
+        "id": "minecraft:wheat"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:wheat_seeds"
+      }
+    }
+  ],
+  "time": 400
+}

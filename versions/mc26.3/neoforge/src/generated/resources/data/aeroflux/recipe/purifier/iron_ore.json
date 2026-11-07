@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:purifier",
+  "inputs": [
+    {
+      "ingredient": "#c:ores/iron"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:raw_iron"
+      }
+    }
+  ],
+  "water": 50
+}

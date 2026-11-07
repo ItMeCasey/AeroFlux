@@ -1,0 +1,6 @@
+{
+  "machine": "alloy_smelter",
+  "recipe_type": "enderio:alloy_smelting",
+  "time_key": "energy",
+  "time_scale": 0.05
+}

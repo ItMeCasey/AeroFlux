@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "aeroflux:aero_crystal",
+    "G": "#c:ingots/gold",
+    "R": "#c:dusts/redstone"
+  },
+  "pattern": [
+    "RGR",
+    "RAR",
+    "RGR"
+  ],
+  "result": {
+    "id": "aeroflux:speed_upgrade"
+  }
+}

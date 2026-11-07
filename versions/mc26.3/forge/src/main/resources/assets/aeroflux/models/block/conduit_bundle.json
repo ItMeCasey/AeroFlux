@@ -1,0 +1,7 @@
+{
+  "loader": "aeroflux:conduit_bundle",
+  "textures": {
+    "node": "aeroflux:block/pipe_node",
+    "particle": "aeroflux:block/pipe_node"
+  }
+}

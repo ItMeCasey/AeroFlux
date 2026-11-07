@@ -1,0 +1,145 @@
+// This is a minimal setup of a Forge mod workspace.
+// For complex examples (including AccessTransformers, Jar-in-Jar, and Mixin), see our examples repository.
+// https://github.com/MinecraftForge/MDKExamples
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+}
+
+version = mod_version
+
+// Jar name: aeroflux-<loader>-<minecraft version>-<YYYY.M.N>
+base {
+    archivesName = 'aeroflux-forge-26.2'
+}
+group = mod_group_id
+
+// Mojang ships Java 25 to end users in 26.1+, so your mod should target Java 25.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+// Include generated resources
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+minecraft {
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+
+            systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+            systemProperty 'forge.enabledGameTestNamespaces', 'aeroflux'
+        }
+
+        register('client')
+
+        register('server') {
+            args '--nogui'
+        }
+
+        register('gameTestServer')
+
+        register('data') {
+            workingDir = layout.projectDirectory.dir('run-data')
+
+            args '--mod', 'aeroflux', '--all', '--output', layout.projectDirectory.dir('src/generated/resources'), '--existing', layout.projectDirectory.dir('src/main/resources')
+        }
+    }
+}
+
+// Our own API jars (SMWTI, BEI) come from the private ItMeCasey Maven as com.itmecasey:<name>:<mc>-<loader>-<mod version>.
+// Without the IMC_MAVEN_* login (forks, outside contributors) the build falls back to the jar in libs/.
+def imcUser = System.getenv('IMC_MAVEN_USER') ?: project.findProperty('imcMavenUser')
+def imcPass = System.getenv('IMC_MAVEN_PASSWORD') ?: project.findProperty('imcMavenPassword')
+def imcMaven = imcUser && imcPass && !project.hasProperty('apiFromLibs')
+if (imcMaven) {
+    repositories {
+        maven {
+            name = 'ItMeCasey Maven'
+            url = 'https://itmecasey.com/maven'
+            credentials { username = imcUser; password = imcPass }
+            content { includeGroup 'com.itmecasey' }
+        }
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it) // In Kotlin, it = this
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+    // Modrinth's Maven, for the one claim mod the protection layer compiles against.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup 'maven.modrinth' }
+    }
+}
+
+// -PbeiCheck leaves the other mods (WTHIT here) out of the dev client, so an overlay or viewer check shows AeroFlux with the one mod alone.
+def devMods = !project.hasProperty('beiCheck')
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+    annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
+
+    // Open Parties and Claims, compiled against only: the protection layer loads its classes when it
+    // is installed and never otherwise. FTB Chunks has no Forge build for this Minecraft version, so
+    // claims made with it are only honored through the standard permission events.
+    compileOnly("maven.modrinth:open-parties-and-claims:${opac_version}") { transitive = false }
+
+    // WTHIT, a look-at tooltip mod. Bad Packets is the library it needs. Jade, The One Probe, JEI, REI,
+    // KubeJS and AE2 have no Forge build for this Minecraft version, so nothing else is compiled against.
+    compileOnly "maven.modrinth:wthit:${wthit_version}"
+    compileOnly "maven.modrinth:badpackets:${badpackets_version}"
+    if (devMods) runtimeOnly "maven.modrinth:wthit:${wthit_version}"
+    if (devMods) runtimeOnly "maven.modrinth:badpackets:${badpackets_version}"
+
+    // SMWTI (Show Me What This Is), a look-at overlay of ours. Only its API is compiled against, from
+    // the jar in libs (built by SMWTI's apiJar task); the overlay itself is an optional dependency.
+    // BEI (Barely Enough Items), a recipe viewer of ours. Only its API is compiled against, from the jar
+    // in libs (built by BEI's apiJar task); the viewer itself is an optional dependency.
+    if (imcMaven) {
+        compileOnly "com.itmecasey:smwti-api:26.2-forge-2026.11.3"
+        compileOnly "com.itmecasey:bei-api:26.2-forge-2026.11.7"
+    } else {
+        compileOnly files('libs/smwti-api-26.2.jar', 'libs/bei-forge-26.2-2026.11.7-api.jar')
+    }
+}
+
+// mods.toml and pack.mcmeta are templates: this fills in their ${} values from gradle.properties
+// (a missing one is an error) and adds the result to the jar's resources.
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            forge_version          : forge_version,
+            forge_version_range    : forge_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+tasks.withType(JavaCompile).configureEach {
+    // Use the UTF-8 charset for Java compilation
+    // This is done by default in Java 18+, but this ensures it no matter the Java or Gradle version
+    options.encoding = 'UTF-8'
+}
+
+// Game rules shared by every AeroFlux build (tiers, collection math, dimension rules)
+// live in /shared-core and contain no Minecraft classes, so each project compiles them directly.
+sourceSets.main.java.srcDir '../../../shared-core/src/main/java'

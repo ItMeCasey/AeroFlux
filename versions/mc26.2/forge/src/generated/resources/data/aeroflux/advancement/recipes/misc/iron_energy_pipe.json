@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_copper_energy_pipe": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:copper_energy_pipe"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "aeroflux:iron_energy_pipe"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_copper_energy_pipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:iron_energy_pipe"
+    ]
+  }
+}

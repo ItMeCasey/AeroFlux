@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_crafter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_crafter_side_netherite",
+    "back": "aeroflux:block/flux_crafter_back_netherite",
+    "top": "aeroflux:block/flux_crafter_top_netherite",
+    "bottom": "aeroflux:block/flux_crafter_bottom_netherite",
+    "front": "aeroflux:block/flux_crafter_front_netherite",
+    "particle": "aeroflux:block/flux_crafter_side_netherite"
+  }
+}

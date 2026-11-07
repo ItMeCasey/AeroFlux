@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "aeroflux:aero_crystal",
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "E": "#c:ender_pearls",
+    "M": "aeroflux:moon_crystal",
+    "O": "minecraft:obsidian"
+  },
+  "pattern": [
+    "CEC",
+    "AOM",
+    "CDC"
+  ],
+  "result": {
+    "id": "aeroflux:chunk_loader"
+  }
+}

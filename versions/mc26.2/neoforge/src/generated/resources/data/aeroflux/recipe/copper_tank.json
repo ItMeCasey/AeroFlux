@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:bucket",
+    "C": "#c:ingots/copper",
+    "G": "#c:glass_blocks/colorless"
+  },
+  "pattern": [
+    "CGC",
+    "GBG",
+    "CGC"
+  ],
+  "result": {
+    "id": "aeroflux:copper_tank"
+  }
+}

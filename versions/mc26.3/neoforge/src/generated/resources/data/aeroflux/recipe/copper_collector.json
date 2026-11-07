@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "#c:ingots/copper",
+    "D": "aeroflux:flux_dust",
+    "G": "#c:glass_blocks/colorless"
+  },
+  "pattern": [
+    "GGG",
+    "CDC",
+    "CCC"
+  ],
+  "result": {
+    "id": "aeroflux:copper_collector"
+  }
+}

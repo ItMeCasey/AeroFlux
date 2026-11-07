@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "#c:ingots/iron",
+    "P": "aeroflux:flux_magnet",
+    "S": "#c:ingots/iron",
+    "T": "#c:ingots/iron"
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "id": "aeroflux:iron_flux_magnet"
+  }
+}

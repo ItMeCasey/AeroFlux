@@ -1,0 +1,32 @@
+{
+  "parent": "aeroflux:collector",
+  "criteria": {
+    "aeroflux:aero_flux_bucket": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:aero_flux_bucket"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.aeroflux.aero_flux.description"
+    },
+    "icon": {
+      "id": "aeroflux:aero_flux_bucket"
+    },
+    "title": {
+      "translate": "advancements.aeroflux.aero_flux.title"
+    }
+  },
+  "requirements": [
+    [
+      "aeroflux:aero_flux_bucket"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

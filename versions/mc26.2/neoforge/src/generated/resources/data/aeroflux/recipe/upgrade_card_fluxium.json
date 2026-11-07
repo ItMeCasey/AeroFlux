@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "aeroflux:moon_crystal",
+    "D": "aeroflux:flux_dust",
+    "S": "aeroflux:fluxsteel_ingot",
+    "T": "aeroflux:aero_crystal"
+  },
+  "pattern": [
+    " T ",
+    "SDS",
+    " B "
+  ],
+  "result": {
+    "id": "aeroflux:upgrade_card_fluxium"
+  }
+}

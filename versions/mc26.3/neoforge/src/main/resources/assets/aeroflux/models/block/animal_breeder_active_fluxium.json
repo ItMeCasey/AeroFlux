@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/animal_breeder_base",
+  "textures": {
+    "side": "aeroflux:block/animal_breeder_side_fluxium",
+    "back": "aeroflux:block/animal_breeder_back_fluxium",
+    "top": "aeroflux:block/animal_breeder_top_fluxium",
+    "bottom": "aeroflux:block/animal_breeder_bottom_fluxium",
+    "front": "aeroflux:block/animal_breeder_front_active_fluxium",
+    "particle": "aeroflux:block/animal_breeder_side_fluxium"
+  }
+}

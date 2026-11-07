@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "aeroflux:block/sun_lamp_netherite"
+    },
+    "lit=true": {
+      "model": "aeroflux:block/sun_lamp_active_netherite"
+    }
+  }
+}

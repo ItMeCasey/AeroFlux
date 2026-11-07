@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "aeroflux:item/sky_controller_fluxium"
+  }
+}

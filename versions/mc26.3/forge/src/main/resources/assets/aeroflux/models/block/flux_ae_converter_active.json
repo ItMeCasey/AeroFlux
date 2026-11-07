@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/flux_ae_converter_base",
+  "textures": {
+    "side": "aeroflux:block/flux_ae_converter_side",
+    "back": "aeroflux:block/flux_ae_converter_back",
+    "top": "aeroflux:block/flux_ae_converter_top",
+    "bottom": "aeroflux:block/flux_ae_converter_bottom",
+    "front": "aeroflux:block/flux_ae_converter_front_active",
+    "particle": "aeroflux:block/flux_ae_converter_side"
+  }
+}

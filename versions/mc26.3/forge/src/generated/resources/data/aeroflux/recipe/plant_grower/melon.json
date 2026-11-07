@@ -1,0 +1,37 @@
+{
+  "type": "aeroflux:plant_grower",
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": "minecraft:melon_seeds"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "count": 3,
+        "id": "minecraft:melon_slice"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:melon_seeds"
+      }
+    }
+  ],
+  "silk_outputs": [
+    {
+      "item": {
+        "id": "minecraft:melon"
+      }
+    },
+    {
+      "chance": 0.5,
+      "item": {
+        "id": "minecraft:melon_seeds"
+      }
+    }
+  ],
+  "time": 400
+}

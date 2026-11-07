@@ -1,0 +1,12 @@
+{
+  "parent": "aeroflux:block/moon_lamp_base",
+  "textures": {
+    "base": "aeroflux:block/moon_lamp_base_netherite",
+    "basetop": "aeroflux:block/moon_lamp_basetop_netherite",
+    "cap": "aeroflux:block/moon_lamp_cap_netherite",
+    "captop": "aeroflux:block/moon_lamp_captop_netherite",
+    "post": "aeroflux:block/moon_lamp_post",
+    "crystal": "aeroflux:block/moon_lamp_crystal_active",
+    "particle": "aeroflux:block/moon_lamp_base_netherite"
+  }
+}

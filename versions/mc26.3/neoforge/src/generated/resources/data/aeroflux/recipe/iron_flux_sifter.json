@@ -1,0 +1,33 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "exdeorum"
+        },
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "exnihilosequentia"
+        }
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "#c:ingots/iron",
+    "P": "aeroflux:flux_sifter",
+    "S": "#c:ingots/iron",
+    "T": "#c:ingots/iron"
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "id": "aeroflux:iron_flux_sifter"
+  }
+}

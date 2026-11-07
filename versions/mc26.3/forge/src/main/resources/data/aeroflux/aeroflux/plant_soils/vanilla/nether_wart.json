@@ -1,0 +1,5 @@
+{
+  "plants": ["minecraft:nether_wart"],
+  "soils": ["minecraft:soul_sand", "minecraft:soul_soil"],
+  "replaces_default": true
+}

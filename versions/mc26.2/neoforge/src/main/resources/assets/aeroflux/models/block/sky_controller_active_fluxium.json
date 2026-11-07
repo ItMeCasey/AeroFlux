@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/sky_controller_base",
+  "textures": {
+    "side": "aeroflux:block/sky_controller_side_fluxium",
+    "back": "aeroflux:block/sky_controller_back_fluxium",
+    "top": "aeroflux:block/sky_controller_top_fluxium",
+    "bottom": "aeroflux:block/sky_controller_bottom_fluxium",
+    "front": "aeroflux:block/sky_controller_front_active_fluxium",
+    "particle": "aeroflux:block/sky_controller_side_fluxium"
+  }
+}

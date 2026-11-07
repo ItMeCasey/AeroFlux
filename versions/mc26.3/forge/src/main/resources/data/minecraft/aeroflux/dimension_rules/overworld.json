@@ -1,0 +1,10 @@
+{
+  "aero_enabled": true,
+  "moon_enabled": true,
+  "aero_multiplier": 1.0,
+  "moon_multiplier": 1.0,
+  "time_source": "dimension_time",
+  "requires_sky": true,
+  "ignore_weather": false,
+  "chunk_loader_allowed": true
+}

@@ -1,0 +1,6 @@
+{
+  "machine": "alloy_smelter",
+  "recipe_type": "oritech:foundry",
+  "time_key": "time",
+  "time_scale": 2.0
+}

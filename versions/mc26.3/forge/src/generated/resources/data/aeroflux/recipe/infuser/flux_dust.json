@@ -1,0 +1,17 @@
+{
+  "type": "aeroflux:infuser",
+  "flux": 100,
+  "flux_type": "aero",
+  "inputs": [
+    {
+      "ingredient": "aeroflux:sawdust"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "id": "aeroflux:flux_dust"
+      }
+    }
+  ]
+}

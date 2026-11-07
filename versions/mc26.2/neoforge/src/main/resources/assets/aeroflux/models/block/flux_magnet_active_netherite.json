@@ -1,0 +1,15 @@
+{
+  "parent": "aeroflux:block/flux_magnet_base",
+  "textures": {
+    "side": "aeroflux:block/flux_magnet_side_netherite",
+    "back": "aeroflux:block/flux_magnet_back_netherite",
+    "top": "aeroflux:block/flux_magnet_top_netherite",
+    "bottom": "aeroflux:block/flux_magnet_bottom_netherite",
+    "front": "aeroflux:block/flux_magnet_front_active_netherite",
+    "particle": "aeroflux:block/flux_magnet_side_netherite",
+    "tray": "aeroflux:block/flux_magnet_tray_netherite",
+    "steel": "aeroflux:block/flux_magnet_steel",
+    "red": "aeroflux:block/flux_magnet_red",
+    "blue": "aeroflux:block/flux_magnet_blue"
+  }
+}

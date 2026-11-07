@@ -1,0 +1,11 @@
+{
+  "parent": "aeroflux:block/animal_breeder_base",
+  "textures": {
+    "side": "aeroflux:block/animal_breeder_side_netherite",
+    "back": "aeroflux:block/animal_breeder_back_netherite",
+    "top": "aeroflux:block/animal_breeder_top_netherite",
+    "bottom": "aeroflux:block/animal_breeder_bottom_netherite",
+    "front": "aeroflux:block/animal_breeder_front_active_netherite",
+    "particle": "aeroflux:block/animal_breeder_side_netherite"
+  }
+}

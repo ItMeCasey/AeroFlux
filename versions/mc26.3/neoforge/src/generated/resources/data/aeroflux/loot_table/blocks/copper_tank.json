@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "aeroflux:copper_tank"
+        }
+      ],
+      "rolls": 1,
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      }
+    }
+  ],
+  "random_sequence": "aeroflux:blocks/copper_tank",
+  "modifier": {
+    "include": [
+      "aeroflux:tank_fluid"
+    ],
+    "source": "block_entity",
+    "type": "minecraft:copy_components"
+  }
+}
