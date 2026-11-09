@@ -35,6 +35,8 @@ Name each file as the plan says: `aeroflux-<loader>-<mc>-<version>.jar`, for exa
 
 | Minecraft | Loader | Java |
 |---|---|---|
+| 26.3 | NeoForge, Forge | 25 |
+| 26.2 | NeoForge, Forge | 25 |
 | 26.1.2 | NeoForge, Forge | 25 |
 | 1.21.1 | NeoForge, Forge | 21 |
 | 1.20.1 | NeoForge (legacy), Forge | 17 |

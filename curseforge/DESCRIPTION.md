@@ -99,11 +99,11 @@ AeroFlux doesn't need any other mod. If you have them, it works with:
 - **Overlays:** Jade, The One Probe, WTHIT and our own **Show Me What This Is** show Flux levels and machine status.
 - **Scripting:** KubeJS and CraftTweaker can add, remove and change machine recipes.
 
-**Tested in a game client:** Barely Enough Items and Show Me What This Is on all six builds, and Jade on 26.1.2 NeoForge, 1.21.1 NeoForge and both 1.20.1 builds. JEI, REI, EMI, The One Probe and WTHIT are built in but not yet tested in a client.
+**Tested in a game client:** Barely Enough Items and Show Me What This Is on the six builds up to 26.1.2 (the 26.2 and 26.3 builds had only their machine and pipe screens checked), and Jade on 26.1.2 NeoForge, 1.21.1 NeoForge and both 1.20.1 builds. JEI, REI, EMI, The One Probe and WTHIT are built in but not yet tested in a client.
 
 ## Versions
 
-Minecraft 26.1.2, 1.21.1 and 1.20.1, on both NeoForge and Forge. Which optional mods work depends on which of them exist for that version and loader.
+Minecraft 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1, on both NeoForge and Forge. Which optional mods work depends on which of them exist for that version and loader.
 
 ## Questions
 
@@ -119,4 +119,4 @@ Minecraft 26.1.2, 1.21.1 and 1.20.1, on both NeoForge and Forge. Which optional 
 
 - Collectors only work in the Overworld by default. Datapacks can add rules for other dimensions.
 - The chunk loader has per-player and per-dimension limits, an admin command and a global off switch.
-- On 1.21.1 and 26.1.2, machines and loaders remember who placed them and respect claim mods, there is a `/aeroflux profile` command that shows what costs the most tick time, and saves carry a version number so future updates can convert them.
+- On 1.21.1 and 26.1.2 and newer, machines and loaders remember who placed them and respect claim mods, there is a `/aeroflux profile` command that shows what costs the most tick time, and saves carry a version number so future updates can convert them.
