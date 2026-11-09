@@ -1,7 +1,8 @@
 name: release
 
-# Push a tag such as v2026.11.5 to build and self-test all ten jars, publish a GitHub prerelease and upload them to CurseForge.
-# The tag must match mod_version in every build's gradle.properties.
+# Push a tag such as v2026.11.8 to build only the builds whose own mod_version equals the tag (unit tests; the in-game self-test
+# runs in the build workflow on the same commit, so it is not repeated), publish a GitHub prerelease and upload those jars to
+# CurseForge. The other builds are skipped and never re-uploaded; the run fails only when no build matches the tag.
 # Needs the repository secret CURSEFORGE_TOKEN (a CurseForge upload API token).
 # Run by hand (Actions, release, Run workflow) it builds and tests only, unless "publish" is ticked.
 on:
@@ -27,12 +28,77 @@ permissions:
   contents: write
 
 jobs:
-  # The same unit tests, builds and in-game self-tests as every push.
+  pick:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+      version: ${{ steps.pick.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pick the builds for this tag
+        id: pick
+        run: |
+          versions=$(grep -h '^mod_version=' versions/*/*/gradle.properties | sed 's/^mod_version=//' | sort -uV)
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then version="${GITHUB_REF_NAME#v}"; else version=$(echo "$versions" | tail -n 1); fi
+          include=""
+          for file in versions/mc*/*/gradle.properties; do
+            dir="${file%/gradle.properties}"
+            loader="${dir##*/}"
+            mc="${dir%/*}"; mc="${mc##*/mc}"
+            if [ "$(sed -n 's/^mod_version=//p' "$file")" = "$version" ]; then
+              case "$mc" in
+                26.*) java=25 ;;
+                1.21.1) java=21 ;;
+                1.20.1) java=17 ;;
+                *) echo "unknown Minecraft version $mc"; exit 1 ;;
+              esac
+              include="$include{\"name\":\"$loader-$mc\",\"dir\":\"$dir\",\"java\":$java},"
+              echo "building $loader-$mc (mod_version $version)"
+            else
+              echo "skipping $loader-$mc: mod_version is not $version"
+            fi
+          done
+          if [ -z "$include" ]; then echo "No build has mod_version $version"; exit 1; fi
+          echo "matrix={\"include\":[${include%,}]}" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  # Unit tests and the jar for each picked build. Needs shared-core green too.
   build:
-    uses: ./.github/workflows/build.yml
+    needs: pick
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix: ${{ fromJSON(needs.pick.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      # Gradle runs on the last JDK listed and its toolchain support finds the project's own
+      # Java version among the others. Forge 1.21.1 and 26.x also want Java 8 for run tasks.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+            25
+            21
+          cache: gradle
+      - name: Build jar
+        working-directory: ${{ matrix.dir }}
+        env:
+          IMC_MAVEN_USER: ${{ secrets.IMC_MAVEN_USER }}
+          IMC_MAVEN_PASSWORD: ${{ secrets.IMC_MAVEN_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aeroflux-${{ matrix.name }}
+          path: ${{ matrix.dir }}/build/libs/*.jar
+          if-no-files-found: error
 
   publish:
-    needs: build
+    needs: [pick, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,14 +111,7 @@ jobs:
 
       - name: Check the version
         id: version
-        run: |
-          versions=$(grep -h '^mod_version=' versions/*/*/gradle.properties | sort -u)
-          if [ "$(echo "$versions" | wc -l)" != "1" ]; then echo "Builds disagree on mod_version:"; echo "$versions"; exit 1; fi
-          version="${versions#mod_version=}"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v$version" ]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match mod_version $version"; exit 1
-          fi
+        run: echo "version=${{ needs.pick.outputs.version }}" >> "$GITHUB_OUTPUT"
 
       # The hand-written changelog for this version wins; without one the notes are the commit subjects since the last tag.
       - name: Write the release notes
@@ -68,7 +127,7 @@ jobs:
             fi
             echo
             echo
-            echo "Builds for Minecraft 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1 on Forge and NeoForge. Guide: https://itmecasey.com/wiki/aeroflux/"
+            echo "Builds for Minecraft 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1 on Forge and NeoForge; only the builds whose version is $version are in this release. Guide: https://itmecasey.com/wiki/aeroflux/"
           } > notes.md
           cat notes.md
 

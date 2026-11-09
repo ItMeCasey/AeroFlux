@@ -120,6 +120,9 @@ def main():
             parser.error("--collect needs --artifacts and --version")
         args.collect.mkdir(parents=True, exist_ok=True)
         for module in BUILDS:
+            if not (args.artifacts / f"aeroflux-{module}").is_dir():
+                print(f"{module}: not built for this version, skipped")
+                continue
             jar = pick_jar(args.artifacts / f"aeroflux-{module}", module, args.version)
             target = args.collect / clean_name(module, args.version)
             target.write_bytes(jar.read_bytes())
@@ -134,7 +137,9 @@ def main():
     for module, (minecraft, loader, java, relations) in BUILDS.items():
         folder = args.artifacts / f"aeroflux-{module}"
         if not folder.is_dir():
-            sys.exit(f"Missing build folder {folder}")
+            # The release workflow builds only the modules whose mod_version equals the tag; the rest are skipped.
+            print(f"{module}: not built for this version, skipped")
+            continue
         jar = pick_jar(folder, module, args.version)
         # CurseForge also wants an environment (Client and Server): AeroFlux runs on both.
         ids = [resolve(versions, minecraft), resolve(versions, loader), resolve(versions, "Client"), resolve(versions, "Server")]
@@ -144,6 +149,8 @@ def main():
             print(f"note: CurseForge has no '{java}', uploading {module} without a Java version")
         plan.append((module, jar, ids, f"AeroFlux {args.version} ({loader} {minecraft})", clean_name(module, args.version), relations))
 
+    if not plan:
+        sys.exit("No build folder found for this version")
     for module, jar, ids, title, name, relations in plan:
         print(f"{title}: {name} ({jar.stat().st_size // 1024} KiB) game version ids {ids}, {args.release_type}")
     if args.dry_run:
