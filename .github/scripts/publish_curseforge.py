@@ -168,7 +168,9 @@ def main():
         # A slug CurseForge does not know fails the whole upload, so the optional mods are tried first
         # and left out on a second attempt.
         for attempt in (relations, []):
-            metadata = json.dumps({**fields, "relations": {"projects": [{"slug": slug, "type": "optionalDependency"} for slug in attempt]}})
+            # CurseForge refuses an empty relations list, so the field is left out when there are no optional mods.
+            extra = {"relations": {"projects": [{"slug": slug, "type": "optionalDependency"} for slug in attempt]}} if attempt else {}
+            metadata = json.dumps({**fields, **extra})
             body, content_type = multipart({"metadata": metadata}, "file", jar, name)
             result = request(f"{API}/projects/{PROJECT_ID}/upload-file", data=body, headers={"Content-Type": content_type}, fail=not attempt)
             if result is not None:
