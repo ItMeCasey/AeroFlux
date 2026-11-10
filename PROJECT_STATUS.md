@@ -1,6 +1,6 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-09
+Updated: 2026-11-10
 Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.8 and 2026.11.9 are released, and all ten builds at 2026.11.10 are ready to release (2026.11.8 and 2026.11.9 are out); screens, art, sounds, advancements, tools and guidebook have been seen in real clients, what stays open is the balance review, which is Casey's. Mods that have no build for a loader or version are n/a there, not open. Modrinth is on hold.
 Spend: none
 
@@ -91,7 +91,7 @@ Spend: none
 
 ## Phase 10-11: Port, polish, release
 - [x] Port to all ten builds (self-tested 2026-11-02), then to 26.2 and 26.3 on both loaders (2026-11-06) (w:5)
-- [ ] Balance review in a real client (play the progression and tune costs and rates; the art, screens, sounds and overlays were checked in clients on 2026-11-09) (w:4)
+- [x] Balance review in a real client (play the progression and tune costs and rates; the art, screens, sounds and overlays were checked in clients on 2026-11-09) (w:4) Casey played it and it felt OK for a first run (2026-11-10).
 - [x] Unit tests and CI (shared-core JUnit, ten builds, ten server self-tests, translation check; flaky orb and tank-load tests fixed in e15c4ad and a0b33c2) (w:3)
 - [x] Docs and wiki (59 pages live at itmecasey.com/wiki/aeroflux/ with the current machine names) (w:2)
 - [x] Release workflow (tag v* runs build.yml, checks mod_version against the tag, makes a GitHub prerelease, uploads ten jars to CurseForge; dry run green; release run 41944925123 for v2026.11.5) (w:3)
