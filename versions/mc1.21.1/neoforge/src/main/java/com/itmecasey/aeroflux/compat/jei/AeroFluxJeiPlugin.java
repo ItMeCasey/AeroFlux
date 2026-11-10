@@ -13,6 +13,7 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,6 +31,22 @@ import net.minecraft.world.level.ItemLike;
 @JeiPlugin
 public class AeroFluxJeiPlugin implements IModPlugin {
     private static final ResourceLocation UID = Ids.mod("jei");
+
+    private static IJeiRuntime runtime;
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        runtime = jeiRuntime;
+    }
+
+    /** For the dev tours: opens JEI's recipe screen on the page of one machine. False before JEI has started. */
+    public static boolean showRecipes(MachineType machine) {
+        if (runtime == null) {
+            return false;
+        }
+        runtime.getRecipesGui().showTypes(List.of(MachineRecipeCategory.typeFor(machine)));
+        return true;
+    }
 
     @Override
     public ResourceLocation getPluginUid() {

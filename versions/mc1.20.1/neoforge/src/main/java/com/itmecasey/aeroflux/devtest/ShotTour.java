@@ -90,6 +90,8 @@ public final class ShotTour {
     private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=guis} the tour opens the screen of every machine, converter, chunk loader, collector and tank. */
     private static final boolean GUIS = "guis".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    /** With {@code AEROFLUX_SHOTS=jei} the tour opens JEI's recipe screen on the AeroFlux machine pages. */
+    private static final boolean JEI = "jei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     private static final String WORLD = "aeroflux_shots";
     /** Ticks for the chunk renderer to catch up after blocks change. */
     private static final int SETTLE = 30;
@@ -199,6 +201,8 @@ public final class ShotTour {
             beiShots();
         } else if (GUIS) {
             guisShots();
+        } else if (JEI) {
+            jeiShots();
         } else if (SMWTI) {
             smwtiShots();
         } else {
@@ -720,6 +724,23 @@ public final class ShotTour {
             shoot("gui_guide_page_" + page, 15);
         }
         then(2, () -> Minecraft.getInstance().setScreen(null));
+    }
+
+    /** JEI's recipe screen on the Alloy Smelter and Infuser pages. */
+    private static void jeiShots() {
+        MachineType[] pages = {MachineType.ALLOY_SMELTER, MachineType.INFUSER};
+        for (MachineType page : pages) {
+            then(40, () -> {
+                try {
+                    boolean shown = com.itmecasey.aeroflux.compat.jei.AeroFluxJeiPlugin.showRecipes(page);
+                    AeroFlux.LOGGER.info("AEROFLUX-SHOTS JEI recipe page {} shown={}", page.id(), shown);
+                } catch (RuntimeException | LinkageError e) {
+                    AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not open the JEI page of {}", page.id(), e);
+                }
+            });
+            shoot("jei_" + page.id(), 30);
+            then(5, () -> Minecraft.getInstance().setScreen(null));
+        }
     }
 
     private static void shoot(String name, int delay) {

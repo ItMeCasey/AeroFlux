@@ -182,6 +182,12 @@ dependencies {
     compileOnly "maven.modrinth:rei:${rei_version}"
     compileOnly "maven.modrinth:cloth-config:${cloth_config_version}"
     compileOnly "maven.modrinth:architectury-api:${architectury_version}"
+    // REI only joins a run on request (-PbeiCheck -PdevOnly=rei), because it replaces JEI there.
+    if (devOnly.contains('rei')) {
+        localRuntime "maven.modrinth:rei:${rei_version}"
+        localRuntime "maven.modrinth:cloth-config:${cloth_config_version}"
+        localRuntime "maven.modrinth:architectury-api:${architectury_version}"
+    }
 
     // WTHIT, the third look-at tooltip mod. Bad Packets is the library it needs.
     // BEI (Barely Enough Items), a recipe viewer of ours. Only its API is compiled against, from the jar

@@ -6,6 +6,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.machine.recipe.FluxRecipe;
 import com.itmecasey.aeroflux.registry.ModBlocks;
+import dev.emi.emi.api.EmiApi;
 import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
@@ -41,6 +42,16 @@ public class AeroFluxEmiPlugin implements EmiPlugin {
                 CATEGORIES.put(machine, new MachineCategory(machine));
             }
         }
+    }
+
+    /** For the dev tours: opens EMI's recipe screen on the page of one machine. */
+    public static boolean showRecipes(MachineType machine) {
+        EmiRecipeCategory category = CATEGORIES.get(machine);
+        if (category == null) {
+            return false;
+        }
+        EmiApi.displayRecipeCategory(category);
+        return true;
     }
 
     @Override

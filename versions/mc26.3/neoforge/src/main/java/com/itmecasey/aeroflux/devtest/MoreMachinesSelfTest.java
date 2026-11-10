@@ -23,6 +23,7 @@ import com.itmecasey.aeroflux.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -92,6 +93,10 @@ final class MoreMachinesSelfTest {
     private static BlockPos repairer;
     private static BlockPos spawner;
     private static BlockPos sunLamp;
+    /** Two bundles with an ME pipe each and an AE converter beside them, when AE2 is installed. */
+    private static BlockPos meWest;
+    private static BlockPos meEast;
+    private static BlockPos aeConverter;
 
     private MoreMachinesSelfTest() {
     }
@@ -126,6 +131,7 @@ final class MoreMachinesSelfTest {
         }
         if (tick == WORKED) {
             checkWork();
+            checkAe2();
         }
         if (tick >= LAST && !machinesChecked) {
             checkLamp();
@@ -142,6 +148,20 @@ final class MoreMachinesSelfTest {
     // --- Building ----------------------------------------------------------------------------
 
     private static void build() {
+        // AE2: two ME pipes side by side and an AE converter next to them. AE2 makes their grid
+        // nodes on their first tick, so they are only looked at once the machines have worked.
+        if (com.itmecasey.aeroflux.compat.ae2.Ae2Compat.loaded()) {
+            meWest = new BlockPos(3, Y, 9);
+            meEast = meWest.east();
+            for (BlockPos pos : java.util.List.of(meWest, meEast)) {
+                level.setBlock(pos, ModBlocks.CONDUIT_BUNDLE.get().defaultBlockState(), Block.UPDATE_ALL);
+                ((com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity) level.getBlockEntity(pos))
+                        .addPipe(com.itmecasey.aeroflux.core.conduit.PipeType.ME, Tier.COPPER);
+            }
+            aeConverter = meEast.east();
+            level.setBlock(aeConverter, ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, Tier.COPPER)
+                    .get().defaultBlockState(), Block.UPDATE_ALL);
+        }
         // A stone floor under the Magnet's cobblestone and the Breeder's cows, so they stay put. It
         // leaves the column over the collector checks open: they need to see the sky.
         for (int x = 0; x <= 10; x++) {
@@ -435,6 +455,21 @@ final class MoreMachinesSelfTest {
      * The slots: the mesh slot takes only meshes and only one, the block slot takes what can be
      * sifted, and a Sifter saved before the mesh slot existed keeps its products in output slots.
      */
+    /** AE2 finds the nodes of ME pipes and the AE converter through the block entities' capability. */
+    private static void checkAe2() {
+        if (!com.itmecasey.aeroflux.compat.ae2.Ae2Compat.loaded()) {
+            com.itmecasey.aeroflux.AeroFlux.LOGGER.info("AEROFLUX-SELFTEST INFO AE2 is not installed; the ME pipe checks are skipped");
+            return;
+        }
+        SelfTest.check("ae2: an ME pipe offers AE2 a grid node toward the next ME pipe",
+                com.itmecasey.aeroflux.compat.ae2.Ae2Compat.attaches(level, meWest, Direction.EAST)
+                        && com.itmecasey.aeroflux.compat.ae2.Ae2Compat.attaches(level, meEast, Direction.WEST));
+        SelfTest.check("ae2: an ME pipe offers no node where it has no connection",
+                !com.itmecasey.aeroflux.compat.ae2.Ae2Compat.attaches(level, meWest, Direction.UP));
+        SelfTest.check("ae2: the AE converter offers AE2 a grid node",
+                com.itmecasey.aeroflux.compat.ae2.Ae2Compat.attaches(level, aeConverter, Direction.WEST));
+    }
+
     private static void checkSifterSlots() {
         FluxMachineBlockEntity sieve = machine(meshlessSifter);
         ResourceHandler<ItemResource> items = sieve.itemHandler(null);

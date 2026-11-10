@@ -2,9 +2,11 @@ package com.itmecasey.aeroflux.compat.wthit;
 
 import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlock;
+import com.itmecasey.aeroflux.client.render.FluidRenderUtil;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlock;
 import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
+import com.itmecasey.aeroflux.registry.ModFluids;
 import java.util.List;
 import mcp.mobius.waila.api.IBlockAccessor;
 import mcp.mobius.waila.api.IBlockComponentProvider;
@@ -12,11 +14,13 @@ import mcp.mobius.waila.api.IClientRegistrar;
 import mcp.mobius.waila.api.IPluginConfig;
 import mcp.mobius.waila.api.ITooltip;
 import mcp.mobius.waila.api.IWailaClientPlugin;
+import mcp.mobius.waila.api.data.FluidData;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
 
 /**
  * The client half of the WTHIT plugin: prints the lines the server half sent. The Flux bar and
@@ -32,6 +36,14 @@ public class AeroFluxWthitClientPlugin implements IWailaClientPlugin {
     public void register(IClientRegistrar registrar) {
         for (Class<? extends Block> block : BLOCKS) {
             registrar.body(Lines.INSTANCE, block);
+        }
+        // WTHIT names a fluid from its own data; on Forge it did not find ours and printed "Unknown
+        // Fluid", so each Flux says its name, sprite and tint itself.
+        for (Fluid flux : List.of(ModFluids.AERO_FLUX.get(), ModFluids.MOON_FLUX.get(), ModFluids.TWILIGHT_FLUX.get())) {
+            FluidData.describeFluid(flux, (context, description) -> description
+                    .name(context.fluid().getFluidType().getDescription())
+                    .sprite(FluidRenderUtil.stillSprite(context.fluid()))
+                    .tint(FluidRenderUtil.tint(context.fluid())));
         }
     }
 

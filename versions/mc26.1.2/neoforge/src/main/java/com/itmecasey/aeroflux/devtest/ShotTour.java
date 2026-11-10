@@ -104,6 +104,10 @@ public final class ShotTour {
     private static final boolean GUIS = "guis".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=status} the tour checks the Conduit Tool, sounds, advancements and the creative tab. */
     private static final boolean STATUS = "status".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || ALL;
+    /** With {@code AEROFLUX_SHOTS=jei} the tour opens JEI's recipe screen on the AeroFlux machine pages. */
+    private static final boolean JEI = "jei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    /** With {@code AEROFLUX_SHOTS=rei} the tour opens REI's recipe screen on the AeroFlux machine pages. */
+    private static final boolean REI = "rei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     private static final String WORLD = "aeroflux_shots";
     /** Slots in the player inventory screen: three rows plus the hotbar. */
     private static final int INVENTORY_SLOTS = 36;
@@ -221,6 +225,10 @@ public final class ShotTour {
             screenShots();
             statusShots();
             guisShots();
+        } else if (REI) {
+            reiShots();
+        } else if (JEI) {
+            jeiShots();
         } else if (STATUS) {
             statusShots();
         } else {
@@ -827,6 +835,23 @@ public final class ShotTour {
 
     // --- Status checks -----------------------------------------------------------------------
 
+    /** JEI's recipe screen on the Alloy Smelter, Infuser and Sifter pages. */
+    private static void jeiShots() {
+        MachineType[] pages = {MachineType.ALLOY_SMELTER, MachineType.INFUSER, MachineType.SIFTER};
+        for (MachineType page : pages) {
+            then(40, () -> {
+                try {
+                    boolean shown = com.itmecasey.aeroflux.compat.jei.AeroFluxJeiPlugin.showRecipes(page);
+                    log("JEI recipe page " + page.id() + " shown=" + shown);
+                } catch (RuntimeException | LinkageError e) {
+                    AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not open the JEI page of {}", page.id(), e);
+                }
+            });
+            shoot("jei_" + page.id(), 30);
+            then(5, () -> Minecraft.getInstance().setScreen(null));
+        }
+    }
+
     private static void log(String text) {
         AeroFlux.LOGGER.info("AEROFLUX-SHOTS {}", text);
     }
@@ -1020,6 +1045,23 @@ public final class ShotTour {
         }
         log("ADVANCEMENTS " + label + " tabs=" + roots + " nodes=" + advancements.getTree().nodes().size());
         minecraft.setScreen(new net.minecraft.client.gui.screens.advancements.AdvancementsScreen(advancements));
+    }
+
+    /** REI's recipe screen on the Alloy Smelter and Infuser pages. */
+    private static void reiShots() {
+        MachineType[] pages = {MachineType.ALLOY_SMELTER, MachineType.INFUSER};
+        for (MachineType page : pages) {
+            then(40, () -> {
+                try {
+                    boolean shown = com.itmecasey.aeroflux.compat.rei.AeroFluxReiPlugin.showRecipes(page);
+                    AeroFlux.LOGGER.info("AEROFLUX-SHOTS REI recipe page {} shown={}", page.id(), shown);
+                } catch (RuntimeException | LinkageError e) {
+                    AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not open the REI page of {}", page.id(), e);
+                }
+            });
+            shoot("rei_" + page.id(), 30);
+            then(5, () -> Minecraft.getInstance().setScreen(null));
+        }
     }
 
     private static void shoot(String name, int delay) {

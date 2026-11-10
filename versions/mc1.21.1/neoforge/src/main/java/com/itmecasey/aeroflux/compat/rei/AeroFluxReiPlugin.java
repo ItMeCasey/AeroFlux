@@ -20,6 +20,7 @@ import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
+import me.shedaniel.rei.api.client.view.ViewSearchBuilder;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
@@ -80,6 +81,11 @@ public class AeroFluxReiPlugin implements REIClientPlugin {
     }
 
     private static final CategoryIdentifier<SifterDisplay> SIFTER = CategoryIdentifier.of(Ids.mod("sifter"));
+
+    /** For the dev tours: opens REI's recipe screen on the page of one machine. */
+    public static boolean showRecipes(MachineType machine) {
+        return ViewSearchBuilder.builder().addCategory(id(machine)).open();
+    }
 
     private static CategoryIdentifier<MachineDisplay> id(MachineType machine) {
         return CategoryIdentifier.of(Ids.mod(machine.id()));

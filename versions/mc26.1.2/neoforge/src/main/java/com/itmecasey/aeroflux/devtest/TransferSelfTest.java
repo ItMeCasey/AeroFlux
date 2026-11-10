@@ -38,8 +38,8 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * inside the forced chunk, and the checks run at fixed tick counts afterwards. Each scenario has
  * its own row of blocks so they cannot disturb each other.
  *
- * <p>Energy is not covered here: no AeroFlux block offers an energy storage to build a line
- * from. The energy mover shares its planning code with the fluid mover, which is covered.
+ * <p>Energy runs from a Flux to FE converter, the one AeroFlux block that offers FE, through an
+ * energy pipe into a test-only sink block (see {@link EnergySink}).
  */
 final class TransferSelfTest {
     /** Tick at which the fluid, gating, distribution and item checks look at the result. */
@@ -93,6 +93,11 @@ final class TransferSelfTest {
     private static BlockPos lever;
     private static BlockPos redstoneBundle;
     private static BlockPos lamp;
+
+    // (j) Energy: a converter, an energy pipe and an FE sink.
+    private static BlockPos energyConverter;
+    private static BlockPos energySinkPos;
+    private static int energyFluxStart;
 
     // (i) Filter and Priority upgrades.
     private static Star prioritized;
@@ -196,6 +201,42 @@ final class TransferSelfTest {
         entity(redstoneBundle).refreshConnections();
 
         buildEndpointUpgrades();
+        buildEnergyLine();
+    }
+
+    /**
+     * (j) A gold Flux to FE converter holding 4000 mB of Aero Flux, one copper energy pipe pulling
+     * from its east face and pushing into a gold block that takes FE. The pipe has to move what the
+     * converter makes, without making or losing any.
+     */
+    private static void buildEnergyLine() {
+        energyConverter = new BlockPos(2, 240, 2);
+        BlockPos bundle = energyConverter.east();
+        energySinkPos = bundle.east();
+        level.setBlock(energyConverter, ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.ENERGY, Tier.GOLD)
+                .get().defaultBlockState(), Block.UPDATE_ALL);
+        level.setBlock(energySinkPos, Blocks.GOLD_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        placeBundle(bundle, PipeType.ENERGY, Tier.COPPER);
+        setMode(bundle, PipeType.ENERGY, Face.WEST, ConnectionMode.IMPORT);
+        setMode(bundle, PipeType.ENERGY, Face.EAST, ConnectionMode.EXPORT);
+        com.itmecasey.aeroflux.converter.FluxConverterBlockEntity converter =
+                (com.itmecasey.aeroflux.converter.FluxConverterBlockEntity) level.getBlockEntity(energyConverter);
+        try (Transaction transaction = Transaction.openRoot()) {
+            converter.fluidHandler().insert(0, FluidResource.of(ModFluids.AERO_FLUX.get()), 4000, transaction);
+            transaction.commit();
+        }
+        energyFluxStart = converter.fluxAmount();
+        EnergySink.HANDLER.set(0);
+    }
+
+    private static void checkEnergyLine() {
+        com.itmecasey.aeroflux.converter.FluxConverterBlockEntity converter =
+                (com.itmecasey.aeroflux.converter.FluxConverterBlockEntity) level.getBlockEntity(energyConverter);
+        int sink = EnergySink.HANDLER.getAmountAsInt();
+        int made = (energyFluxStart - converter.fluxAmount()) * com.itmecasey.aeroflux.core.converter.ConverterMath.FE_PER_MB;
+        SelfTest.check("energy: the converter filled with Flux and made FE", energyFluxStart > 0 && made > 0);
+        SelfTest.check("energy: an energy pipe carried FE from the converter into the sink", sink > 0);
+        SelfTest.check("energy: nothing is lost or made on the way", sink + converter.stored() == made);
     }
 
     /**
@@ -292,6 +333,7 @@ final class TransferSelfTest {
             checkEndpointFluid();
         }
         if (tick == CHECK_ITEMS) {
+            checkEnergyLine();
             checkItems();
             checkPersistence();
             checkEndpointItems();
