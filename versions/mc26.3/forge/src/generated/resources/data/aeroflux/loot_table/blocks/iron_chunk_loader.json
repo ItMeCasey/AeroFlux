@@ -2,16 +2,16 @@
   "type": "minecraft:block",
   "pools": [
     {
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
       "entries": [
         {
           "type": "minecraft:item",
           "name": "aeroflux:iron_chunk_loader"
         }
       ],
-      "rolls": 1,
-      "condition": {
-        "type": "minecraft:survives_explosion"
-      }
+      "rolls": 1
     }
   ],
   "random_sequence": "aeroflux:blocks/iron_chunk_loader"

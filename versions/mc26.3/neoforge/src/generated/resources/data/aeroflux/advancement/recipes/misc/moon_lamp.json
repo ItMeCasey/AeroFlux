@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:moon_lamp"
-        ]
+        "recipes": "aeroflux:moon_lamp"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

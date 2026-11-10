@@ -158,6 +158,10 @@ dependencies {
 
     // Optional mods, the same Forge 1.20.1 builds the Forge project uses. AeroFlux compiles against
     // them and runs with the ones the dev runs need; none of them is required at play time.
+    // Open Parties and Claims, compiled against only: the protection layer loads its classes when it is
+    // installed and never otherwise. Only its own API interfaces are called. FTB Chunks is not bridged on
+    // 1.20.1 (no API to compile against here); its claims reach machines through the permission events.
+    modCompileOnly("maven.modrinth:open-parties-and-claims:${opac_version}") { transitive = false }
     modCompileOnly "maven.modrinth:jade:${jade_version}"
     if (devMods || devOnly.contains('jade')) modLocalRuntime "maven.modrinth:jade:${jade_version}"
     modCompileOnly "maven.modrinth:the-one-probe:${top_version}"

@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:flux_magnet"
-        ]
+        "recipes": "aeroflux:flux_magnet"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

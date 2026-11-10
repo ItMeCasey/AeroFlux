@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": "#c:gems/diamond",
     "D": "aeroflux:flux_dust",

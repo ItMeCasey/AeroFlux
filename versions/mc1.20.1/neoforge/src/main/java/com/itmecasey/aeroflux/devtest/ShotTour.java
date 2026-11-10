@@ -1,5 +1,16 @@
 package com.itmecasey.aeroflux.devtest;
 
+import com.itmecasey.aeroflux.client.screen.FluxMachineScreen;
+import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.conduit.config.PipeConfigActions;
+import com.itmecasey.aeroflux.conduit.config.PipeConfigMenu;
+import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
+import com.itmecasey.aeroflux.core.conduit.Face;
+import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
+import com.itmecasey.aeroflux.core.machine.FaceLabel;
+import com.itmecasey.aeroflux.core.machine.SideCommand;
+import com.itmecasey.aeroflux.core.machine.SideResource;
+import com.itmecasey.aeroflux.machine.MachineConfigActions;
 import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.block.entity.FluxCollectorBlockEntity;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
@@ -192,6 +203,7 @@ public final class ShotTour {
             smwtiShots();
         } else {
             sceneShots();
+            pipeScreenShots();
             fluxScreenShots();
             configuratorShot();
 
@@ -388,6 +400,8 @@ public final class ShotTour {
                 NetworkHooks.openScreen(player, tank, tank::writeOpenData);
             } else if (entity instanceof com.itmecasey.aeroflux.converter.FluxConverterBlockEntity converter) {
                 NetworkHooks.openScreen(player, converter, converter::writeOpenData);
+            } else if (entity instanceof com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity loader) {
+                NetworkHooks.openScreen(player, loader, loader::writeOpenData);
             } else {
                 AeroFlux.LOGGER.warn("AEROFLUX-SHOTS nothing to open for {}", name);
             }
@@ -395,6 +409,86 @@ public final class ShotTour {
         then(0, () -> Minecraft.getInstance().options.hideGui = false);
         shoot(name, 10);
         then(2, () -> player().closeContainer());
+    }
+
+    /**
+     * An Iron Furnace with its side-config window open, then a gold item pipe next to it (with
+     * the distribution and upgrade rows) and an ME pipe (with neither). The faces and the pipe get
+     * a mix of settings first, so the shots show every color. Same scene as the newer builds.
+     */
+    private static void pipeScreenShots() {
+        BlockPos machinePos = at(50, 6);
+        BlockPos itemPipe = at(51, 6);
+        BlockPos mePipe = at(49, 6);
+        placeBlock(ModBlocks.machine(MachineType.FURNACE, Tier.IRON).get().asItem(), machinePos);
+        placePipe(PipeType.ITEM, Tier.GOLD, itemPipe, true);
+        placePipe(PipeType.ME, Tier.COPPER, mePipe, true);
+        then(SETTLE, () -> {
+            Minecraft.getInstance().options.hideGui = false;
+            onServer(server -> {
+                ServerLevel level = server.overworld();
+                if (level.getBlockEntity(machinePos) instanceof FluxMachineBlockEntity machine) {
+                    Face facing = machine.facing();
+                    setFace(machine, FaceLabel.TOP, facing, ConnectionMode.OFF);
+                    setFace(machine, FaceLabel.LEFT, facing, ConnectionMode.IMPORT);
+                    setFace(machine, FaceLabel.FRONT, facing, ConnectionMode.OPEN);
+                    setFace(machine, FaceLabel.RIGHT, facing, ConnectionMode.EXPORT);
+                    setFace(machine, FaceLabel.BOTTOM, facing, ConnectionMode.BLOCKED);
+                    setFace(machine, FaceLabel.BACK, facing, ConnectionMode.OFF);
+                    NetworkHooks.openScreen(server.getPlayerList().getPlayers().get(0), machine, machine::writeOpenData);
+                }
+            });
+        });
+        then(10, () -> {
+            if (Minecraft.getInstance().screen instanceof FluxMachineScreen<?> screen) {
+                screen.sidePanel().setOpen(true);
+            } else {
+                AeroFlux.LOGGER.warn("AEROFLUX-SHOTS the machine screen did not open");
+            }
+        });
+        shoot("screen_machine", 5);
+
+        then(2, () -> player().closeContainer());
+        then(5, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(itemPipe) instanceof ConduitBundleBlockEntity bundle) {
+                // The pipe's west face looks at the furnace.
+                PipeConfigActions.setMode(bundle, PipeType.ITEM, Face.WEST, ConnectionMode.IMPORT);
+                PipeConfigActions.addUpgrade(bundle, PipeType.ITEM, PipeUpgrades.Kind.SPEED);
+                PipeConfigActions.addUpgrade(bundle, PipeType.ITEM, PipeUpgrades.Kind.CAPACITY);
+                PipeConfigMenu.open(server.getPlayerList().getPlayers().get(0), bundle, PipeType.ITEM, Face.WEST);
+            }
+        }));
+        shoot("screen_pipe_item", 10);
+
+        then(2, () -> player().closeContainer());
+        then(5, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(mePipe) instanceof ConduitBundleBlockEntity bundle) {
+                PipeConfigMenu.open(server.getPlayerList().getPlayers().get(0), bundle, PipeType.ME, Face.EAST);
+            }
+        }));
+        shoot("screen_pipe_me", 10);
+        then(2, () -> player().closeContainer());
+    }
+
+    /** Sets the item mode of one face of a machine the way a click in the side-config window does. */
+    private static void setFace(FluxMachineBlockEntity machine, FaceLabel label, Face facing, ConnectionMode mode) {
+        MachineConfigActions.apply(machine, SideCommand.set(SideResource.ITEMS, label.faceFor(facing), mode));
+    }
+
+    /** Places a pipe of a given tier, like {@link #placePipe(PipeType, BlockPos, boolean)}. */
+    private static void placePipe(PipeType type, Tier tier, BlockPos pos, boolean onGround) {
+        Item item = ModItems.pipe(type, tier).get();
+        then(1, () -> {
+            moveTo(new Vec3(pos.getX() + 0.5, pos.getY() + 1.62, pos.getZ() - 2.5), 0.0F, 30.0F);
+            hold(item);
+        });
+        then(3, () -> {
+            if (onGround) {
+                click(pos.below(), Direction.UP);
+            } else {
+                click(pos, Direction.NORTH);
+            }
+        });
     }
 
     // --- Building blocks of the tour ---------------------------------------------------------
@@ -577,6 +671,7 @@ public final class ShotTour {
         targets.add(new Object[] {"collector_fluxium", ModBlocks.collector(Tier.FLUXIUM).get(), null});
         targets.add(new Object[] {"tank_copper", ModBlocks.tank(Tier.COPPER).get(), null});
         targets.add(new Object[] {"tank_fluxium", ModBlocks.tank(Tier.FLUXIUM).get(), null});
+        targets.add(new Object[] {"chunk_loader_gold", ModBlocks.chunkLoader(Tier.GOLD).get(), null});
         targets.add(new Object[] {"converter_energy_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.ENERGY, Tier.GOLD).get(), null});
         try {
             targets.add(new Object[] {"converter_ae_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, Tier.GOLD).get(), null});

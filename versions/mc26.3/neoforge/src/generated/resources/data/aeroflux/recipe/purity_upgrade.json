@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "A": "aeroflux:aero_crystal",
     "F": "aeroflux:fluxsteel_ingot",

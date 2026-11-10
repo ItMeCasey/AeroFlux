@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:guidebook"
-        ]
+        "recipes": "aeroflux:guidebook"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

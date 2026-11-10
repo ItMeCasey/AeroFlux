@@ -7,9 +7,11 @@ import com.itmecasey.aeroflux.core.FillLevel;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.RateMeter;
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -176,6 +178,7 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
+        SaveVersion.stamp(tag, SaveSchema.Kind.TANK);
         // An empty tank saves no fluid at all, so its loot table copies nothing and it drops a
         // plain tank that stacks with new ones. Loading a tag without fluid empties the tank.
         if (!tank.isEmpty()) {
@@ -186,6 +189,8 @@ public class FluxTankBlockEntity extends BlockEntity implements MenuProvider, Ta
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.TANK, tag);
         tank.readFromNBT(tag);
         metered = tank.getFluidAmount();
     }

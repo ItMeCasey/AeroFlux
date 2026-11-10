@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:fluxium_alloy_smelter"
-        ]
+        "recipes": "aeroflux:fluxium_alloy_smelter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

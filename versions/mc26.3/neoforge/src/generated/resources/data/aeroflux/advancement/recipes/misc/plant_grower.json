@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:plant_grower"
-        ]
+        "recipes": "aeroflux:plant_grower"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

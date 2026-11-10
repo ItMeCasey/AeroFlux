@@ -87,6 +87,7 @@ public final class SelfTest {
         EnchantConfigSelfTest.setUp(level);
         FluxScreenSelfTest.setUp(level);
         PolishSelfTest.setUp(level);
+        GuardSelfTest.setUp(level);
         ConfiguratorSelfTest.setUp(level);
         CompatSelfTest.setUp(level);
         command("time set day");
@@ -122,6 +123,8 @@ public final class SelfTest {
             MachineExtrasSelfTest.tick();
             // The tank, comparator, hopper and dropper checks build in a layer of their own too.
             BlockIoSelfTest.tick();
+            // The profiler, save versioning and protection checks build in layers of their own too.
+            GuardSelfTest.tick();
             // So do the Flux Configurator checks.
             ConfiguratorSelfTest.tick();
             // The other-mod support checks wait for the machine checks that add the import rule they look for.
@@ -138,7 +141,7 @@ public final class SelfTest {
                     && MachineSelfTest.finished() && MoreMachinesSelfTest.finished() && MachineExtrasSelfTest.finished()
                     && BlockIoSelfTest.finished() && EnchantConfigSelfTest.finished()
                     && FluxScreenSelfTest.finished() && PolishSelfTest.finished()
-                    && ConfiguratorSelfTest.finished() && CompatSelfTest.finished()) {
+                    && ConfiguratorSelfTest.finished() && CompatSelfTest.finished() && GuardSelfTest.finished()) {
                 finish();
             }
             return;

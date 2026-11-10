@@ -41,7 +41,7 @@ public class BreederBlockEntity extends FluxMachineBlockEntity {
         }
         int radius = MachineReach.breederRadius(tier());
         AABB pen = new AABB(worldPosition).inflate(radius, HEIGHT, radius);
-        return level.getEntitiesOfClass(Animal.class, pen, animal -> animal.isAlive() && animal.isFood(food));
+        return level.getEntitiesOfClass(Animal.class, pen, animal -> animal.isAlive() && animal.isFood(food) && mayTouch(animal));
     }
 
     /** Two grown animals of one kind that are ready to breed, or {@code null}. */

@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:flux_dust"
-        ]
+        "recipes": "aeroflux:flux_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

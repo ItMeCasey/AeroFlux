@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:copper_redstone_pipe"
-        ]
+        "recipes": "aeroflux:copper_redstone_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

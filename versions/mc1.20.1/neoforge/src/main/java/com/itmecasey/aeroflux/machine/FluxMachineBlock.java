@@ -4,6 +4,8 @@ import com.itmecasey.aeroflux.block.FluxParticles;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
+import com.itmecasey.aeroflux.core.profile.ProfileTypes;
+import com.itmecasey.aeroflux.profile.TickProfiler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -13,9 +15,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
@@ -31,6 +35,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.network.NetworkHooks;
+import javax.annotation.Nullable;
 
 /**
  * The block of every Flux machine: one class for all eight machines and all six tiers. The
@@ -101,6 +106,15 @@ public class FluxMachineBlock extends BaseEntityBlock {
         return MachineFactory.create(pos, state);
     }
 
+    /** Records who placed the machine, so the claim checks of the machines that reach into the world are made as that player. */
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
+        super.setPlacedBy(level, pos, state, by, itemStack);
+        if (!level.isClientSide() && by instanceof Player player && level.getBlockEntity(pos) instanceof FluxMachineBlockEntity machine) {
+            machine.setOwner(player.getUUID());
+        }
+    }
+
     @Override
     public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
@@ -162,7 +176,8 @@ public class FluxMachineBlock extends BaseEntityBlock {
         if (level.isClientSide) {
             return clientTicker == null ? null : createTickerHelper(type, ModBlockEntities.MACHINE.get(), clientTicker);
         }
-        return createTickerHelper(type, ModBlockEntities.MACHINE.get(), FluxMachineBlockEntity::serverTick);
+        return createTickerHelper(type, ModBlockEntities.MACHINE.get(), TickProfiler.<FluxMachineBlockEntity>wrap(
+                blockState -> ProfileTypes.machine(machine.id()), FluxMachineBlockEntity::serverTick));
     }
 
     /** A working machine gives off a mote now and then, in the color of the flux it runs on. */

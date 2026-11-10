@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:gold_animal_breeder"
-        ]
+        "recipes": "aeroflux:gold_animal_breeder"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

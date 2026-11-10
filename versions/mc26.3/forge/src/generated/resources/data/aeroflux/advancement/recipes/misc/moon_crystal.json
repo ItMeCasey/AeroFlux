@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:moon_crystal"
-        ]
+        "recipes": "aeroflux:moon_crystal"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

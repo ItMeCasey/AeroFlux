@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:chunk_loader"
-        ]
+        "recipes": "aeroflux:chunk_loader"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -17,7 +17,6 @@
     {
       "recipe": {
         "type": "minecraft:crafting_shaped",
-        "category": "misc",
         "key": {
           "B": "#c:ingots/gold",
           "P": "aeroflux:iron_flux_sifter",

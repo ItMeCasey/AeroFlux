@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:netherite_sun_lamp"
-        ]
+        "recipes": "aeroflux:netherite_sun_lamp"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

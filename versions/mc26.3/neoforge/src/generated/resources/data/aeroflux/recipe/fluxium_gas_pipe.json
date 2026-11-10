@@ -6,7 +6,6 @@
     }
   ],
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": "aeroflux:moon_crystal",
     "P": "aeroflux:netherite_gas_pipe",

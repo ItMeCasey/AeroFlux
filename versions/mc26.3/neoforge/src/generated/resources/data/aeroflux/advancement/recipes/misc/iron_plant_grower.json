@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:iron_plant_grower"
-        ]
+        "recipes": "aeroflux:iron_plant_grower"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

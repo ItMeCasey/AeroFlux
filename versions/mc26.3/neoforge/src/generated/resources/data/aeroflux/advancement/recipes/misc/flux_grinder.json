@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:flux_grinder"
-        ]
+        "recipes": "aeroflux:flux_grinder"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

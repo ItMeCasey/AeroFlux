@@ -19,9 +19,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:dense_me_pipe"
-        ]
+        "recipes": "aeroflux:dense_me_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

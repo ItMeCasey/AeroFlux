@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:diamond_flux_blender"
-        ]
+        "recipes": "aeroflux:diamond_flux_blender"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

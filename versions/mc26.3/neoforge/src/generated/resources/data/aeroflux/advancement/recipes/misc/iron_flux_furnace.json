@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:iron_flux_furnace"
-        ]
+        "recipes": "aeroflux:iron_flux_furnace"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

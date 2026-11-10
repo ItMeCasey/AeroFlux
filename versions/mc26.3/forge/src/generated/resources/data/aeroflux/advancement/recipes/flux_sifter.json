@@ -1,0 +1,45 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_flux_dust": {
+      "conditions": {
+        "items": [
+          {
+            "items": "aeroflux:flux_dust"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "aeroflux:flux_sifter"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "forge:condition": {
+    "type": "forge:or",
+    "values": [
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exdeorum"
+      },
+      {
+        "type": "forge:mod_loaded",
+        "modid": "exnihilosequentia"
+      }
+    ]
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_flux_dust"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "aeroflux:flux_sifter"
+    ]
+  }
+}

@@ -1,6 +1,8 @@
 package com.itmecasey.aeroflux.chunkloader;
 
 import com.itmecasey.aeroflux.core.Tier;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
@@ -29,8 +31,6 @@ import net.minecraft.world.level.saveddata.SavedData;
  * ticket check at server start drops every ticket whose loader is not in it.
  */
 public final class ChunkLoaderRegistry extends SavedData {
-    private static final Codec<Tier> TIER_CODEC = Codec.STRING.xmap(name -> Tier.valueOf(name.toUpperCase(Locale.ROOT)), Tier::id);
-
     /**
      * One loader.
      *
@@ -40,7 +40,12 @@ public final class ChunkLoaderRegistry extends SavedData {
      * @param active whether it holds its chunk tickets right now
      */
     public record Entry(BlockPos pos, Optional<UUID> owner, Tier tier, boolean active) {
-        static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+        /**
+         * Kept here, not in the registry, so this class starts without starting the registry: the
+         * registry's own codec uses {@link #CODEC}, and the two would wait for each other.
+         */
+        private static final Codec<Tier> TIER_CODEC = Codec.STRING.xmap(name -> Tier.valueOf(name.toUpperCase(Locale.ROOT)), Tier::id);
+        public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 BlockPos.CODEC.fieldOf("pos").forGetter(Entry::pos),
                 UUIDUtil.CODEC.optionalFieldOf("owner").forGetter(Entry::owner),
                 TIER_CODEC.fieldOf("tier").forGetter(Entry::tier),
@@ -48,21 +53,30 @@ public final class ChunkLoaderRegistry extends SavedData {
         ).apply(instance, Entry::new));
     }
 
-    private static final Codec<ChunkLoaderRegistry> CODEC = Entry.CODEC.listOf()
-            .fieldOf("loaders").codec()
-            .xmap(ChunkLoaderRegistry::new, registry -> new ArrayList<>(registry.entries.values()));
+    /** Saved with the loaders, so a later layout can still read this one; a registry saved before versioning has none. */
+    private static final Codec<ChunkLoaderRegistry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Entry.CODEC.listOf().fieldOf("loaders").forGetter(registry -> new ArrayList<>(registry.entries.values())),
+            Codec.INT.optionalFieldOf(SaveSchema.TAG, 0).forGetter(registry -> SaveSchema.Kind.CHUNK_LOADER_REGISTRY.current())
+    ).apply(instance, ChunkLoaderRegistry::new));
 
     private static final String FILE = "aeroflux_chunk_loaders";
 
     /** Sorted by position so the admin list reads the same every time. */
     private final Map<BlockPos, Entry> entries = new TreeMap<>();
+    /** The version the data was saved with; the current one for a registry made new. */
+    private int loadedVersion = SaveSchema.Kind.CHUNK_LOADER_REGISTRY.current();
 
     public ChunkLoaderRegistry() {
     }
 
-    private ChunkLoaderRegistry(List<Entry> loaded) {
+    private ChunkLoaderRegistry(List<Entry> loaded, int savedVersion) {
         for (Entry entry : loaded) {
             entries.put(entry.pos(), entry);
+        }
+        this.loadedVersion = SaveVersion.check(SaveSchema.Kind.CHUNK_LOADER_REGISTRY, savedVersion);
+        if (SaveSchema.needsMigration(SaveSchema.Kind.CHUNK_LOADER_REGISTRY, savedVersion)) {
+            // Older data has no migration to run yet; saving it again writes the current version.
+            setDirty();
         }
     }
 
@@ -71,7 +85,8 @@ public final class ChunkLoaderRegistry extends SavedData {
         return level.getDataStorage().computeIfAbsent(ChunkLoaderRegistry::load, ChunkLoaderRegistry::new, FILE);
     }
 
-    private static ChunkLoaderRegistry load(CompoundTag tag) {
+    /** Reads a registry from its saved data; public so the self-test can feed it old data. */
+    public static ChunkLoaderRegistry load(CompoundTag tag) {
         return CODEC.parse(NbtOps.INSTANCE, tag.get("data")).result().orElseGet(ChunkLoaderRegistry::new);
     }
 
@@ -79,6 +94,16 @@ public final class ChunkLoaderRegistry extends SavedData {
     public CompoundTag save(CompoundTag tag) {
         CODEC.encodeStart(NbtOps.INSTANCE, this).result().ifPresent(data -> tag.put("data", data));
         return tag;
+    }
+
+    /** The codec the registry is saved with, for the self-test. */
+    public static Codec<ChunkLoaderRegistry> codec() {
+        return CODEC;
+    }
+
+    /** The version this registry was loaded with, for the self-test. */
+    public int loadedVersion() {
+        return loadedVersion;
     }
 
     public Collection<Entry> entries() {

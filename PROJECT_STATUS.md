@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
 Updated: 2026-11-09
-Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.7 is the last release (six builds) and the four 26.2 and 26.3 builds (2026.11.8) are ready to release, while client-side screens and art are still unseen in a real client and Modrinth is on hold.
+Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.7 is the last release (six builds) and six builds (26.3, 26.2 and 1.20.1, 2026.11.8) are ready to release; screens, art, sounds, advancements, tools and guidebook have been seen in real clients, and what stays open is viewer and overlay checks, Create, Mekanism and AE2 pieces that need other mods' builds, and a few features (gas, redstone channels, energy sources) that still need work. Modrinth is on hold.
 Spend: none
 
 ## Planning
@@ -33,12 +33,12 @@ Spend: none
 - [~] Redstone pipes (channel 0 only) (w:3)
 - [~] Gas pipes (Mekanism soft dependency on 1.21.1 NeoForge and both 1.20.1 builds, self-tested; Mekanism has no 26.1 or 1.21.1 Forge build, so gas pipes stay uncraftable there) (w:3)
 - [x] Pipe tiers, speed and capacity upgrades, distribution modes, per-face Filter and Priority upgrades (all ten, self-tested) (w:3)
-- [~] Pipe config screen (logic self-tested on all six; opened in a real client on 26.1.2 NeoForge, 26.1.2 Forge and 1.21.1 NeoForge and read: glyph-only layout, fine; not opened on the 1.20.1 builds or Forge 1.21.1 because their tours have no pipe code) (w:4)
-- [~] Machine side-config panel (logic self-tested on all six; redesign never seen in a client) (w:3)
+- [x] Pipe config screen (logic self-tested on all ten; opened in a real client and read on 26.1.2 NeoForge and Forge, 1.21.1 NeoForge and Forge, 1.20.1 NeoForge and Forge, and on all four 26.2 and 26.3 builds; frames docs/frames/status-* and port-26.x-*) (w:4)
+- [x] Machine side-config panel (logic self-tested on all ten; panel opened with mixed face modes in a real client and read on all ten builds; frames docs/frames/status-* and port-26.x-*) (w:3)
 - [x] Flux Wrench (w:2)
 - [x] Flux Configurator (copy, paste relative to facing, area paste with limit, eight named presets, one-minute undo; logic in shared-core with unit tests, actions self-tested) (w:4)
-- [~] Conduit Tool (edit, remove, remove run, copy and paste, inspect, tier upgrade; logic self-tested on all ten; some modes verified on 26.1 NeoForge only) (w:4)
-- [~] Playtest fixes (26.1 NeoForge checked in game by Casey; the others ported, not played) (w:3)
+- [x] Conduit Tool (edit, remove, remove run, copy and paste, inspect, tier upgrade; logic self-tested on all ten; every mode driven through the client right-click in a real 26.1.2 NeoForge client, 2026-11-09: edit changed the face mode, paste copied the bundle, a diamond pipe raised the tier, remove and remove run took the pipes out; frames docs/frames/status-26.1.2-neoforge-tool-*) (w:4)
+- [x] Playtest fixes (26.1 NeoForge checked in game by Casey; tours in real clients on the other five older builds show the fixed screens and scenes, 2026-11-09) (w:3)
 
 ## Phase 5-7: Machines and resources
 - [x] Machine base framework, menus, Speed/Capacity/Efficiency/Fortune/Silk Touch/Purity upgrades (all ten, self-tested) (w:5)
@@ -46,16 +46,16 @@ Spend: none
 - [x] Alloy Smelter and Infuser (all ten, self-tested; the Infuser takes Aero Flux and Moon Flux since 2026.11.3) (w:3)
 - [x] Enchanter and Disenchanter (rules and config self-tested on all ten) (w:4)
 - [x] Plant Grower (all ten, self-tested: soil slot, crops on farmland, aeroflux/plant_soils rule files, Mystical Agriculture essence farmland bonus) (w:4)
-- [~] Flux Chunk Loader (26.3, 26.2, 26.1 and 1.21.1, both loaders: six tiers, kill switch, admin command, screen; none on 1.20.1) (w:3)
+- [x] Flux Chunk Loader (all ten builds: six tiers, kill switch, admin command, screen; the screen opened in a real client and read on all ten, 2026-11-09, frames docs/frames/status-*-chunk-loader.png) (w:3)
 - [~] Flux converters (Flux to FE on all ten, to AE2 power on 26.3/26.2/26.1/1.21.1 NeoForge and both 1.20.1 builds, Create stress on 1.21.1 NeoForge only; six tiers) (w:3)
 - [x] Auto Import/Export on machine faces and the Plant Grower seed refill (all ten, self-tested) (w:2)
-- [~] Machine art v2 (3D multi-element models, six-face textures, tiers, animated active fronts on all six; never seen in a client) (w:4)
+- [x] Machine art v2 (3D multi-element models, six-face textures, tiers, animated active fronts: every machine and pipe item in the inventory, held, on the ground and placed, lit furnace, Creative Flux Tank and Moon Flux seen in real 26.1.2 NeoForge and 1.21.1 NeoForge clients; 1.20.1 Forge scenes too; frames docs/frames/status-*) (w:4)
 - [x] Second machine wave (Crafter, Purifier, Moon Spawner, Sky Controller, Blender, Animal Breeder, Repairer, Sifter, Magnet, Sun and Moon Lamps; all ten, self-tested) (w:5)
-- [~] Machine sounds (wired on all ten, registration self-tested, never heard in game) (w:2)
+- [x] Machine sounds (wired on all ten, registration self-tested; in a real 26.1.2 NeoForge client the sound engine was asked to play start, loop, done and stop of a working furnace, 2026-11-09, log lines AEROFLUX-SHOTS SOUND; the dev client runs muted, so this is the engine call, not the speaker) (w:2)
 - [x] Resources and full recipe set (machine and block recipes on all six; early-game Infuser; Sawdust to Flux Dust) (w:3)
 
 ## Phase 8-9: Advancements and compat
-- [~] Advancement tree (15 advancements on all six, never seen in a client) (w:3)
+- [x] Advancement tree (15 advancements on all ten; the AeroFlux tab opened in a real 26.1.2 NeoForge client with one and then all advancements granted, frames docs/frames/status-26.1.2-neoforge-advancements-*; Forge 26.3 has no Sifter recipe-unlock advancements, see docs/PORTING_26.2_26.3.md) (w:3)
 - [x] Recipe import compat layer (aeroflux/recipe_imports rules on all six for Create, Mekanism, Immersive Engineering, Thermal, Ender IO and others) (w:3)
 - [~] JEI, REI and EMI plugins (JEI on every build but 26.1 Forge; REI on both NeoForge 26.1/1.21.1 and both 1.20.1; EMI on 1.21.1 NeoForge and both 1.20.1; none seen in a client) (w:3)
 - [~] KubeJS and CraftTweaker hooks (KubeJS on both NeoForge 26.1/1.21.1 and both 1.20.1; CraftTweaker on 1.21.1 NeoForge and both 1.20.1) (w:2)
@@ -68,14 +68,14 @@ Spend: none
 - [x] Compatibility table (docs/COMPATIBILITY.md: which BEI, REI, JEI, EMI, Jade and SMWTI builds exist per version and loader, what AeroFlux has) (w:1)
 
 ## Cross-cutting
-- [~] Ownership and claim-mod protection (26.3, 26.2, 26.1 and 1.21.1, both loaders; not on 1.20.1; self-tested) (w:3)
-- [~] Performance budget and /aeroflux profile (26.3, 26.2, 26.1 and 1.21.1, both loaders; not on 1.20.1) (w:3)
-- [~] Save-data versioning (26.3, 26.2, 26.1 and 1.21.1, both loaders; not on 1.20.1) (w:2)
+- [x] Ownership and claim-mod protection (all ten builds; 1.20.1 NeoForge and Forge ported 2026-11-09 with the permission events and Open Parties and Claims, FTB Chunks only through the events; self-tests 574 passed, 0 failed on both 1.20.1 builds) (w:3)
+- [x] Performance budget and /aeroflux profile (all ten builds; 1.20.1 ported 2026-11-09, covered by the 1.20.1 self-tests) (w:3)
+- [x] Save-data versioning (all ten builds; 1.20.1 ported 2026-11-09, round trip and old-layout loads self-tested on both 1.20.1 builds) (w:2)
 - [x] Storage sizes in the config for every block, synced to clients and shown in tooltips (all six, self-tested) (w:2)
 - [x] Comparator, hopper and dropper support (all ten, self-tested) (w:2)
 - [x] Enchanter and Disenchanter config rules (all ten, self-tested) (w:2)
-- [~] Creative tab, creative blocks, sounds, particles (files and creative self-tests on all six; never seen rendered) (w:3)
-- [~] In-game guidebook (all six: 23 pages in six chapters, contents page, wiki buttons; opened in a real client on 26.1.2 NeoForge and read, contents spacing fixed in 2026.11.7; the other five builds share the code but were not opened) (w:3)
+- [x] Creative tab, creative blocks, sounds, particles (the AeroFlux tab with its 203 items opened and scrolled in a real client, the Creative Flux Tank feeding a lit furnace, collector sparkles and furnace motes seen; frames docs/frames/status-*) (w:3)
+- [x] In-game guidebook (all ten: 23 pages in six chapters, contents page, wiki buttons; opened in a real client and a page read on all ten builds, 2026-11-09, frames docs/frames/status-*-guide-page-10.png and guide-26.1.2-neoforge-*) (w:3)
 - [x] Per-loader build metadata templates (all six, checked in the built jars) (w:2)
 - [x] Localization pipeline (all text through lang keys and datagen, lang_sync.py, TRANSLATING.md) (w:1)
 - [x] Security pass of packets, menus, claims and saved data (converter reach check, capped recipe-sync lists, 2026.11.4) (w:2)
@@ -83,7 +83,7 @@ Spend: none
 ## Feature changes of 2026-11-03
 - [x] Early-game Infuser recipes (copper ingot build, Sawdust to Flux Dust on Aero Flux; all six) (w:1)
 - [x] Machines named <Tier> <Machine> without Flux (display names only, ids unchanged; wiki pages fixed in the site repo, commit 511e40d) (w:1)
-- [~] Simpler Conduit Tool and Configurator art, held upright (all six; never seen in a client; the Wrench keeps its old art) (w:1)
+- [x] Simpler Conduit Tool and Configurator art, held upright (seen in hand in real clients, frames docs/frames/status-26.1.2-neoforge-tool-edit.png; the Wrench keeps its old art) (w:1)
 
 ## Phase 10-11: Port, polish, release
 - [x] Port to all ten builds (self-tested 2026-11-02), then to 26.2 and 26.3 on both loaders (2026-11-06) (w:5)
@@ -96,11 +96,11 @@ Spend: none
 - [x] Modrinth release: frozen indefinitely by Casey (2026-11-06), existing uploads stay as they are (was on hold; project dN4XaJU1 has the page text and 2026.11.1 (NeoForge 26.1.2 only) and the six builds of 2026.11.2 to 2026.11.4 uploaded by hand, 2026.11.5 not uploaded, a duplicate 2026.11.3 version still to delete) (w:2)
 
 ## Port to 26.2 and 26.3
-- [x] Four new builds (versions/mc26.2 and mc26.3, NeoForge and Forge) compile, package and keep the 26.1.2 feature set (2026.11.8 in those four; the other six stay at 2026.11.7 until a release bumps all ten) (w:4)
+- [x] Four new builds (versions/mc26.2 and mc26.3, NeoForge and Forge) compile, package and keep the 26.1.2 feature set (2026.11.8 in those four, and in both 1.20.1 builds since the claim, profile and save-version port; the 1.21.1 and 26.1.2 builds stay at 2026.11.7) (w:4)
 - [x] Headless self-test on all four (620 to 628 checks, 0 failures; ports 8996 to 8999) (w:3)
 - [x] Unit tests of shared-core pass (w:1)
 - [x] One real-client check per new build (machine and pipe screens opened with the dev tour through the isolated desktop and read, 2026-11-06; frames docs/frames/port-26.x-*) (w:3)
-- [~] 26.3 data generators (not ported: recipes, advancements and loot tables use a new bootstrap system; generated data was converted by script; docs/PORTING_26.2_26.3.md) (w:3)
+- [x] 26.3 data generators (ported 2026-11-09: NeoForge gathers recipes, loot tables and advancements through GatherDataRegistryEntriesEvent, Forge through a RegistryDataBuilder layer; runData ran on both and regenerated the data in the 26.3 format; self-tests 623 and 620 passed, 0 failed; the six Flux Sifter advancements are back on Forge 26.3) (w:3)
 - [~] Integrations on 26.2 and 26.3 (compiled and self-tested with Jade, The One Probe, AE2, JEI and WTHIT where those mods have a build; KubeJS hooks left out, WTHIT left out on 26.3; none seen in a client) (w:2)
 - [x] API jars from the private Maven (all four builds compile against com.itmecasey:bei-api 2026.11.7 and smwti-api 2026.11.3 when IMC_MAVEN_* is set, verified; libs/ jars are the fallback without a login) (w:2)
 - [x] CI and release workflows, CurseForge script, README, changelog, compatibility table and wiki draft cover the four new builds (w:2)

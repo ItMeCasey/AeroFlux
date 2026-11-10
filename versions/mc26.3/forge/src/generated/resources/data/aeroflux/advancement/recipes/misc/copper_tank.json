@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:copper_tank"
-        ]
+        "recipes": "aeroflux:copper_tank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

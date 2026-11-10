@@ -19,9 +19,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:diamond_gas_pipe"
-        ]
+        "recipes": "aeroflux:diamond_gas_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

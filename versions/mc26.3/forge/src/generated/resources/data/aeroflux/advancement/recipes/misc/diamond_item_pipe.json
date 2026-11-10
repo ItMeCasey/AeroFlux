@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:diamond_item_pipe"
-        ]
+        "recipes": "aeroflux:diamond_item_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

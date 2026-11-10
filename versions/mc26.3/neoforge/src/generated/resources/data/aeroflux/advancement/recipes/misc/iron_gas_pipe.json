@@ -19,9 +19,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:iron_gas_pipe"
-        ]
+        "recipes": "aeroflux:iron_gas_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:fluxium_fluid_pipe"
-        ]
+        "recipes": "aeroflux:fluxium_fluid_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -37,7 +37,8 @@ import net.minecraftforge.fml.common.Mod;
 public final class BeiTour {
     private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     private static final boolean GUIS = "guis".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
-    private static final boolean ENABLED = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || SMWTI || GUIS;
+    private static final boolean PIPES = "pipes".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    private static final boolean ENABLED = "bei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || SMWTI || GUIS || PIPES;
     private static final String WORLD = "aeroflux_shots";
 
     private enum Stage { WAITING_FOR_MENU, LOADING_WORLD, TOURING, DONE }
@@ -124,9 +125,13 @@ public final class BeiTour {
 
     private static void plan() {
         // Forge crashes on fire ticks in a fresh world, so fire is switched off before anything else.
-        if (GUIS) {
+        if (GUIS || PIPES) {
             then(0, () -> server("gamerule doFireTick false", "gamerule doDaylightCycle false", "time set noon"));
-            guisShots();
+            if (PIPES) {
+                pipesShots();
+            } else {
+                guisShots();
+            }
             then(40, () -> {
                 AeroFlux.LOGGER.info("AEROFLUX-SHOTS DONE");
                 stage = Stage.DONE;
@@ -352,6 +357,102 @@ public final class BeiTour {
             shoot("gui_guide_page_" + page, 15);
         }
         then(2, () -> Minecraft.getInstance().setScreen(null));
+    }
+
+    /**
+     * An Iron Furnace with its side-config window open, then a gold item pipe next to it and an ME
+     * pipe, each screen opened the way the server opens it for a player. The blocks are set by the
+     * server and the player is teleported next to them, so the menus stay valid.
+     */
+    private static void pipesShots() {
+        then(0, () -> server("gamemode survival @a"));
+        final int z = 12;
+        then(2, () -> {
+            int y = (int) Math.floor(player().getY());
+            server("tp @a 0.5 " + y + " " + (z - 3) + ".5 0 30");
+            MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+            if (server == null) {
+                return;
+            }
+            server.execute(() -> {
+                net.minecraft.server.level.ServerLevel level = server.overworld();
+                net.minecraft.core.BlockPos machinePos = new net.minecraft.core.BlockPos(0, y, z);
+                net.minecraft.core.BlockPos itemPipe = new net.minecraft.core.BlockPos(1, y, z);
+                net.minecraft.core.BlockPos mePipe = new net.minecraft.core.BlockPos(-1, y, z);
+                level.setBlockAndUpdate(machinePos, com.itmecasey.aeroflux.registry.ModBlocks.machine(
+                        com.itmecasey.aeroflux.core.machine.MachineType.FURNACE, com.itmecasey.aeroflux.core.Tier.IRON).get().defaultBlockState());
+                level.setBlockAndUpdate(itemPipe, com.itmecasey.aeroflux.registry.ModBlocks.CONDUIT_BUNDLE.get().defaultBlockState());
+                level.setBlockAndUpdate(mePipe, com.itmecasey.aeroflux.registry.ModBlocks.CONDUIT_BUNDLE.get().defaultBlockState());
+                if (level.getBlockEntity(itemPipe) instanceof com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity bundle) {
+                    bundle.addPipe(com.itmecasey.aeroflux.core.conduit.PipeType.ITEM, com.itmecasey.aeroflux.core.Tier.GOLD);
+                    com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setMode(bundle, com.itmecasey.aeroflux.core.conduit.PipeType.ITEM,
+                            com.itmecasey.aeroflux.core.conduit.Face.WEST, com.itmecasey.aeroflux.core.conduit.ConnectionMode.IMPORT);
+                    com.itmecasey.aeroflux.conduit.config.PipeConfigActions.addUpgrade(bundle, com.itmecasey.aeroflux.core.conduit.PipeType.ITEM,
+                            com.itmecasey.aeroflux.core.conduit.PipeUpgrades.Kind.SPEED);
+                    com.itmecasey.aeroflux.conduit.config.PipeConfigActions.addUpgrade(bundle, com.itmecasey.aeroflux.core.conduit.PipeType.ITEM,
+                            com.itmecasey.aeroflux.core.conduit.PipeUpgrades.Kind.CAPACITY);
+                }
+                if (level.getBlockEntity(mePipe) instanceof com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity bundle) {
+                    bundle.addPipe(com.itmecasey.aeroflux.core.conduit.PipeType.ME, com.itmecasey.aeroflux.core.Tier.COPPER);
+                }
+                if (level.getBlockEntity(machinePos) instanceof com.itmecasey.aeroflux.machine.FluxMachineBlockEntity machine) {
+                    com.itmecasey.aeroflux.core.conduit.Face facing = machine.facing();
+                    face(machine, com.itmecasey.aeroflux.core.machine.FaceLabel.TOP, facing, com.itmecasey.aeroflux.core.conduit.ConnectionMode.OFF);
+                    face(machine, com.itmecasey.aeroflux.core.machine.FaceLabel.LEFT, facing, com.itmecasey.aeroflux.core.conduit.ConnectionMode.IMPORT);
+                    face(machine, com.itmecasey.aeroflux.core.machine.FaceLabel.FRONT, facing, com.itmecasey.aeroflux.core.conduit.ConnectionMode.OPEN);
+                    face(machine, com.itmecasey.aeroflux.core.machine.FaceLabel.RIGHT, facing, com.itmecasey.aeroflux.core.conduit.ConnectionMode.EXPORT);
+                    face(machine, com.itmecasey.aeroflux.core.machine.FaceLabel.BOTTOM, facing, com.itmecasey.aeroflux.core.conduit.ConnectionMode.BLOCKED);
+                    face(machine, com.itmecasey.aeroflux.core.machine.FaceLabel.BACK, facing, com.itmecasey.aeroflux.core.conduit.ConnectionMode.OFF);
+                }
+            });
+        });
+        then(30, () -> {
+        });
+        then(5, () -> openFromServer(machine -> true, new net.minecraft.core.BlockPos(0, (int) Math.floor(player().getY()), z), "machine"));
+        then(10, () -> {
+            if (Minecraft.getInstance().screen instanceof com.itmecasey.aeroflux.client.screen.FluxMachineScreen<?> screen) {
+                screen.sidePanel().setOpen(true);
+            } else {
+                AeroFlux.LOGGER.warn("AEROFLUX-SHOTS the machine screen did not open");
+            }
+        });
+        shoot("screen_machine", 5);
+        then(2, () -> player().closeContainer());
+        then(5, () -> openFromServer(entity -> true, new net.minecraft.core.BlockPos(1, (int) Math.floor(player().getY()), z), "pipe_item"));
+        shoot("screen_pipe_item", 10);
+        then(2, () -> player().closeContainer());
+        then(5, () -> openFromServer(entity -> true, new net.minecraft.core.BlockPos(-1, (int) Math.floor(player().getY()), z), "pipe_me"));
+        shoot("screen_pipe_me", 10);
+        then(2, () -> player().closeContainer());
+    }
+
+    private static void face(com.itmecasey.aeroflux.machine.FluxMachineBlockEntity machine, com.itmecasey.aeroflux.core.machine.FaceLabel label,
+                             com.itmecasey.aeroflux.core.conduit.Face facing, com.itmecasey.aeroflux.core.conduit.ConnectionMode mode) {
+        com.itmecasey.aeroflux.machine.MachineConfigActions.apply(machine, com.itmecasey.aeroflux.core.machine.SideCommand.set(
+                com.itmecasey.aeroflux.core.machine.SideResource.ITEMS, label.faceFor(facing), mode));
+    }
+
+    /** Opens the machine screen or the pipe screen of what stands at {@code pos}, the way the server opens it. */
+    private static void openFromServer(java.util.function.Predicate<Object> unused, net.minecraft.core.BlockPos pos, String what) {
+        MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+        if (server == null) {
+            return;
+        }
+        server.execute(() -> {
+            net.minecraft.server.level.ServerPlayer player = server.getPlayerList().getPlayers().get(0);
+            net.minecraft.world.level.block.entity.BlockEntity entity = server.overworld().getBlockEntity(pos);
+            if (entity instanceof com.itmecasey.aeroflux.machine.FluxMachineBlockEntity machine) {
+                player.openMenu(machine, machine::writeOpenData);
+            } else if (entity instanceof com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity bundle) {
+                com.itmecasey.aeroflux.core.conduit.PipeType type = what.equals("pipe_me")
+                        ? com.itmecasey.aeroflux.core.conduit.PipeType.ME : com.itmecasey.aeroflux.core.conduit.PipeType.ITEM;
+                com.itmecasey.aeroflux.core.conduit.Face face = what.equals("pipe_me")
+                        ? com.itmecasey.aeroflux.core.conduit.Face.EAST : com.itmecasey.aeroflux.core.conduit.Face.WEST;
+                com.itmecasey.aeroflux.conduit.config.PipeConfigMenu.open(player, bundle, type, face);
+            } else {
+                AeroFlux.LOGGER.warn("AEROFLUX-SHOTS nothing to open for {}", what);
+            }
+        });
     }
 
     private static void shoot(String name, int delay) {

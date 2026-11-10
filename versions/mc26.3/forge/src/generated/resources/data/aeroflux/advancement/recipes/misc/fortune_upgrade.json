@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:fortune_upgrade"
-        ]
+        "recipes": "aeroflux:fortune_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

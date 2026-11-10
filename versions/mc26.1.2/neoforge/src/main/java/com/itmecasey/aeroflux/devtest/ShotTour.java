@@ -92,6 +92,8 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 @EventBusSubscriber(modid = AeroFlux.MODID, value = Dist.CLIENT)
 public final class ShotTour {
     private static final boolean ENABLED = System.getenv("AEROFLUX_SHOTS") != null;
+    /** With {@code AEROFLUX_SHOTS=all} the tour does the scenes, the screens, every GUI and the status checks in one run. */
+    private static final boolean ALL = "all".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=screens} the tour only shoots the machine and pipe screens. */
     private static final boolean SCREENS_ONLY = "screens".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=bei} the tour opens the inventory with Barely Enough Items and shoots its browser and recipe popup. */
@@ -100,6 +102,8 @@ public final class ShotTour {
     private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=guis} the tour opens the screen of every machine, converter, chunk loader, collector and tank. */
     private static final boolean GUIS = "guis".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
+    /** With {@code AEROFLUX_SHOTS=status} the tour checks the Conduit Tool, sounds, advancements and the creative tab. */
+    private static final boolean STATUS = "status".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || ALL;
     private static final String WORLD = "aeroflux_shots";
     /** Slots in the player inventory screen: three rows plus the hotbar. */
     private static final int INVENTORY_SLOTS = 36;
@@ -212,6 +216,13 @@ public final class ShotTour {
             guisShots();
         } else if (SMWTI) {
             smwtiShots();
+        } else if (ALL) {
+            sceneShots();
+            screenShots();
+            statusShots();
+            guisShots();
+        } else if (STATUS) {
+            statusShots();
         } else {
             if (!SCREENS_ONLY) {
                 sceneShots();
@@ -812,6 +823,203 @@ public final class ShotTour {
             shoot("gui_guide_page_" + page, 15);
         }
         then(2, () -> Minecraft.getInstance().setScreen(null));
+    }
+
+    // --- Status checks -----------------------------------------------------------------------
+
+    private static void log(String text) {
+        AeroFlux.LOGGER.info("AEROFLUX-SHOTS {}", text);
+    }
+
+    /** Puts a stack in the first hotbar slot, selects it, and tells the server. */
+    private static void holdStack(ItemStack stack) {
+        LocalPlayer player = player();
+        player.getInventory().setItem(0, stack.copy());
+        player.getInventory().setSelectedSlot(0);
+        Minecraft.getInstance().gameMode.handleCreativeModeItemAdd(stack, 36);
+    }
+
+    private static ItemStack tool(com.itmecasey.aeroflux.core.conduit.ToolMode mode) {
+        ItemStack stack = new ItemStack(ModItems.CONDUIT_TOOL.get());
+        com.itmecasey.aeroflux.conduit.tool.ToolStackData.setMode(stack, mode);
+        return stack;
+    }
+
+    /** Uses the tool in a mode on the north face of the bundle at {@code pos}, the way a click would. */
+    private static void useTool(com.itmecasey.aeroflux.core.conduit.ToolMode mode, BlockPos pos, boolean sneak) {
+        then(2, () -> {
+            moveTo(new Vec3(pos.getX() + 0.5, pos.getY() + 1.62, pos.getZ() - 2.5), 0.0F, 30.0F);
+            // The same stack stays in the hand between uses, so a copy is still there for the paste
+            // and a run keeps its start; only its mode changes, on the server's own copy.
+            if (!(player().getMainHandItem().getItem() instanceof com.itmecasey.aeroflux.conduit.tool.ConduitToolItem)) {
+                holdStack(tool(mode));
+            }
+            // Changing the mode drops a half-made run, so it is only changed when it differs.
+            onServer(server -> {
+                ItemStack held = serverPlayer(server).getMainHandItem();
+                if (com.itmecasey.aeroflux.conduit.tool.ToolStackData.mode(held) != mode) {
+                    com.itmecasey.aeroflux.conduit.tool.ToolStackData.setMode(held, mode);
+                }
+            });
+            player().setShiftKeyDown(sneak);
+        });
+        then(4, () -> click(pos, Direction.NORTH));
+        then(6, () -> player().setShiftKeyDown(false));
+    }
+
+    /** Reads the bundle at {@code pos} on the server and logs what {@code probe} makes of it. */
+    private static void probe(String label, BlockPos pos, java.util.function.Function<ConduitBundleBlockEntity, String> probe) {
+        then(10, () -> onServer(server -> {
+            BlockEntity entity = server.overworld().getBlockEntity(pos);
+            log("TOOL " + label + ": " + (entity instanceof ConduitBundleBlockEntity bundle ? probe.apply(bundle) : "no bundle"));
+        }));
+    }
+
+    private static String lanes(ConduitBundleBlockEntity bundle) {
+        StringBuilder out = new StringBuilder();
+        for (PipeType type : PipeType.values()) {
+            if (bundle.bundle().set().contains(type)) {
+                out.append(type).append('=').append(bundle.bundle().tier(type.lane())).append('/')
+                        .append(bundle.bundle().mode(type.lane(), Face.NORTH)).append(' ');
+            }
+        }
+        return out.toString().trim();
+    }
+
+    /**
+     * Sounds, the Conduit Tool in every mode, the advancement tab and the creative tab, each
+     * logged with what the server and client hold, and shot where there is something to see.
+     */
+    private static void statusShots() {
+        // Sounds: every AeroFlux sound the client engine is asked to play is logged.
+        then(0, () -> Minecraft.getInstance().getSoundManager().addListener((sound, events, range) -> {
+            if (sound.getIdentifier().getNamespace().equals(AeroFlux.MODID)) {
+                log("SOUND " + sound.getIdentifier() + " range=" + range);
+            }
+        }));
+        BlockPos furnace = at(80, 0);
+        placeBlock(ModBlocks.machine(MachineType.FURNACE, Tier.IRON).get().asItem(), furnace);
+        then(SETTLE, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(furnace) instanceof FluxMachineBlockEntity machine) {
+                machine.setFlux(FluidResource.of(ModFluids.AERO_FLUX.get()), 20_000);
+                machine.setStackIn(0, new ItemStack(Items.RAW_IRON, 3));
+            }
+        }));
+        then(300, () -> log("SOUND window closed (furnace worked for 15 seconds)"));
+        then(2, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(furnace) instanceof FluxMachineBlockEntity machine) {
+                machine.setStackIn(0, ItemStack.EMPTY);
+            }
+        }));
+        then(100, () -> log("SOUND window closed (furnace idle)"));
+
+        // The Conduit Tool, every mode, through the client's own right-click.
+        com.itmecasey.aeroflux.core.conduit.ToolMode[] modes = com.itmecasey.aeroflux.core.conduit.ToolMode.values();
+        BlockPos a = at(90, 0);
+        BlockPos b = at(92, 0);
+        placePipe(PipeType.FLUID, a, true);
+        placePipe(PipeType.ITEM, a, false);
+        placePipe(PipeType.FLUID, b, true);
+        then(SETTLE, () -> Minecraft.getInstance().options.hideGui = false);
+        probe("start", a, ShotTour::lanes);
+        useTool(modes[0], a, false);
+        probe("EDIT north face", a, ShotTour::lanes);
+        shoot("tool_edit", 4);
+        useTool(com.itmecasey.aeroflux.core.conduit.ToolMode.INSPECT, a, false);
+        probe("INSPECT done", a, ShotTour::lanes);
+        shoot("tool_inspect", 10);
+        useTool(com.itmecasey.aeroflux.core.conduit.ToolMode.COPY, a, false);
+        shoot("tool_copy", 10);
+        useTool(com.itmecasey.aeroflux.core.conduit.ToolMode.PASTE, b, false);
+        probe("PASTE onto the single fluid bundle", b, ShotTour::lanes);
+        shoot("tool_paste", 4);
+        then(2, () -> {
+            moveTo(new Vec3(b.getX() + 0.5, b.getY() + 1.62, b.getZ() - 2.5), 0.0F, 30.0F);
+            holdStack(new ItemStack(ModItems.pipe(PipeType.FLUID, Tier.DIAMOND).get()));
+        });
+        then(4, () -> click(b, Direction.NORTH));
+        probe("tier upgrade with a diamond pipe", b, ShotTour::lanes);
+        useTool(com.itmecasey.aeroflux.core.conduit.ToolMode.REMOVE, b, false);
+        probe("REMOVE", b, ShotTour::lanes);
+        shoot("tool_remove", 4);
+        // A run of five fluid pipes, removed between two clicks.
+        for (int x = 100; x <= 104; x++) {
+            placePipe(PipeType.FLUID, at(x, 0), true);
+        }
+        then(SETTLE, () -> {
+        });
+        useTool(com.itmecasey.aeroflux.core.conduit.ToolMode.REMOVE_RUN, at(100, 0), false);
+        useTool(com.itmecasey.aeroflux.core.conduit.ToolMode.REMOVE_RUN, at(104, 0), false);
+        then(10, () -> onServer(server -> {
+            int left = 0;
+            for (int x = 100; x <= 104; x++) {
+                left += server.overworld().getBlockEntity(at(x, 0)) instanceof ConduitBundleBlockEntity ? 1 : 0;
+            }
+            log("TOOL REMOVE_RUN: bundles left in the run = " + left);
+        }));
+        shoot("tool_remove_run", 4);
+        then(2, () -> player().setShiftKeyDown(false));
+
+        // Advancements: one granted, then all, with the AeroFlux tab selected.
+        then(2, () -> server("advancement revoke @a everything", "advancement grant @a only aeroflux:aero_flux"));
+        then(30, () -> openAdvancements("adv_start"));
+        shoot("advancements_start", 20);
+        then(2, () -> server("advancement grant @a everything"));
+        then(30, () -> openAdvancements("adv_all"));
+        shoot("advancements_all", 20);
+        then(2, () -> Minecraft.getInstance().setScreen(null));
+
+        // The creative tab, three scroll positions.
+        then(5, () -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            minecraft.options.hideGui = false;
+            try {
+                net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen screen =
+                        new net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen(player(),
+                                player().connection.enabledFeatures(), false);
+                minecraft.setScreen(screen);
+                java.lang.reflect.Method select = net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.class
+                        .getDeclaredMethod("selectTab", net.minecraft.world.item.CreativeModeTab.class);
+                select.setAccessible(true);
+                select.invoke(screen, com.itmecasey.aeroflux.registry.ModCreativeTabs.MAIN.get());
+                log("CREATIVE tab selected, items=" + com.itmecasey.aeroflux.registry.ModCreativeTabs.MAIN.get().getDisplayItems().size());
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not open the creative tab", e);
+            }
+        });
+        shoot("creative_tab_1", 15);
+        for (int i = 1; i <= 2; i++) {
+            float offset = i * 0.5F;
+            then(5, () -> scrollCreative(offset));
+            shoot("creative_tab_" + (i + 1), 10);
+        }
+        then(2, () -> Minecraft.getInstance().setScreen(null));
+    }
+
+    private static void scrollCreative(float offset) {
+        try {
+            net.minecraft.client.gui.screens.Screen screen = Minecraft.getInstance().screen;
+            java.lang.reflect.Field field = net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen.class.getDeclaredField("scrollOffs");
+            field.setAccessible(true);
+            field.setFloat(screen, offset);
+            ((net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen) screen).getMenu().scrollTo(offset);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not scroll the creative tab", e);
+        }
+    }
+
+    private static void openAdvancements(String label) {
+        Minecraft minecraft = Minecraft.getInstance();
+        net.minecraft.client.multiplayer.ClientAdvancements advancements = minecraft.getConnection().getAdvancements();
+        int roots = 0;
+        for (net.minecraft.advancements.AdvancementNode node : advancements.getTree().roots()) {
+            roots++;
+            if (node.holder().id().getNamespace().equals(AeroFlux.MODID)) {
+                advancements.setSelectedTab(node.holder(), true);
+            }
+        }
+        log("ADVANCEMENTS " + label + " tabs=" + roots + " nodes=" + advancements.getTree().nodes().size());
+        minecraft.setScreen(new net.minecraft.client.gui.screens.advancements.AdvancementsScreen(advancements));
     }
 
     private static void shoot(String name, int delay) {

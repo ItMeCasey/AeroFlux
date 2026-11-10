@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:upgrade_card_netherite"
-        ]
+        "recipes": "aeroflux:upgrade_card_netherite"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

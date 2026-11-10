@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:diamond_flux_disenchanter"
-        ]
+        "recipes": "aeroflux:diamond_flux_disenchanter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

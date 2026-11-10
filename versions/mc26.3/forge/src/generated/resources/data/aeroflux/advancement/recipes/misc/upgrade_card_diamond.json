@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:upgrade_card_diamond"
-        ]
+        "recipes": "aeroflux:upgrade_card_diamond"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

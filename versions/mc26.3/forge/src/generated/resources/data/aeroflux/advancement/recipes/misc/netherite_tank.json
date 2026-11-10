@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:netherite_tank"
-        ]
+        "recipes": "aeroflux:netherite_tank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

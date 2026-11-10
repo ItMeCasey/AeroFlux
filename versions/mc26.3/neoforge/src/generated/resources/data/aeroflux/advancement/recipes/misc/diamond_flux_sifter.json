@@ -28,9 +28,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:diamond_flux_sifter"
-        ]
+        "recipes": "aeroflux:diamond_flux_sifter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

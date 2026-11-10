@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:sky_controller"
-        ]
+        "recipes": "aeroflux:sky_controller"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:fluxium_flux_crafter"
-        ]
+        "recipes": "aeroflux:fluxium_flux_crafter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

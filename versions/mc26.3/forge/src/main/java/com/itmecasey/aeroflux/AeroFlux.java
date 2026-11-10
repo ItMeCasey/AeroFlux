@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux;
 
 import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
+import com.itmecasey.aeroflux.datagen.DataGenerators;
 import com.itmecasey.aeroflux.machine.configurator.ConfiguratorPayload;
 import com.itmecasey.aeroflux.machine.RecipeSync;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
@@ -14,6 +15,7 @@ import com.itmecasey.aeroflux.registry.ModMenus;
 import com.itmecasey.aeroflux.registry.ModRecipes;
 import com.itmecasey.aeroflux.registry.ModSounds;
 import com.mojang.logging.LogUtils;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -53,6 +55,7 @@ public final class AeroFlux {
         ModCreativeTabs.register(modBusGroup);
         ModSounds.register(modBusGroup);
         ChunkLoaderTickets.register(modBusGroup);
+        GatherDataEvent.getBus(modBusGroup).addListener(DataGenerators::gatherData);
         context.registerConfig(ModConfig.Type.COMMON, AeroFluxConfig.SPEC);
         // Sound and particle settings only matter where the game is drawn.
         context.registerConfig(ModConfig.Type.CLIENT, AeroFluxClientConfig.SPEC);

@@ -6,7 +6,6 @@
     }
   ],
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": "#c:ingots/iron",
     "P": "aeroflux:copper_gas_pipe",

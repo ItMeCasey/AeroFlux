@@ -15,7 +15,6 @@
     }
   ],
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "A": "minecraft:string",
     "C": "#c:ingots/copper",

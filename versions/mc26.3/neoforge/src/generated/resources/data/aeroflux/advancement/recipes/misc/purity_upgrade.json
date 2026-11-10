@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:purity_upgrade"
-        ]
+        "recipes": "aeroflux:purity_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

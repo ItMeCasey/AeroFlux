@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:iron_flux_energy_converter"
-        ]
+        "recipes": "aeroflux:iron_flux_energy_converter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

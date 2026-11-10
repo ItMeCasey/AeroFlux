@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:netherite_moon_spawner"
-        ]
+        "recipes": "aeroflux:netherite_moon_spawner"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

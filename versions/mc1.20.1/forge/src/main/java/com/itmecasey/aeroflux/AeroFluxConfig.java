@@ -202,6 +202,23 @@ public final class AeroFluxConfig {
         BUILDER.pop();
     }
 
+    // Claim mods and ownership. The machines that reach into the world remember who placed them.
+    static {
+        BUILDER.comment("Ownership and claim mods.").push("protection");
+    }
+
+    private static final ForgeConfigSpec.BooleanValue PROTECTION_ENABLED = BUILDER
+            .comment("Before a machine that reaches into the world (Sky Controller, Moon Spawner, Plant Grower, Animal Breeder,",
+                            "Flux Magnet, chunk loaders) acts, and before the Conduit Tool and Flux Configurator change a block,",
+                            "ask the standard permission events that claim mods veto, and Open Parties and Claims directly",
+                            "when it is installed. A machine acts as the player who placed it; a machine nobody placed",
+                            "is never asked. Set to false to skip every check.")
+            .define("enabled", true);
+
+    static {
+        BUILDER.pop();
+    }
+
     /** The finished spec, registered with the mod container in the mod constructor. */
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -222,6 +239,11 @@ public final class AeroFluxConfig {
         }
         String id = text.trim().startsWith("#") ? text.trim().substring(1) : text.trim();
         return ResourceLocation.tryParse(id) != null;
+    }
+
+    /** Whether machines and tools ask the claim checks before they act. */
+    public static boolean protectionEnabled() {
+        return PROTECTION_ENABLED.get();
     }
 
     /** The most machines one Flux Configurator area paste may change. */

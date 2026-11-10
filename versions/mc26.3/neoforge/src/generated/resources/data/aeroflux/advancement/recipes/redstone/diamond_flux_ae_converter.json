@@ -19,9 +19,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:diamond_flux_ae_converter"
-        ]
+        "recipes": "aeroflux:diamond_flux_ae_converter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

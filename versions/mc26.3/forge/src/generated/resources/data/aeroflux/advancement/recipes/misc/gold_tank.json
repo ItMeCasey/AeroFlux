@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:gold_tank"
-        ]
+        "recipes": "aeroflux:gold_tank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

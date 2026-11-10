@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:capacity_upgrade"
-        ]
+        "recipes": "aeroflux:capacity_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

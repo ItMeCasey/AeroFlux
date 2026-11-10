@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:flux_wrench"
-        ]
+        "recipes": "aeroflux:flux_wrench"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

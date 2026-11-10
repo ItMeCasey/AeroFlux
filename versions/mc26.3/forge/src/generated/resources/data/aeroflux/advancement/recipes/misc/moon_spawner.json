@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:moon_spawner"
-        ]
+        "recipes": "aeroflux:moon_spawner"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

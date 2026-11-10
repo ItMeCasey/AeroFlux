@@ -157,6 +157,10 @@ dependencies {
 
     // Optional mods. AeroFlux compiles against them and runs with the ones the dev runs need;
     // none of them is required at play time. fg.deobf maps their jars to our mappings.
+    // Open Parties and Claims, compiled against only: the protection layer loads its classes when it is
+    // installed and never otherwise. Only its own API interfaces are called. FTB Chunks is not bridged on
+    // 1.20.1 (no API to compile against here); its claims reach machines through the permission events.
+    compileOnly(fg.deobf("maven.modrinth:open-parties-and-claims:${opac_version}")) { transitive = false }
     compileOnly fg.deobf("maven.modrinth:jade:${jade_version}")
     if (devMods || devOnly.contains('jade')) runtimeOnly fg.deobf("maven.modrinth:jade:${jade_version}")
     compileOnly fg.deobf("maven.modrinth:the-one-probe:${top_version}")

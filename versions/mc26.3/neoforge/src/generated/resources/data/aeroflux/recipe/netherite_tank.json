@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": "aeroflux:aerogold_ingot",
     "P": "aeroflux:diamond_tank",

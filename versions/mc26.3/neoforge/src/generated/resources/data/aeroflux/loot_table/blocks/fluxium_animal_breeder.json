@@ -2,16 +2,16 @@
   "type": "minecraft:block",
   "pools": [
     {
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
       "entries": [
         {
           "type": "minecraft:item",
           "name": "aeroflux:fluxium_animal_breeder"
         }
       ],
-      "rolls": 1,
-      "condition": {
-        "type": "minecraft:survives_explosion"
-      }
+      "rolls": 1
     }
   ],
   "random_sequence": "aeroflux:blocks/fluxium_animal_breeder"

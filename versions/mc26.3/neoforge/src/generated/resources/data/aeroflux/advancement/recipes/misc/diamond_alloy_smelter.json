@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:diamond_alloy_smelter"
-        ]
+        "recipes": "aeroflux:diamond_alloy_smelter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

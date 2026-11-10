@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:iron_tank"
-        ]
+        "recipes": "aeroflux:iron_tank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

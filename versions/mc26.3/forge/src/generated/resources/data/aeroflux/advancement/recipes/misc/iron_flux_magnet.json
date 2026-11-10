@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:iron_flux_magnet"
-        ]
+        "recipes": "aeroflux:iron_flux_magnet"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

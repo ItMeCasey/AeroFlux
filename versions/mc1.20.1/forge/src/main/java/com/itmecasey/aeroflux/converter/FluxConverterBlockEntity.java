@@ -9,10 +9,12 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.save.SaveSchema;
 import com.itmecasey.aeroflux.fluid.FluxFluidTank;
 import com.itmecasey.aeroflux.fluid.InputOnlyFluidHandler;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModFluids;
+import com.itmecasey.aeroflux.save.SaveVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -313,6 +315,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
+        SaveVersion.stamp(tag, SaveSchema.Kind.CONVERTER);
         tag.put(TAG_FLUX, tank.writeToNBT(new CompoundTag()));
         tag.putInt(TAG_ENERGY, energy.getEnergyStored());
         tag.putDouble(TAG_AE, aeStored);
@@ -322,6 +325,8 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
+        // Version 1 is the only layout so far; reading it reports a save from a newer build.
+        SaveVersion.read(SaveSchema.Kind.CONVERTER, tag);
         tank.readFromNBT(tag.getCompound(TAG_FLUX));
         energy.set(tag.getInt(TAG_ENERGY));
         aeStored = tag.getDouble(TAG_AE);

@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "F": "aeroflux:fluxsteel_ingot",
     "H": "minecraft:hopper",

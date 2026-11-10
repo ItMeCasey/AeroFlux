@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:fluxium_tank"
-        ]
+        "recipes": "aeroflux:fluxium_tank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

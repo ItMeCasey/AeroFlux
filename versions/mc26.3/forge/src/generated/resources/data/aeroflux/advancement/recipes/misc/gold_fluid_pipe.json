@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:gold_fluid_pipe"
-        ]
+        "recipes": "aeroflux:gold_fluid_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

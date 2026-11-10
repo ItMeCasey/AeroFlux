@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:netherite_flux_enchanter"
-        ]
+        "recipes": "aeroflux:netherite_flux_enchanter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

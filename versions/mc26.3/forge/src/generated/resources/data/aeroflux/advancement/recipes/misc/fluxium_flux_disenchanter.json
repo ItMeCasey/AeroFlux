@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:fluxium_flux_disenchanter"
-        ]
+        "recipes": "aeroflux:fluxium_flux_disenchanter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

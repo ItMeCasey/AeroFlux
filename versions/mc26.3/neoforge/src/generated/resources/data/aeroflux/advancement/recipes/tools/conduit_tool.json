@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:conduit_tool"
-        ]
+        "recipes": "aeroflux:conduit_tool"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

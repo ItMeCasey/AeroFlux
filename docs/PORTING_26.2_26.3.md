@@ -27,7 +27,7 @@ The four new builds (`versions/mc26.2` and `mc26.3`, NeoForge and Forge) start f
 - `ClockManager.moveToTimeMarker` returns a `MoveResult` instead of a boolean.
 - `ConfirmLinkScreen.confirmLinkNow` takes a `URI`.
 - Data pack formats: loot tables use `condition` and `modifier` (no `bonus_rolls`), and the `recipe_unlocked` trigger takes `recipes`. The generated data in these two builds was converted by script.
-- **The data generators are not ported to 26.3** (recipes, advancements and loot tables moved to a new bootstrap system). The 26.3 builds have no `datagen` package; regenerate from the 26.2 build and convert, or port the providers first.
+- The data generators are ported to 26.3 (2026-11-09). Recipes, loot tables and advancements are datapack registry entries there: NeoForge gathers them in `GatherDataRegistryEntriesEvent` (`DataGenerators.gatherRegistryEntries`), Forge through a `RegistryDataBuilder` reloadable layer with a `MultiRegistryBootstrap` for the recipes. `gradlew runData` writes the 26.3 format directly (no `category` on crafting recipes, one `recipes` string in `recipe_unlocked`), so the earlier script conversion is gone. Forge 26.3 writes the six Flux Sifter recipe-unlock advancements again, with a `forge:condition` for Ex Deorum and Ex Nihilo Sequentia.
 
 ## Left out where the other mod has no build
 

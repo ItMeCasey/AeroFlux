@@ -13,9 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": [
-          "aeroflux:silk_touch_upgrade"
-        ]
+        "recipes": "aeroflux:silk_touch_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
