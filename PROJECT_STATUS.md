@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
 Updated: 2026-11-09
-Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.7 is the last release (six builds) and seven builds (26.3, 26.2, 1.20.1 and 26.1.2 Forge, 2026.11.8) are ready to release; screens, art, sounds, advancements, tools and guidebook have been seen in real clients, and what stays open is viewer and overlay checks, Create, Mekanism and AE2 pieces that need other mods' builds, and a few features (gas, redstone channels, energy sources) that still need work. Modrinth is on hold.
+Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.7 is the last release (six builds) and all ten builds at 2026.11.9 are ready to release (2026.11.8 went out for 26.2 and 26.3 only); screens, art, sounds, advancements, tools and guidebook have been seen in real clients, and what stays open is viewer and overlay checks, Create, Mekanism and AE2 pieces that need other mods' builds, and a few features (gas, redstone channels, energy sources) that still need work. Modrinth is on hold.
 Spend: none
 
 ## Planning
@@ -100,7 +100,7 @@ Spend: none
 - [x] Modrinth release: frozen indefinitely by Casey (2026-11-06), existing uploads stay as they are (was on hold; project dN4XaJU1 has the page text and 2026.11.1 (NeoForge 26.1.2 only) and the six builds of 2026.11.2 to 2026.11.4 uploaded by hand, 2026.11.5 not uploaded, a duplicate 2026.11.3 version still to delete) (w:2)
 
 ## Port to 26.2 and 26.3
-- [x] Four new builds (versions/mc26.2 and mc26.3, NeoForge and Forge) compile, package and keep the 26.1.2 feature set (2026.11.8 in those four, and in both 1.20.1 builds since the claim, profile and save-version port, and in 26.1.2 Forge since the WTHIT fluid-name fix; the 1.21.1 builds and 26.1.2 NeoForge stay at 2026.11.7) (w:4)
+- [x] Four new builds (versions/mc26.2 and mc26.3, NeoForge and Forge) compile, package and keep the 26.1.2 feature set (2026.11.8 in those four, released; every build is 2026.11.9 after the 1.20.1 claim, profile and save-version port, the Forge WTHIT fix and the 26.3 data generators) (w:4)
 - [x] Headless self-test on all four (620 to 628 checks, 0 failures; ports 8996 to 8999) (w:3)
 - [x] Unit tests of shared-core pass (w:1)
 - [x] One real-client check per new build (machine and pipe screens opened with the dev tour through the isolated desktop and read, 2026-11-06; frames docs/frames/port-26.x-*) (w:3)
