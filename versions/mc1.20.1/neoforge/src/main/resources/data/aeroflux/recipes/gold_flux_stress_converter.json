@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "tag": "forge:ingots/gold"
+    },
+    "P": {
+      "item": "aeroflux:iron_flux_stress_converter"
+    },
+    "S": {
+      "tag": "forge:gems/amethyst"
+    },
+    "T": {
+      "tag": "forge:ingots/gold"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:gold_flux_stress_converter",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ]
+}

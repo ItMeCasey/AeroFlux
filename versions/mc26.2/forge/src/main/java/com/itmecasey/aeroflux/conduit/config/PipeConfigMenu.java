@@ -68,6 +68,8 @@ public class PipeConfigMenu extends AbstractContainerMenu {
     public static final int PRIORITY_UPGRADE_BUTTON = 36;
     /** Button ids from here set filter slot {@code id - base} from the cursor stack, or clear it. */
     public static final int FILTER_SLOT_BUTTON_BASE = 40;
+    /** Button ids from here tune this face of a redstone pipe to channel {@code id - base}. */
+    public static final int CHANNEL_BUTTON_BASE = 64;
 
     // Indexes of the synced values. Data slots travel as shorts, which is plenty for these.
     private static final int DATA_MODE = 0;
@@ -82,7 +84,9 @@ public class PipeConfigMenu extends AbstractContainerMenu {
      * so each entry takes two: the low half, then the high half.
      */
     private static final int DATA_FILTER = 6;
-    private static final int DATA_COUNT = DATA_FILTER + 2 * EndpointFilter.SLOTS;
+    /** The redstone channel of this face. */
+    private static final int DATA_CHANNEL = DATA_FILTER + 2 * EndpointFilter.SLOTS;
+    private static final int DATA_COUNT = DATA_CHANNEL + 1;
 
     private static final int FLAG_FILTER = 1;
     private static final int FLAG_PRIORITY = 2;
@@ -275,6 +279,16 @@ public class PipeConfigMenu extends AbstractContainerMenu {
         return FILTER_SLOT_BUTTON_BASE + slot;
     }
 
+    /** The redstone channel this face is tuned to, as last synced; 0 for other pipes. */
+    public int channel() {
+        return data.get(DATA_CHANNEL);
+    }
+
+    /** The button id that tunes the face to a channel. */
+    public static int channelButton(int channel) {
+        return CHANNEL_BUTTON_BASE + channel;
+    }
+
     /** The speed of the pipe with the upgrades it has now. */
     public PipeConfigActions.Rate rate() {
         return PipeConfigActions.rate(pipe, tier, speedUpgrades(), capacityUpgrades());
@@ -313,6 +327,10 @@ public class PipeConfigMenu extends AbstractContainerMenu {
         int distribution = id - DISTRIBUTION_BUTTON_BASE;
         if (distribution >= 0 && distribution < DistributionMode.values().length) {
             return PipeConfigActions.setDistribution(entity, pipe, DistributionMode.values()[distribution]);
+        }
+        int channel = id - CHANNEL_BUTTON_BASE;
+        if (channel >= 0 && channel < EndpointSettings.MAX_CHANNELS) {
+            return PipeConfigActions.setChannel(entity, pipe, face, channel);
         }
         int filterSlot = id - FILTER_SLOT_BUTTON_BASE;
         if (filterSlot >= 0 && filterSlot < EndpointFilter.SLOTS) {
@@ -454,6 +472,7 @@ public class PipeConfigMenu extends AbstractContainerMenu {
                 case DATA_CAPACITY_UPGRADES -> bundle.capacityUpgrades(lane);
                 case DATA_ENDPOINT -> endpointFlags();
                 case DATA_PRIORITY -> entity.endpoints().priority(lane, face);
+                case DATA_CHANNEL -> entity.endpoints().channel(lane, face);
                 default -> index >= DATA_FILTER && index < DATA_COUNT ? filterHalf(index - DATA_FILTER) : 0;
             };
         }

@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "aeroflux:flux_dust"
+    },
+    "T": {
+      "item": "aeroflux:copper_tank"
+    },
+    "X": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    "CXC",
+    "DTD",
+    "CXC"
+  ],
+  "result": {
+    "item": "aeroflux:flux_stress_converter",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ]
+}

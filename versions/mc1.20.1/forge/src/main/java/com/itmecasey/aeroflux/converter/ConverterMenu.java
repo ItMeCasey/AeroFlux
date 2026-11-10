@@ -4,7 +4,6 @@ import com.itmecasey.aeroflux.StorageSizes;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.Face;
-import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
 import com.itmecasey.aeroflux.core.machine.SplitInt;
@@ -23,7 +22,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The menu behind a converter's screen. Like the chunk loader's it has no slots, only the numbers
- * the screen draws: the Flux and its type, what the buffer holds, and last tick's burn.
+ * the screen draws: the Flux and its type, what the buffer holds and how big it is, the output,
+ * and last tick's burn. Every converter kind shows through {@link ConverterView}.
  */
 public class ConverterMenu extends AbstractContainerMenu {
     private static final int DATA_FLUX = 0;      // two slots
@@ -31,7 +31,9 @@ public class ConverterMenu extends AbstractContainerMenu {
     private static final int DATA_STORED = 3;    // two slots
     private static final int DATA_BURN = 5;
     private static final int DATA_OUTPUTS = 6;
-    private static final int DATA_COUNT = 7;
+    private static final int DATA_CAPACITY = 7;  // two slots
+    private static final int DATA_OUTPUT = 9;    // two slots
+    private static final int DATA_COUNT = 11;
 
     private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
 
@@ -40,15 +42,14 @@ public class ConverterMenu extends AbstractContainerMenu {
     private final Tier tier;
     private final Direction facing;
     private final ContainerData data;
-    private final @Nullable FluxConverterBlockEntity entity;
+    private final @Nullable ConverterView entity;
 
-    public ConverterMenu(int containerId, Inventory inventory, FluxConverterBlockEntity entity) {
-        this(containerId, entity.getBlockPos(), entity.type(), entity.tier(),
-                entity.getBlockState().getValue(FluxConverterBlock.FACING), new LiveData(entity), entity);
+    public ConverterMenu(int containerId, Inventory inventory, ConverterView entity) {
+        this(containerId, entity.getBlockPos(), entity.type(), entity.tier(), entity.facing(), new LiveData(entity), entity);
     }
 
     private ConverterMenu(int containerId, BlockPos pos, ConverterType type, Tier tier, Direction facing, ContainerData data,
-                          @Nullable FluxConverterBlockEntity entity) {
+                          @Nullable ConverterView entity) {
         super(ModMenus.CONVERTER.get(), containerId);
         this.pos = pos;
         this.type = type;
@@ -94,13 +95,14 @@ public class ConverterMenu extends AbstractContainerMenu {
         return stored <= 0 || stored > FluxType.values().length ? null : FluxType.values()[stored - 1];
     }
 
-    /** What the output buffer holds, in FE or AE. */
+    /** What the output buffer holds, in FE or AE, or for the Stress converter the stress in use, in SU. */
     public int stored() {
         return SplitInt.join(data.get(DATA_STORED), data.get(DATA_STORED + 1));
     }
 
+    /** The buffer's size, or the Stress converter's capacity; the server's own number, config included. */
     public int bufferCapacity() {
-        return StorageSizes.converterBuffer(tier, type);
+        return SplitInt.join(data.get(DATA_CAPACITY), data.get(DATA_CAPACITY + 1));
     }
 
     /** Which way the converter's front points, so the screen can name its faces. */
@@ -119,9 +121,9 @@ public class ConverterMenu extends AbstractContainerMenu {
         return data.get(DATA_BURN);
     }
 
-    /** Output made per tick at last tick's burn, in FE or AE. */
+    /** Output made per tick at last tick's burn, in FE or AE, or the stress capacity supplied, in SU. */
     public int outputPerTick() {
-        return burn() * (type == ConverterType.AE ? ConverterMath.AE_PER_MB : ConverterMath.FE_PER_MB);
+        return SplitInt.join(data.get(DATA_OUTPUT), data.get(DATA_OUTPUT + 1));
     }
 
     // --- Menu plumbing -----------------------------------------------------------------------
@@ -144,13 +146,13 @@ public class ConverterMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         BlockEntity found = player.level().getBlockEntity(pos);
-        if (!(found instanceof FluxConverterBlockEntity) || found.isRemoved() || (entity != null && found != entity)) {
+        if (!(found instanceof ConverterView) || found.isRemoved() || (entity != null && found != entity)) {
             return false;
         }
         return player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= MAX_DISTANCE_SQR;
     }
 
-    private record LiveData(FluxConverterBlockEntity converter) implements ContainerData {
+    private record LiveData(ConverterView converter) implements ContainerData {
         @Override
         public int get(int index) {
             return switch (index) {
@@ -161,6 +163,10 @@ public class ConverterMenu extends AbstractContainerMenu {
                 case DATA_STORED + 1 -> SplitInt.high(converter.stored());
                 case DATA_BURN -> converter.lastBurn();
                 case DATA_OUTPUTS -> converter.outputMask();
+                case DATA_CAPACITY -> SplitInt.low(converter.bufferCapacity());
+                case DATA_CAPACITY + 1 -> SplitInt.high(converter.bufferCapacity());
+                case DATA_OUTPUT -> SplitInt.low(converter.output());
+                case DATA_OUTPUT + 1 -> SplitInt.high(converter.output());
                 default -> 0;
             };
         }

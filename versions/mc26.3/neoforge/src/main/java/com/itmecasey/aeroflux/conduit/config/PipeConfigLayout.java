@@ -4,6 +4,7 @@ import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.DistributionMode;
 import com.itmecasey.aeroflux.core.conduit.EndpointFilter;
 import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
+import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +77,8 @@ public final class PipeConfigLayout {
     public static final int SIDE_WIDTH = 2 * 6 + 3 * SLOT;
     /** The side of the priority's minus and plus buttons. */
     public static final int SMALL_BUTTON = 16;
+    private static final int CHANNELS_PER_ROW = 8;
+    private static final int CHANNEL_PITCH = 20;
     private static final int SIDE_MARGIN = 6;
     private static final int FILTER_GRID_Y = 36;
     /** Height of the filter part of the side panel: toggle row, grid, margin. */
@@ -85,6 +88,7 @@ public final class PipeConfigLayout {
 
     private final List<Rect> modeButtons = new ArrayList<>();
     private final List<Rect> distributionButtons = new ArrayList<>();
+    private final List<Rect> channelButtons = new ArrayList<>();
     private final int upgradeSlots;
     private final int rateY;
     private final int upgradeRowY;
@@ -107,6 +111,16 @@ public final class PipeConfigLayout {
                 distributionButtons.add(new Rect(MARGIN + i * BUTTON_PITCH, y, BUTTON, BUTTON));
             }
             y += BUTTON_ROW;
+        }
+
+        if (type == PipeType.REDSTONE) {
+            // One small colored button per channel the tier carries, eight to a row.
+            int count = PipeTiers.redstoneChannels(tier);
+            for (int i = 0; i < count; i++) {
+                channelButtons.add(new Rect(MARGIN + (i % CHANNELS_PER_ROW) * CHANNEL_PITCH,
+                        y + (i / CHANNELS_PER_ROW) * CHANNEL_PITCH, SMALL_BUTTON, SMALL_BUTTON));
+            }
+            y += ((count + CHANNELS_PER_ROW - 1) / CHANNELS_PER_ROW) * CHANNEL_PITCH + 10;
         }
 
         rateY = y;
@@ -159,6 +173,11 @@ public final class PipeConfigLayout {
     /** One button per supported mode, in the order of {@link PipeConfigActions#supportedModes}. */
     public List<Rect> modeButtons() {
         return modeButtons;
+    }
+
+    /** One button per redstone channel the pipe carries; empty for other pipes. */
+    public List<Rect> channelButtons() {
+        return channelButtons;
     }
 
     public boolean hasDistribution() {

@@ -9,6 +9,7 @@ import com.itmecasey.aeroflux.core.conduit.PipeTiers;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.conduit.ToolMode;
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.core.configurator.Setting;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.guide.GuideBook;
@@ -213,8 +214,16 @@ public class ModLanguageProvider extends LanguageProvider {
                 addBlock(ModBlocks.converter(type, tier), tier == Tier.COPPER ? type.displayName() : displayName(tier) + " " + type.displayName());
             }
         }
+        // The Stress converter only exists with Create, so it is named by its registry name here.
+        for (Tier tier : Tier.values()) {
+            add("block." + AeroFlux.MODID + "." + CreateCompat.converterName(tier), tier == Tier.COPPER
+                    ? ConverterType.STRESS.displayName() : displayName(tier) + " " + ConverterType.STRESS.displayName());
+        }
         add("gui." + AeroFlux.MODID + ".converter.buffer.fe", "Energy buffer");
         add("gui." + AeroFlux.MODID + ".converter.buffer.ae", "AE buffer");
+        add("gui." + AeroFlux.MODID + ".converter.buffer.su", "Stress in use on the shaft's network");
+        add("gui." + AeroFlux.MODID + ".converter.shaft_here", "The shaft comes out here.");
+        add("gui." + AeroFlux.MODID + ".converter.no_shaft", "No shaft on this face.");
         add("gui." + AeroFlux.MODID + ".auto_insert", "Auto insert seeds");
         add("gui." + AeroFlux.MODID + ".chunk_loader.show_area", "Show Area");
         for (LampKind kind : LampKind.values()) {
@@ -243,9 +252,13 @@ public class ModLanguageProvider extends LanguageProvider {
         add("gui." + AeroFlux.MODID + ".converter.output_on", "Power goes out here. Click to stop it.");
         add("gui." + AeroFlux.MODID + ".converter.output_off", "No power goes out here. Click to send it.");
         add("tooltip." + AeroFlux.MODID + ".look.converter", "Making %s %s per tick");
+        add("tooltip." + AeroFlux.MODID + ".look.stress", "Supplying %s SU, %s SU in use");
         // Jade lists every plugin entry in its settings and needs a name for ours.
         add("config.jade.plugin_" + AeroFlux.MODID + ".look_info", "AeroFlux details");
         add("jei." + AeroFlux.MODID + ".chance", "%s%% chance");
+        add("jei." + AeroFlux.MODID + ".imported", "From %s");
+        add("jei." + AeroFlux.MODID + ".sieve.amount", "Amount: %s");
+        add("jei." + AeroFlux.MODID + ".sieve.water", "%s mB water");
         add("jei." + AeroFlux.MODID + ".time", "%s ticks");
         add("jei." + AeroFlux.MODID + ".imported", "From %s");
         add("jei." + AeroFlux.MODID + ".sieve.amount", "Amount: %s");
@@ -533,6 +546,24 @@ public class ModLanguageProvider extends LanguageProvider {
         add(screen + "filter_slot.item", "Click with an item to add it to the filter.");
         add(screen + "filter_slot.fluid", "Click with a bucket or tank to add its fluid to the filter.");
         add(screen + "filter_slot.clear", "Click with an empty hand to clear this slot.");
+        add(screen + "channel", "Channel %s: %s");
+        add(screen + "channel.tooltip", "Faces on the same channel share one signal. A face only hears faces on its own channel.");
+        add("redstone_channel." + AeroFlux.MODID + ".white", "White");
+        add("redstone_channel." + AeroFlux.MODID + ".orange", "Orange");
+        add("redstone_channel." + AeroFlux.MODID + ".magenta", "Magenta");
+        add("redstone_channel." + AeroFlux.MODID + ".light_blue", "Light Blue");
+        add("redstone_channel." + AeroFlux.MODID + ".yellow", "Yellow");
+        add("redstone_channel." + AeroFlux.MODID + ".lime", "Lime");
+        add("redstone_channel." + AeroFlux.MODID + ".pink", "Pink");
+        add("redstone_channel." + AeroFlux.MODID + ".gray", "Gray");
+        add("redstone_channel." + AeroFlux.MODID + ".light_gray", "Light Gray");
+        add("redstone_channel." + AeroFlux.MODID + ".cyan", "Cyan");
+        add("redstone_channel." + AeroFlux.MODID + ".purple", "Purple");
+        add("redstone_channel." + AeroFlux.MODID + ".blue", "Blue");
+        add("redstone_channel." + AeroFlux.MODID + ".brown", "Brown");
+        add("redstone_channel." + AeroFlux.MODID + ".green", "Green");
+        add("redstone_channel." + AeroFlux.MODID + ".red", "Red");
+        add("redstone_channel." + AeroFlux.MODID + ".black", "Black");
         add(screen + "priority", "Priority: %s");
         add(screen + "priority.tooltip", "Higher numbers fill first; sides without this upgrade count as 0. Ranges from -5 to +5.");
         add(screen + "priority_down", "Lower priority");

@@ -25,6 +25,16 @@ repositories {
         url = 'https://api.modrinth.com/maven'
         content { includeGroup 'maven.modrinth' }
     }
+    // Create's own Maven, for the libraries the Create jar carries inside it (Ponder, which holds
+    // Catnip, and Flywheel). The Stress converter's renderer compiles against them.
+    maven {
+        name = 'Create'
+        url = 'https://maven.createmod.net'
+        content {
+            includeGroup 'net.createmod.ponder'
+            includeGroup 'dev.engine-room.flywheel'
+        }
+    }
 }
 
 base {
@@ -183,7 +193,11 @@ dependencies {
         if (devMods || devOnly.contains('wthit')) modLocalRuntime "maven.modrinth:wthit:${wthit_version}"
         if (devMods || devOnly.contains('badpackets')) modLocalRuntime "maven.modrinth:badpackets:${badpackets_version}"
         if (devMods || devOnly.contains('crafttweaker')) modLocalRuntime "maven.modrinth:crafttweaker:${crafttweaker_version}"
+        if (devMods || devOnly.contains('create')) modLocalRuntime "maven.modrinth:create:${create_version}"
     }
+    modCompileOnly "maven.modrinth:create:${create_version}"
+    modCompileOnly("net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}") { transitive = false }
+    modCompileOnly("dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}") { transitive = false }
     modCompileOnly "maven.modrinth:emi:${emi_version}"
     modCompileOnly "maven.modrinth:wthit:${wthit_version}"
     modCompileOnly "maven.modrinth:badpackets:${badpackets_version}"

@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.block.entity.FluxDimensions;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.converter.ConverterView;
 import com.itmecasey.aeroflux.converter.FluxConverterBlockEntity;
 import com.itmecasey.aeroflux.core.DimensionRules;
 import com.itmecasey.aeroflux.core.FluxType;
@@ -24,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -53,6 +55,9 @@ public final class LookInfo {
             lines.add(Component.translatable("tooltip.aeroflux.look.converter",
                     converter.lastBurn() * (converter.type() == ConverterType.AE ? ConverterMath.AE_PER_MB : ConverterMath.FE_PER_MB),
                     converter.type() == ConverterType.AE ? "AE" : "FE"));
+        } else if (entity instanceof ConverterView stress && stress.type() == ConverterType.STRESS) {
+            // The Stress converter is a Create block entity, so it is only known by what it shows.
+            lines.add(Component.translatable("tooltip.aeroflux.look.stress", stress.output(), stress.stored()));
         } else if (entity instanceof FluxChunkLoaderBlockEntity loader) {
             lines.add(Component.translatable(
                     "gui.aeroflux.chunk_loader.status." + loader.status().name().toLowerCase(Locale.ROOT)));
@@ -85,6 +90,9 @@ public final class LookInfo {
             handler = converter.tank();
         } else if (entity instanceof FluxChunkLoaderBlockEntity loader) {
             handler = loader.tank();
+        } else if (entity instanceof ConverterView stress && stress.type() == ConverterType.STRESS) {
+            // The Stress converter is a Create block entity: its tank is only reachable through the capability.
+            handler = entity.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
         }
         if (handler == null || handler.getTanks() == 0) {
             return null;

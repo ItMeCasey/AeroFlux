@@ -188,6 +188,7 @@ final class TransferSelfTest {
                 .setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR)
                 .setValue(BlockStateProperties.POWERED, true), Block.UPDATE_ALL);
         entity(redstoneBundle).refreshConnections();
+        buildChannels();
     }
 
     /** Advances the scenarios by one server tick and runs whichever checks are due. */
@@ -323,6 +324,66 @@ final class TransferSelfTest {
                 restored.bundle().equals(entity(persistent).bundle()));
     }
 
+    // (k) Redstone channels: one gold bundle, two levers and two exports, tuned to two channels.
+    private static BlockPos channelBundle;
+    private static BlockPos channelLeverTwo;
+
+    /**
+     * (k) A gold redstone pipe with four faces: west imports channel 1 from a powered lever, east
+     * exports channel 1, south imports channel 2 from an unpowered lever and north exports channel 2.
+     */
+    private static void buildChannels() {
+        int y = 244;
+        channelBundle = new BlockPos(2, y, 2);
+        BlockPos leverOne = channelBundle.west();
+        channelLeverTwo = channelBundle.south();
+        level.setBlock(leverOne.below(), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
+        level.setBlock(channelLeverTwo.below(), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
+        placeBundle(channelBundle, PipeType.REDSTONE, Tier.GOLD);
+        ConduitBundleBlockEntity bundle = entity(channelBundle);
+        setMode(channelBundle, PipeType.REDSTONE, Face.WEST, ConnectionMode.IMPORT);
+        setMode(channelBundle, PipeType.REDSTONE, Face.EAST, ConnectionMode.EXPORT);
+        setMode(channelBundle, PipeType.REDSTONE, Face.SOUTH, ConnectionMode.IMPORT);
+        setMode(channelBundle, PipeType.REDSTONE, Face.NORTH, ConnectionMode.EXPORT);
+        SelfTest.check("channels: a gold redstone pipe takes channel 3",
+                com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.EAST, 3));
+        SelfTest.check("channels: it refuses channel 4, which a gold pipe does not carry",
+                !com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.EAST, 4));
+        com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.WEST, 1);
+        com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.EAST, 1);
+        com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.SOUTH, 2);
+        com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.NORTH, 2);
+        level.setBlock(leverOne, Blocks.LEVER.defaultBlockState()
+                .setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR)
+                .setValue(BlockStateProperties.POWERED, true), Block.UPDATE_ALL);
+        level.setBlock(channelLeverTwo, Blocks.LEVER.defaultBlockState()
+                .setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR)
+                .setValue(BlockStateProperties.POWERED, false), Block.UPDATE_ALL);
+        bundle.refreshConnections();
+        SelfTest.check("channels: a copper redstone pipe has one channel and refuses channel 1",
+                !com.itmecasey.aeroflux.conduit.config.PipeConfigActions.setChannel(entity(redstoneBundle), PipeType.REDSTONE, Face.EAST, 1));
+    }
+
+    /** Channel 1 is powered and channel 2 is not: only the channel 1 export carries a signal. */
+    private static void checkChannelsFirst() {
+        SelfTest.check("channels: the export on the powered channel carries the signal",
+                entity(channelBundle).redstoneOutput(Direction.EAST) == 15);
+        SelfTest.check("channels: the export on the other channel stays dark",
+                entity(channelBundle).redstoneOutput(Direction.NORTH) == 0);
+        level.setBlock(channelLeverTwo, level.getBlockState(channelLeverTwo).setValue(BlockStateProperties.POWERED, true), Block.UPDATE_ALL);
+    }
+
+    /** Channel 2 is powered now too: both exports carry their own signal. */
+    private static void checkChannelsSecond() {
+        SelfTest.check("channels: powering the second channel lights its export",
+                entity(channelBundle).redstoneOutput(Direction.NORTH) == 15);
+        SelfTest.check("channels: the first channel's export is unchanged",
+                entity(channelBundle).redstoneOutput(Direction.EAST) == 15);
+        SelfTest.check("channels: the faces keep their channels after saving and loading",
+                com.itmecasey.aeroflux.core.conduit.EndpointSettings.decode(entity(channelBundle).endpoints().encode())
+                        .channel(PipeType.REDSTONE.lane(), Face.NORTH) == 2);
+    }
+
     private static void checkRedstoneOn() {
         BlockState lampState = level.getBlockState(lamp);
         SelfTest.check("redstone: the pipe exports a signal into the lamp's side", entity(redstoneBundle).redstoneOutput(Direction.EAST) == 15);
@@ -330,11 +391,13 @@ final class TransferSelfTest {
         SelfTest.check("redstone: the lamp lights", lampState.getValue(RedstoneLampBlock.LIT));
         SelfTest.check("redstone: the pipe outputs nothing at faces that do not export",
                 entity(redstoneBundle).redstoneOutput(Direction.UP) == 0 && entity(redstoneBundle).redstoneOutput(Direction.NORTH) == 0);
+        checkChannelsFirst();
     }
 
     private static void checkRedstoneOff() {
         SelfTest.check("redstone: the signal drops when the lever turns off", entity(redstoneBundle).redstoneOutput(Direction.EAST) == 0);
         SelfTest.check("redstone: the lamp goes dark again", !level.getBlockState(lamp).getValue(RedstoneLampBlock.LIT));
+        checkChannelsSecond();
     }
 
     // --- Building blocks ---------------------------------------------------------------------

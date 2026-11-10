@@ -145,6 +145,30 @@
     "aeroflux:fluxium_flux_energy_converter",
     "aeroflux:fluxium_flux_ae_converter",
     "aeroflux:fluxium_sun_lamp",
-    "aeroflux:fluxium_moon_lamp"
+    "aeroflux:fluxium_moon_lamp",
+    {
+      "id": "aeroflux:flux_stress_converter",
+      "required": false
+    },
+    {
+      "id": "aeroflux:iron_flux_stress_converter",
+      "required": false
+    },
+    {
+      "id": "aeroflux:gold_flux_stress_converter",
+      "required": false
+    },
+    {
+      "id": "aeroflux:diamond_flux_stress_converter",
+      "required": false
+    },
+    {
+      "id": "aeroflux:netherite_flux_stress_converter",
+      "required": false
+    },
+    {
+      "id": "aeroflux:fluxium_flux_stress_converter",
+      "required": false
+    }
   ]
 }

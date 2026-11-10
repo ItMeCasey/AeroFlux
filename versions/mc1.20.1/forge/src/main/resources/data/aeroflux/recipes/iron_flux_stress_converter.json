@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "tag": "forge:ingots/iron"
+    },
+    "P": {
+      "item": "aeroflux:flux_stress_converter"
+    },
+    "S": {
+      "tag": "forge:ingots/iron"
+    },
+    "T": {
+      "tag": "forge:ingots/iron"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:iron_flux_stress_converter",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ]
+}

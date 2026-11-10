@@ -12,6 +12,8 @@ import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.client.screen.TankScreen;
+import com.itmecasey.aeroflux.compat.create.CreateClient;
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.client.sound.MachineSounds;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
@@ -50,6 +52,9 @@ public final class ClientSetup {
         event.registerBlockEntityRenderer(ModBlockEntities.TANK.get(), FluxTankRenderer::new);
         // The creative tank shows its endless flux the same way.
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_TANK.get(), FluxTankRenderer::new);
+        if (CreateCompat.loaded()) {
+            CreateClient.registerRenderers(event);
+        }
     }
 
     /** Teaches the model system the {@code aeroflux:conduit_bundle} model type. */

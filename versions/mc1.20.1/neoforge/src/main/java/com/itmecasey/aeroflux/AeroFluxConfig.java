@@ -5,6 +5,7 @@ import com.itmecasey.aeroflux.core.chunkloader.ChunkLoaderMath;
 import com.itmecasey.aeroflux.core.configurator.ConfigArea;
 import com.itmecasey.aeroflux.core.converter.ConverterMath;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
+import com.itmecasey.aeroflux.core.converter.StressMath;
 import com.itmecasey.aeroflux.core.machine.EnchantRules;
 import com.itmecasey.aeroflux.core.machine.MachineMath;
 import com.itmecasey.aeroflux.lamp.FluxLampBlockEntity;
@@ -66,6 +67,8 @@ public final class AeroFluxConfig {
                             .defineInRange("converterBufferFe", ConverterMath.bufferCapacity(tier, ConverterType.ENERGY), 1_000, Integer.MAX_VALUE),
                     BUILDER.comment("Power the Flux to AE converter holds before it must hand some on (AE).")
                             .defineInRange("converterBufferAe", ConverterMath.bufferCapacity(tier, ConverterType.AE), 1_000, Integer.MAX_VALUE),
+                    BUILDER.comment("Stress capacity of the Flux to Create Stress converter at full burn (SU). Only used with Create.")
+                            .defineInRange("converterStressSu", StressMath.capacity(tier), 1, 1_000_000),
                     BUILDER.comment("Flux Chunk Loader tank (mB).")
                             .defineInRange("chunkLoaderTankMb", ChunkLoaderMath.capacity(tier), 1_000, Integer.MAX_VALUE)));
             BUILDER.pop();
@@ -292,6 +295,11 @@ public final class AeroFluxConfig {
         return (type == ConverterType.AE ? values.converterBufferAe : values.converterBufferFe).get();
     }
 
+    /** The stress capacity a Stress converter supplies, in SU. */
+    public static int converterStress(Tier tier) {
+        return TIER_VALUES.get(tier).converterStressSu.get();
+    }
+
     /** A chunk loader's Flux tank, in mB. */
     public static int chunkLoaderTank(Tier tier) {
         return TIER_VALUES.get(tier).chunkLoaderTankMb.get();
@@ -331,6 +339,7 @@ public final class AeroFluxConfig {
             ForgeConfigSpec.IntValue converterTankMb,
             ForgeConfigSpec.IntValue converterBufferFe,
             ForgeConfigSpec.IntValue converterBufferAe,
+            ForgeConfigSpec.IntValue converterStressSu,
             ForgeConfigSpec.IntValue chunkLoaderTankMb) {
     }
 

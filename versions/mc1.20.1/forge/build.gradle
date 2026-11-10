@@ -130,6 +130,17 @@ repositories {
         content { includeGroup 'maven.modrinth' }
     }
 
+    // Create's own Maven, for the libraries the Create jar carries inside it (Ponder, which holds
+    // Catnip, and Flywheel). The Stress converter's renderer compiles against them.
+    maven {
+        name = 'Create'
+        url = 'https://maven.createmod.net'
+        content {
+            includeGroup 'net.createmod.ponder'
+            includeGroup 'dev.engine-room.flywheel'
+        }
+    }
+
     // The BEI jar a recipe viewer check runs against (-PbeiCheck), dropped in ./devlibs and never committed.
     flatDir { dir 'devlibs' }
 
@@ -180,7 +191,11 @@ dependencies {
         if (devMods || devOnly.contains('wthit')) runtimeOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
         if (devMods || devOnly.contains('badpackets')) runtimeOnly fg.deobf("maven.modrinth:badpackets:${badpackets_version}")
         if (devMods || devOnly.contains('crafttweaker')) runtimeOnly fg.deobf("maven.modrinth:crafttweaker:${crafttweaker_version}")
+        if (devMods || devOnly.contains('create')) runtimeOnly fg.deobf("maven.modrinth:create:${create_version}")
     }
+    compileOnly fg.deobf("maven.modrinth:create:${create_version}")
+    compileOnly(fg.deobf("net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}")) { transitive = false }
+    compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}")) { transitive = false }
     compileOnly fg.deobf("maven.modrinth:emi:${emi_version}")
     compileOnly fg.deobf("maven.modrinth:wthit:${wthit_version}")
     compileOnly fg.deobf("maven.modrinth:badpackets:${badpackets_version}")

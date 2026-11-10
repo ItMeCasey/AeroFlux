@@ -26,15 +26,21 @@ public final class EndpointSettings {
     private static final int FLAG_FILTER = 1;
     private static final int FLAG_PRIORITY = 2;
     private static final int FLAG_WHITELIST = 4;
+    /** The redstone channel rides in the bits above the flags, so older saves (channel 0) read the same. */
+    private static final int CHANNEL_SHIFT = 3;
+    private static final int CHANNEL_MASK = 15;
+    /** The most channels a redstone pipe has: the highest tier's. */
+    public static final int MAX_CHANNELS = 16;
 
     /** The settings of one face; {@code null} in the table means nothing is installed there. */
     private static final class Endpoint {
         EndpointFilter filter;
         boolean priorityInstalled;
         int priority = PriorityPlanner.DEFAULT;
+        int channel;
 
         boolean isEmpty() {
-            return filter == null && !priorityInstalled;
+            return filter == null && !priorityInstalled && channel == 0;
         }
     }
 
@@ -138,6 +144,9 @@ public final class EndpointSettings {
         for (int lane = 0; lane < PipeType.LANES; lane++) {
             PipeType type = set.get(lane);
             for (Face face : Face.values()) {
+                if (type != PipeType.REDSTONE && channel(lane, face) != 0) {
+                    setChannel(lane, face, 0);
+                }
                 for (Upgrade upgrade : Upgrade.values()) {
                     if (type == null || !supports(type, upgrade)) {
                         remove(lane, face, upgrade);
@@ -195,6 +204,33 @@ public final class EndpointSettings {
         return true;
     }
 
+    /** The redstone channel of a lane at a face, 0 to {@value #MAX_CHANNELS} minus one; 0 when never set. */
+    public int channel(int lane, Face face) {
+        Endpoint endpoint = endpoints[lane][face.index()];
+        return endpoint == null ? 0 : endpoint.channel;
+    }
+
+    /**
+     * Sets the redstone channel of a lane at a face.
+     *
+     * @return false if the channel is out of range or did not change
+     */
+    public boolean setChannel(int lane, Face face, int channel) {
+        if (channel < 0 || channel >= MAX_CHANNELS || channel(lane, face) == channel) {
+            return false;
+        }
+        Endpoint endpoint = endpoints[lane][face.index()];
+        if (endpoint == null) {
+            endpoint = new Endpoint();
+            endpoints[lane][face.index()] = endpoint;
+        }
+        endpoint.channel = channel;
+        if (endpoint.isEmpty()) {
+            endpoints[lane][face.index()] = null;
+        }
+        return true;
+    }
+
     // --- Saving ------------------------------------------------------------------------------
 
     /**
@@ -211,7 +247,8 @@ public final class EndpointSettings {
                 }
                 int flags = (endpoint.filter != null ? FLAG_FILTER : 0)
                         | (endpoint.priorityInstalled ? FLAG_PRIORITY : 0)
-                        | (endpoint.filter != null && endpoint.filter.isWhitelist() ? FLAG_WHITELIST : 0);
+                        | (endpoint.filter != null && endpoint.filter.isWhitelist() ? FLAG_WHITELIST : 0)
+                        | (endpoint.channel << CHANNEL_SHIFT);
                 out.append(RECORD_SEPARATOR).append(lane)
                         .append(FIELD_SEPARATOR).append(face)
                         .append(FIELD_SEPARATOR).append(flags)
@@ -256,6 +293,7 @@ public final class EndpointSettings {
                     continue;
                 }
                 Face side = Face.byIndex(face);
+                settings.setChannel(lane, side, (flags >> CHANNEL_SHIFT) & CHANNEL_MASK);
                 if ((flags & FLAG_FILTER) != 0) {
                     settings.install(lane, side, Upgrade.FILTER);
                     EndpointFilter filter = settings.filter(lane, side);

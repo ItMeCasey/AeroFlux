@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
  * ME network it is part of every tick, through {@link Ae2Compat}, so it needs AE2 to do anything. Flux only
  * goes in, from pipes or buckets, on any side.
  */
-public class FluxConverterBlockEntity extends BlockEntity implements MenuProvider {
+public class FluxConverterBlockEntity extends BlockEntity implements MenuProvider, ConverterView {
     private static final String TAG_FLUX = "flux";
     private static final String TAG_ENERGY = "energy";
     private static final String TAG_AE = "ae";
@@ -125,12 +125,19 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
 
     // --- Parts -------------------------------------------------------------------------------
 
+    @Override
     public ConverterType type() {
         return type;
     }
 
+    @Override
     public Tier tier() {
         return tier;
+    }
+
+    @Override
+    public Direction facing() {
+        return getBlockState().getValue(FluxConverterBlock.FACING);
     }
 
     public FluidTank tank() {
@@ -162,11 +169,13 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     }
 
     /** The output faces as a bit mask, one bit per {@link Face} index. */
+    @Override
     public int outputMask() {
         return outputs;
     }
 
     /** Switches power output on or off at one face, and tells the neighbors and AE2. */
+    @Override
     public void toggleOutput(Face face) {
         outputs ^= 1 << face.index();
         setChanged();
@@ -179,24 +188,35 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
         }
     }
 
+    @Override
     public int fluxAmount() {
         return tank.getFluidAmount();
     }
 
+    @Override
     @Nullable
     public FluxType storedFlux() {
         return tank.isEmpty() ? null : ModFluids.fluxTypeOf(tank.getFluid().getFluid());
     }
 
     /** What the output buffer holds, in FE or AE. */
+    @Override
     public int stored() {
         return type == ConverterType.AE ? (int) aeStored : energy.getEnergyStored();
     }
 
+    @Override
     public int bufferCapacity() {
         return StorageSizes.converterBuffer(tier, type);
     }
 
+    /** What last tick's burn made, in FE or AE. */
+    @Override
+    public int output() {
+        return lastBurn * (type == ConverterType.AE ? ConverterMath.AE_PER_MB : ConverterMath.FE_PER_MB);
+    }
+
+    @Override
     public int lastBurn() {
         return lastBurn;
     }
@@ -228,7 +248,7 @@ public class FluxConverterBlockEntity extends BlockEntity implements MenuProvide
     }
 
     public void writeOpenData(FriendlyByteBuf buf) {
-        ConverterMenu.writeOpenData(buf, worldPosition, type, tier, getBlockState().getValue(FluxConverterBlock.FACING));
+        ConverterMenu.writeOpenData(buf, worldPosition, type, tier, facing());
     }
 
     // --- Ticking -----------------------------------------------------------------------------

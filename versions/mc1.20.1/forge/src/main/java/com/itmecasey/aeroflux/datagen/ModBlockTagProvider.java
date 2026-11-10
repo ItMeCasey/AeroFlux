@@ -1,6 +1,8 @@
 package com.itmecasey.aeroflux.datagen;
 
 import com.itmecasey.aeroflux.AeroFlux;
+import com.itmecasey.aeroflux.Ids;
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
@@ -47,6 +49,9 @@ public class ModBlockTagProvider extends BlockTagsProvider {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.converter(type, tier).get());
                 tag(BlockTags.NEEDS_STONE_TOOL).add(ModBlocks.converter(type, tier).get());
             }
+            // The Stress converter only exists with Create, so it is tagged by name and optionally.
+            tag(BlockTags.MINEABLE_WITH_PICKAXE).addOptional(Ids.mod(CreateCompat.converterName(tier)));
+            tag(BlockTags.NEEDS_STONE_TOOL).addOptional(Ids.mod(CreateCompat.converterName(tier)));
             for (LampKind kind : LampKind.values()) {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModBlocks.lamp(kind, tier).get());
             }

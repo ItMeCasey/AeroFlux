@@ -410,6 +410,9 @@ public final class ShotTour {
                 NetworkHooks.openScreen(player, converter, converter::writeOpenData);
             } else if (entity instanceof com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlockEntity loader) {
                 NetworkHooks.openScreen(player, loader, loader::writeOpenData);
+            } else if (com.itmecasey.aeroflux.compat.create.CreateCompat.loaded()
+                    && entity instanceof com.itmecasey.aeroflux.compat.create.StressConverterBlockEntity stress) {
+                NetworkHooks.openScreen(player, stress, stress::writeOpenData);
             } else {
                 AeroFlux.LOGGER.warn("AEROFLUX-SHOTS nothing to open for {}", name);
             }
@@ -475,6 +478,19 @@ public final class ShotTour {
             }
         }));
         shoot("screen_pipe_me", 10);
+        then(2, () -> player().closeContainer());
+
+        // A gold redstone pipe tuned to channel 2: the channel row of the pipe screen.
+        BlockPos redstonePipe = at(47, 6);
+        placePipe(PipeType.REDSTONE, Tier.GOLD, redstonePipe, true);
+        then(5, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(redstonePipe) instanceof ConduitBundleBlockEntity bundle) {
+                PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.EAST, 2);
+                PipeConfigActions.setMode(bundle, PipeType.REDSTONE, Face.EAST, ConnectionMode.EXPORT);
+                PipeConfigMenu.open(server.getPlayerList().getPlayers().get(0), bundle, PipeType.REDSTONE, Face.EAST);
+            }
+        }));
+        shoot("screen_pipe_redstone", 10);
         then(2, () -> player().closeContainer());
     }
 
@@ -680,6 +696,9 @@ public final class ShotTour {
         targets.add(new Object[] {"tank_copper", ModBlocks.tank(Tier.COPPER).get(), null});
         targets.add(new Object[] {"tank_fluxium", ModBlocks.tank(Tier.FLUXIUM).get(), null});
         targets.add(new Object[] {"chunk_loader_gold", ModBlocks.chunkLoader(Tier.GOLD).get(), null});
+        if (com.itmecasey.aeroflux.compat.create.CreateCompat.loaded()) {
+            targets.add(new Object[] {"converter_stress_gold", com.itmecasey.aeroflux.compat.create.CreateContent.converter(Tier.GOLD).get(), null});
+        }
         targets.add(new Object[] {"converter_energy_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.ENERGY, Tier.GOLD).get(), null});
         try {
             targets.add(new Object[] {"converter_ae_gold", ModBlocks.converter(com.itmecasey.aeroflux.core.converter.ConverterType.AE, Tier.GOLD).get(), null});

@@ -76,3 +76,7 @@ Checked 2026-11-06 against Modrinth's version lists (the other tables above were
 - The 26.2 and 26.3 builds were compiled and self-tested with Jade, The One Probe, AE2, JEI and WTHIT (26.2) in the dev run where those mods have a build. Only the server self-test ran with them; nothing was opened in a client except as listed in the status file.
 - The FTB Chunks claim provider is compiled against the 26.1.2 API (FTB Chunks has no 26.2 or 26.3 build) and only loads when that mod is installed.
 - Both 26.3 builds have working data generators, and 26.3 Forge has its six Flux Sifter recipe-unlock advancements back; see [PORTING_26.2_26.3.md](PORTING_26.2_26.3.md).
+
+## Create (added 2026.11.10)
+
+The Flux Stress converter needs Create, so it exists only where Create has a build: 1.21.1 NeoForge and, since 2026.11.10, 1.20.1 Forge and NeoForge (Create 6.0.8). For 26.3, 26.2, 26.1.2 and Forge 1.21.1 there is no Create build, so nothing is open there.

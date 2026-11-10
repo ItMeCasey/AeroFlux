@@ -487,6 +487,9 @@ final class ScreenSelfTest {
                 for (PipeConfigLayout.Rect button : layout.distributionButtons()) {
                     all.add(ringed(button));
                 }
+                for (PipeConfigLayout.Rect button : layout.channelButtons()) {
+                    all.add(ringed(button));
+                }
                 all.add(layout.pipeBox());
                 all.add(layout.tierGem());
                 all.add(layout.faceNet());
@@ -518,7 +521,9 @@ final class ScreenSelfTest {
                         apart &= !a.overlaps(all.get(j));
                     }
                 }
-                mockup &= layout.height() == 178 + (layout.hasDistribution() ? 32 : 0) + (layout.upgradeSlotCount() > 0 ? 26 : 0);
+                int channelRows = (layout.channelButtons().size() + 7) / 8;
+                mockup &= layout.height() == 178 + (layout.hasDistribution() ? 32 : 0) + (channelRows > 0 ? channelRows * 20 + 10 : 0)
+                        + (layout.upgradeSlotCount() > 0 ? 26 : 0);
             }
         }
         SelfTest.check("screen layout: every pipe and tier fits in 176 by 270 pixels", fits);

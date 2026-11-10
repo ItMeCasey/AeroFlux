@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
 Updated: 2026-11-09
-Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.7 is the last release (six builds) and all ten builds at 2026.11.9 are ready to release (2026.11.8 went out for 26.2 and 26.3 only); screens, art, sounds, advancements, tools and guidebook have been seen in real clients, and what stays open is viewer and overlay checks, Create, Mekanism and AE2 pieces that need other mods' builds, and a few features (gas, redstone channels, energy sources) that still need work. Modrinth is on hold.
+Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.8 and 2026.11.9 are released, and all ten builds at 2026.11.10 are ready to release (2026.11.8 and 2026.11.9 are out); screens, art, sounds, advancements, tools and guidebook have been seen in real clients, what stays open is the balance review, which is Casey's. Mods that have no build for a loader or version are n/a there, not open. Modrinth is on hold.
 Spend: none
 
 ## Planning
@@ -31,7 +31,7 @@ Spend: none
 - [x] Fluid and Energy pipes (self-tested; energy now runs from a real source: a gold Flux to FE converter, a copper energy pipe and a test sink block, 631 checks pass with 0 failures on 26.1.2 NeoForge, 2026-11-09; the energy mover is the same code on the other builds) (w:3)
 - [x] Item pipes (w:4)
 - [x] Redstone pipes (channel 0: a powered lever drives a lamp through a redstone pipe, self-tested on all ten) (w:3)
-- [ ] Redstone pipe channels (more than channel 0, so two redstone lines can share a bundle area without mixing) (w:3)
+- [x] Redstone pipe channels (every face of a redstone pipe is tuned to one of 1, 2, 4, 8, 12 or 16 channels by tier; the mover keeps one signal per channel; channel buttons on the pipe screen of all ten builds; unit tests (10) and the self-test pass, 642 checks on 26.1.2 NeoForge; screen frames docs/frames/channels-26.1.2-neoforge, -1.21.1-neoforge and -1.20.1-forge, one per screen layout) (w:3)
 - [x] Gas pipes (Mekanism soft dependency, self-tested with Mekanism loaded on every build that has it: 1.21.1 NeoForge and both 1.20.1 builds; n/a: no Mekanism build for 26.3, 26.2, 26.1.2 or 1.21.1 Forge, so gas pipes stay uncraftable there) (w:3)
 - [x] Pipe tiers, speed and capacity upgrades, distribution modes, per-face Filter and Priority upgrades (all ten, self-tested) (w:3)
 - [x] Pipe config screen (logic self-tested on all ten; opened in a real client and read on 26.1.2 NeoForge and Forge, 1.21.1 NeoForge and Forge, 1.20.1 NeoForge and Forge, and on all four 26.2 and 26.3 builds; frames docs/frames/status-* and port-26.x-*) (w:4)
@@ -48,8 +48,8 @@ Spend: none
 - [x] Enchanter and Disenchanter (rules and config self-tested on all ten) (w:4)
 - [x] Plant Grower (all ten, self-tested: soil slot, crops on farmland, aeroflux/plant_soils rule files, Mystical Agriculture essence farmland bonus) (w:4)
 - [x] Flux Chunk Loader (all ten builds: six tiers, kill switch, admin command, screen; the screen opened in a real client and read on all ten, 2026-11-09, frames docs/frames/status-*-chunk-loader.png) (w:3)
-- [x] Flux converters (Flux to FE on all ten, to AE2 power on 26.3, 26.2, 26.1, 1.21.1 NeoForge and both 1.20.1 builds, Create stress on 1.21.1 NeoForge; six tiers; the FE converter feeds an energy pipe into a sink in the 26.1.2 self-test) (w:3)
-- [ ] Create stress converter on 1.20.1 Forge (Create has a 1.20.1 build; AeroFlux only bridges Create on 1.21.1 NeoForge; Create has no 26.x build) (w:2)
+- [x] Flux converters (Flux to FE on all ten, to AE2 power on 26.3, 26.2, 26.1, 1.21.1 NeoForge and both 1.20.1 builds, Create stress on 1.21.1 NeoForge and both 1.20.1 builds; six tiers; the FE converter feeds an energy pipe into a sink in the 26.1.2 self-test) (w:3)
+- [x] Create stress converter on 1.20.1 (Forge and NeoForge: Create 6.0.8 loaded in the self-test, 588 checks pass; shaft speed, stress capacity, burn, look-at line and an empty tank checked; screen frame docs/frames/stress-1.20.1-forge-screen.png; n/a: no Create build for 26.3, 26.2, 26.1.2 or Forge 1.21.1) (w:2)
 - [x] Auto Import/Export on machine faces and the Plant Grower seed refill (all ten, self-tested) (w:2)
 - [x] Machine art v2 (3D multi-element models, six-face textures, tiers, animated active fronts: every machine and pipe item in the inventory, held, on the ground and placed, lit furnace, Creative Flux Tank and Moon Flux seen in real 26.1.2 NeoForge and 1.21.1 NeoForge clients; 1.20.1 Forge scenes too; frames docs/frames/status-*) (w:4)
 - [x] Second machine wave (Crafter, Purifier, Moon Spawner, Sky Controller, Blender, Animal Breeder, Repairer, Sifter, Magnet, Sun and Moon Lamps; all ten, self-tested) (w:5)
@@ -100,7 +100,7 @@ Spend: none
 - [x] Modrinth release: frozen indefinitely by Casey (2026-11-06), existing uploads stay as they are (was on hold; project dN4XaJU1 has the page text and 2026.11.1 (NeoForge 26.1.2 only) and the six builds of 2026.11.2 to 2026.11.4 uploaded by hand, 2026.11.5 not uploaded, a duplicate 2026.11.3 version still to delete) (w:2)
 
 ## Port to 26.2 and 26.3
-- [x] Four new builds (versions/mc26.2 and mc26.3, NeoForge and Forge) compile, package and keep the 26.1.2 feature set (2026.11.8 in those four, released; every build is 2026.11.9 after the 1.20.1 claim, profile and save-version port, the Forge WTHIT fix and the 26.3 data generators) (w:4)
+- [x] Four new builds (versions/mc26.2 and mc26.3, NeoForge and Forge) compile, package and keep the 26.1.2 feature set (2026.11.8 in those four, released; every build is 2026.11.10 after the 1.20.1 claim, profile and save-version port, the Forge WTHIT fix and the 26.3 data generators) (w:4)
 - [x] Headless self-test on all four (620 to 628 checks, 0 failures; ports 8996 to 8999) (w:3)
 - [x] Unit tests of shared-core pass (w:1)
 - [x] One real-client check per new build (machine and pipe screens opened with the dev tour through the isolated desktop and read, 2026-11-06; frames docs/frames/port-26.x-*) (w:3)

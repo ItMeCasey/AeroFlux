@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "tag": "forge:gems/diamond"
+    },
+    "P": {
+      "item": "aeroflux:gold_flux_stress_converter"
+    },
+    "S": {
+      "item": "aeroflux:fluxsteel_ingot"
+    },
+    "T": {
+      "tag": "forge:gems/diamond"
+    }
+  },
+  "pattern": [
+    " T ",
+    "SPS",
+    " B "
+  ],
+  "result": {
+    "item": "aeroflux:diamond_flux_stress_converter",
+    "count": 1
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ]
+}

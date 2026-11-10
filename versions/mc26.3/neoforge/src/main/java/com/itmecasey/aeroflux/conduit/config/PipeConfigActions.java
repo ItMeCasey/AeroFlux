@@ -404,6 +404,24 @@ public final class PipeConfigActions {
         return true;
     }
 
+    /**
+     * Tunes one face of a redstone pipe to a channel. A pipe only offers as many channels as its
+     * tier carries.
+     *
+     * @return false if the pipe is not a redstone pipe, the channel is not one of its channels, or it is the one set already
+     */
+    public static boolean setChannel(ConduitBundleBlockEntity entity, PipeType type, Face face, int channel) {
+        if (type != PipeType.REDSTONE || channel < 0
+                || channel >= PipeTiers.redstoneChannels(entity.bundle().tier(type.lane()))) {
+            return false;
+        }
+        if (!entity.endpoints().setChannel(type.lane(), face, channel)) {
+            return false;
+        }
+        entity.changed();
+        return true;
+    }
+
     /** How a priority reads on the screen and in tooltips: with a plus sign above zero. */
     public static String priorityText(int priority) {
         return priority > PriorityPlanner.DEFAULT ? "+" + priority : Integer.toString(priority);

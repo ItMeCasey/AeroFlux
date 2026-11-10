@@ -14,6 +14,7 @@ import com.itmecasey.aeroflux.core.conduit.EndpointSettings;
 import com.itmecasey.aeroflux.core.conduit.Face;
 import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeTiers;
+import com.itmecasey.aeroflux.core.conduit.RedstoneChannels;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
 import com.itmecasey.aeroflux.core.machine.GlyphSidePanelLayout;
 import java.text.NumberFormat;
@@ -103,6 +104,18 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
                         "dist_" + id, accent, () -> menu.distribution() == mode,
                         () -> pressMenuButton(buttonId), Component.translatable(key), Component.translatable(key + ".tooltip")));
             }
+        }
+        for (int i = 0; i < layout.channelButtons().size(); i++) {
+            int channel = i;
+            PipeConfigLayout.Rect rect = layout.channelButtons().get(i);
+            RedstoneChannels dye = RedstoneChannels.of(i);
+            int buttonId = PipeConfigMenu.channelButton(i);
+            addRenderableWidget(GlyphButton.colored(leftPos + rect.x(), topPos + rect.y(), rect.width(),
+                    Glyphs.pipeGlyph(PipeType.REDSTONE), 0xFF000000 | dye.color(), () -> menu.channel() == channel,
+                    () -> pressMenuButton(buttonId),
+                    Component.translatable("screen.aeroflux.pipe_config.channel", i,
+                            Component.translatable("redstone_channel.aeroflux." + dye.id())),
+                    Component.translatable("screen.aeroflux.pipe_config.channel.tooltip")));
         }
         addEndpointWidgets();
         updateSidePanel();

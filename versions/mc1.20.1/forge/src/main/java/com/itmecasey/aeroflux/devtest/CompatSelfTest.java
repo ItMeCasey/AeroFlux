@@ -91,6 +91,8 @@ final class CompatSelfTest {
     private static BlockPos inletBundle;
     private static BlockPos inletSource;
     private static BlockPos inletSink;
+    private static BlockPos converter;
+    private static BlockPos shaft;
 
     private CompatSelfTest() {
     }
@@ -122,6 +124,9 @@ final class CompatSelfTest {
         }
         checkViewers();
         checkFluids();
+        if (com.itmecasey.aeroflux.compat.create.CreateCompat.loaded()) {
+            Create.check();
+        }
         if (ModList.get().isLoaded("crafttweaker")) {
             CraftTweaker.check();
         }
@@ -155,6 +160,12 @@ final class CompatSelfTest {
             // The source tank stays empty, so only the push this test makes reaches the sink.
             setMode(inletBundle, Face.WEST, ConnectionMode.OPEN);
             setMode(inletBundle, Face.EAST, ConnectionMode.EXPORT);
+        }
+
+        if (com.itmecasey.aeroflux.compat.create.CreateCompat.loaded()) {
+            converter = new BlockPos(1, Y, 8);
+            shaft = converter.east();
+            Create.build();
         }
     }
 
@@ -383,5 +394,52 @@ final class CompatSelfTest {
             text.append(output.stack()).append('@').append(output.chance()).append(' ');
         }
         return text.toString();
+    }
+
+    // --- Create ------------------------------------------------------------------------------
+
+    /** The Create checks; this class names the Create content, so it is only loaded with Create. */
+    private static final class Create {
+        static void build() {
+            BlockState state = com.itmecasey.aeroflux.compat.create.CreateContent.converter(Tier.COPPER).get().defaultBlockState()
+                    .setValue(com.itmecasey.aeroflux.compat.create.StressConverterBlock.FACING, Direction.EAST);
+            level.setBlock(converter, state, Block.UPDATE_ALL);
+            Block shaftBlock = BuiltInRegistries.BLOCK.get(new ResourceLocation("create", "shaft"));
+            level.setBlock(shaft, shaftBlock.defaultBlockState()
+                    .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS, Direction.Axis.X), Block.UPDATE_ALL);
+            ((com.itmecasey.aeroflux.compat.create.StressConverterBlockEntity) level.getBlockEntity(converter)).tank()
+                    .setFluid(new FluidStack(ModFluids.AERO_FLUX.get(), 4_000));
+        }
+
+        static void check() {
+            boolean registered = true;
+            for (Tier tier : Tier.values()) {
+                ResourceLocation id = Ids.mod(com.itmecasey.aeroflux.compat.create.CreateCompat.converterName(tier));
+                registered &= BuiltInRegistries.BLOCK.containsKey(id) && BuiltInRegistries.ITEM.containsKey(id);
+            }
+            SelfTest.check("create: the six Stress converters are registered with Create installed",
+                    registered && com.itmecasey.aeroflux.compat.create.CreateCompat.stressConverters().size() == Tier.values().length);
+
+            com.itmecasey.aeroflux.compat.create.StressConverterBlockEntity stress =
+                    (com.itmecasey.aeroflux.compat.create.StressConverterBlockEntity) level.getBlockEntity(converter);
+            net.minecraft.world.level.block.entity.BlockEntity shaftEntity = level.getBlockEntity(shaft);
+            float shaftSpeed = shaftEntity instanceof com.simibubi.create.content.kinetics.base.KineticBlockEntity kinetic ? kinetic.getSpeed() : 0;
+            SelfTest.check("create: a Stress converter with Flux turns the shaft at its tier's speed",
+                    stress.running() && Math.abs(shaftSpeed) == com.itmecasey.aeroflux.core.converter.StressMath.rpm(Tier.COPPER));
+            SelfTest.check("create: it adds its stress capacity to the network",
+                    Math.abs(stress.networkCapacity() - com.itmecasey.aeroflux.AeroFluxConfig.converterStress(Tier.COPPER)) < 0.5F
+                            && stress.output() == com.itmecasey.aeroflux.AeroFluxConfig.converterStress(Tier.COPPER));
+            SelfTest.check("create: with nothing to drive it burns no Flux",
+                    stress.fluxAmount() == 4_000 && stress.lastBurn() == 0);
+            SelfTest.check("create: the look-at line names its capacity",
+                    !com.itmecasey.aeroflux.compat.LookInfo.lines(level, stress).isEmpty()
+                            && com.itmecasey.aeroflux.compat.LookInfo.flux(stress) != null);
+
+            // Run it dry: the shaft stops on the next tick.
+            stress.tank().setFluid(FluidStack.EMPTY);
+            stress.tick();
+            SelfTest.check("create: with an empty tank the shaft stops",
+                    !stress.running() && stress.getGeneratedSpeed() == 0 && stress.output() == 0);
+        }
     }
 }

@@ -467,6 +467,19 @@ public final class ShotTour {
         shoot("screen_pipe_me", 10);
         then(2, () -> player().closeContainer());
 
+        // A gold redstone pipe tuned to channel 2: the channel row of the pipe screen.
+        BlockPos redstonePipe = at(47, 6);
+        placePipe(PipeType.REDSTONE, Tier.GOLD, redstonePipe, true);
+        then(5, () -> onServer(server -> {
+            if (server.overworld().getBlockEntity(redstonePipe) instanceof ConduitBundleBlockEntity bundle) {
+                PipeConfigActions.setChannel(bundle, PipeType.REDSTONE, Face.EAST, 2);
+                PipeConfigActions.setMode(bundle, PipeType.REDSTONE, Face.EAST, ConnectionMode.EXPORT);
+                PipeConfigMenu.open(serverPlayer(server), bundle, PipeType.REDSTONE, Face.EAST);
+            }
+        }));
+        shoot("screen_pipe_redstone", 10);
+        then(2, () -> player().closeContainer());
+
         // The newer machines: the Crafter's wide grid, the extra tank gauges and the machine buttons.
         MachineType[] newer = {MachineType.CRAFTER, MachineType.PURIFIER, MachineType.SIFTER, MachineType.BLENDER,
                 MachineType.SKY_CONTROLLER, MachineType.MAGNET, MachineType.SPAWNER};

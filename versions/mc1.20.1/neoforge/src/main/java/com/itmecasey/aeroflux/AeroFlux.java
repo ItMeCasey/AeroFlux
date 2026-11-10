@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux;
 
+import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
 import com.itmecasey.aeroflux.machine.configurator.ConfiguratorPayload;
 import com.itmecasey.aeroflux.machine.RecipeImportsSync;
@@ -43,6 +44,8 @@ public class AeroFlux {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModFluidTypes.register(modEventBus);
+        // The Stress converter only exists with Create installed.
+        CreateCompat.register(modEventBus);
         ModFluids.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
