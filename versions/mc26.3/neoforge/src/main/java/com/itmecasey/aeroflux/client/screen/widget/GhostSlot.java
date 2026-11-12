@@ -58,7 +58,7 @@ public class GhostSlot extends AbstractWidget {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (!isMouseOver(event.x(), event.y()) || (event.button() != 0 && event.button() != 1)) {
+        if (!isMouseOver(event.x(), event.y()) || (event.button() != com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT && event.button() != com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT)) {
             return false;
         }
         press.run();

@@ -260,7 +260,7 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
         double mouseX = event.x();
         double mouseY = event.y();
         int button = event.button();
-        if (overToggle(mouseX, mouseY) && button == 0) {
+        if (overToggle(mouseX, mouseY) && button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT) {
             open = !open;
             return true;
         }
@@ -274,7 +274,7 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
                 FaceLabel label = FaceLabel.values()[hit.index()];
                 Face face = label.faceFor(facing);
                 selectedFace = label;
-                ConnectionMode next = SideConfig.cycle(model.mode(resource(), face), button == 1);
+                ConnectionMode next = SideConfig.cycle(model.mode(resource(), face), button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT);
                 model.send(SideCommand.set(resource(), face, next).encode());
             }
             case ALL_OFF -> model.send(SideCommand.allTo(resource(), ConnectionMode.OFF).encode());

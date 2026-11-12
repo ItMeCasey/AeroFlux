@@ -1,6 +1,6 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-10
+Updated: 2026-11-12
 Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.8 and 2026.11.9 are released, and all ten builds at 2026.11.10 are ready to release (2026.11.8 and 2026.11.9 are out); screens, art, sounds, advancements, tools and guidebook have been seen in real clients, what stays open is the balance review, which is Casey's. Mods that have no build for a loader or version are n/a there, not open. Modrinth is on hold.
 Spend: none
 
@@ -108,3 +108,4 @@ Spend: none
 - [x] Integrations on 26.2 and 26.3 (Jade, The One Probe, WTHIT (26.2), JEI, REI and BEI seen in clients; AE2 grid nodes self-tested on both NeoForge builds; KubeJS hooks and WTHIT on 26.3 are left inert because those mods have no build, see the KubeJS line) (w:2)
 - [x] API jars from the private Maven (all four builds compile against com.itmecasey:bei-api 2026.11.7 and smwti-api 2026.11.3 when IMC_MAVEN_* is set, verified; libs/ jars are the fallback without a login) (w:2)
 - [x] CI and release workflows, CurseForge script, README, changelog, compatibility table and wiki draft cover the four new builds (w:2)
+- [x] 2026.11.11 (Forge and NeoForge 26.3 only): mouse button fix for the 26.3 renumbering; compiled, not yet tried in a client (w:1)

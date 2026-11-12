@@ -64,10 +64,10 @@ public class RedstoneButton extends AbstractWidget implements HoverInfo {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         int button = event.button();
-        if (!isMouseOver(event.x(), event.y()) || (button != 0 && button != 1)) {
+        if (!isMouseOver(event.x(), event.y()) || (button != com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT && button != com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT)) {
             return false;
         }
-        send.accept(mode.get().cycle(button == 1).buttonId());
+        send.accept(mode.get().cycle(button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT).buttonId());
         return true;
     }
 
