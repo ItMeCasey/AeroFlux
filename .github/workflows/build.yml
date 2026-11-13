@@ -4,12 +4,41 @@ on:
   push:
     branches: [main]
   pull_request:
-  # The release workflow runs the same builds and self-tests before it publishes.
   workflow_call:
 
 jobs:
+  # Picks what this push or pull request needs (.github/scripts/plan_matrix.py): only the builds whose files
+  # changed, every build when shared-core/src/main/java changed, nothing for docs, status and workflow changes.
+  plan:
+    name: Pick the builds
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      any: ${{ steps.plan.outputs.any }}
+      core: ${{ steps.plan.outputs.core }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            python3 -I .github/scripts/plan_matrix.py build --before "$PR_BASE" --sha "$PR_HEAD"
+          else
+            python3 -I .github/scripts/plan_matrix.py build --before "$BEFORE" --sha "$SHA"
+          fi
+
+  # Unit tests and the translation check run when shared-core, lang/ or a build's language files changed.
   shared-core:
     name: Unit tests (shared-core)
+    needs: plan
+    if: needs.plan.outputs.core == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,21 +58,12 @@ jobs:
 
   build:
     name: Build ${{ matrix.name }}
+    needs: plan
+    if: needs.plan.outputs.any == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - { name: neoforge-26.3, dir: versions/mc26.3/neoforge }
-          - { name: forge-26.3,    dir: versions/mc26.3/forge }
-          - { name: neoforge-26.2, dir: versions/mc26.2/neoforge }
-          - { name: forge-26.2,    dir: versions/mc26.2/forge }
-          - { name: neoforge-26.1.2, dir: versions/mc26.1.2/neoforge }
-          - { name: forge-26.1.2,    dir: versions/mc26.1.2/forge }
-          - { name: neoforge-1.21.1, dir: versions/mc1.21.1/neoforge }
-          - { name: forge-1.21.1,    dir: versions/mc1.21.1/forge }
-          - { name: neoforge-1.20.1, dir: versions/mc1.20.1/neoforge }
-          - { name: forge-1.20.1,    dir: versions/mc1.20.1/forge }
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       # Gradle runs on the last JDK listed and its toolchain support finds the project's own
@@ -75,22 +95,13 @@ jobs:
   # then stops the server itself; the timeout only catches a server that hangs.
   selftest:
     name: Self-test ${{ matrix.name }}
+    needs: plan
+    if: needs.plan.outputs.any == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - { name: neoforge-26.3, dir: versions/mc26.3/neoforge }
-          - { name: forge-26.3,    dir: versions/mc26.3/forge }
-          - { name: neoforge-26.2, dir: versions/mc26.2/neoforge }
-          - { name: forge-26.2,    dir: versions/mc26.2/forge }
-          - { name: neoforge-26.1.2, dir: versions/mc26.1.2/neoforge }
-          - { name: forge-26.1.2,    dir: versions/mc26.1.2/forge }
-          - { name: neoforge-1.21.1, dir: versions/mc1.21.1/neoforge }
-          - { name: forge-1.21.1,    dir: versions/mc1.21.1/forge }
-          - { name: neoforge-1.20.1, dir: versions/mc1.20.1/neoforge }
-          - { name: forge-1.20.1,    dir: versions/mc1.20.1/forge }
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       # Same JDKs as the build job.

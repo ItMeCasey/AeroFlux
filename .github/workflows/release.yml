@@ -28,48 +28,29 @@ permissions:
   contents: write
 
 jobs:
-  pick:
+  # Picks the builds whose own mod_version equals the tag (the newest mod_version for a manual run) with
+  # .github/scripts/plan_matrix.py. The run fails when no build has that version.
+  plan:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.pick.outputs.matrix }}
-      version: ${{ steps.pick.outputs.version }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      version: ${{ steps.plan.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - name: Pick the builds for this tag
-        id: pick
+        id: plan
         run: |
-          versions=$(grep -h '^mod_version=' versions/*/*/gradle.properties | sed 's/^mod_version=//' | sort -uV)
-          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then version="${GITHUB_REF_NAME#v}"; else version=$(echo "$versions" | tail -n 1); fi
-          include=""
-          for file in versions/mc*/*/gradle.properties; do
-            dir="${file%/gradle.properties}"
-            loader="${dir##*/}"
-            mc="${dir%/*}"; mc="${mc##*/mc}"
-            if [ "$(sed -n 's/^mod_version=//p' "$file")" = "$version" ]; then
-              case "$mc" in
-                26.*) java=25 ;;
-                1.21.1) java=21 ;;
-                1.20.1) java=17 ;;
-                *) echo "unknown Minecraft version $mc"; exit 1 ;;
-              esac
-              include="$include{\"name\":\"$loader-$mc\",\"dir\":\"$dir\",\"java\":$java},"
-              echo "building $loader-$mc (mod_version $version)"
-            else
-              echo "skipping $loader-$mc: mod_version is not $version"
-            fi
-          done
-          if [ -z "$include" ]; then echo "No build has mod_version $version"; exit 1; fi
-          echo "matrix={\"include\":[${include%,}]}" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then tag="${GITHUB_REF_NAME}"; else tag=""; fi
+          python3 -I .github/scripts/plan_matrix.py release --tag "$tag" --require-any
 
   # Unit tests and the jar for each picked build. Needs shared-core green too.
   build:
-    needs: pick
+    needs: plan
     name: Build ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-      matrix: ${{ fromJSON(needs.pick.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       # Gradle runs on the last JDK listed and its toolchain support finds the project's own
@@ -98,7 +79,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    needs: [pick, build]
+    needs: [plan, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -111,7 +92,7 @@ jobs:
 
       - name: Check the version
         id: version
-        run: echo "version=${{ needs.pick.outputs.version }}" >> "$GITHUB_OUTPUT"
+        run: echo "version=${{ needs.plan.outputs.version }}" >> "$GITHUB_OUTPUT"
 
       # The hand-written changelog for this version wins; without one the notes are the commit subjects since the last tag.
       - name: Write the release notes
