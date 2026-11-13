@@ -99,8 +99,6 @@ AeroFlux doesn't need any other mod. If you have them, it works with:
 - **Overlays:** Jade, The One Probe, WTHIT and our own **Show Me What This Is** show Flux levels and machine status.
 - **Scripting:** KubeJS and CraftTweaker can add, remove and change machine recipes.
 
-**Tested in a game client:** Barely Enough Items and Show Me What This Is on all six builds, and Jade on 26.1.2 NeoForge, 1.21.1 NeoForge and both 1.20.1 builds. JEI, REI, EMI, The One Probe and WTHIT are built in but not yet tested in a client.
-
 ## Versions
 
 Minecraft 26.1.2, 1.21.1 and 1.20.1, on both NeoForge and Forge. Which optional mods work depends on which of them exist for that version and loader.
