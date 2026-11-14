@@ -8,7 +8,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.advancements.AdvancementProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.MultiRegistryBootstrap;
@@ -44,7 +43,6 @@ public final class DataGenerators {
         RegistryDataBuilder entries = RegistryDataBuilder.of().modid(AeroFlux.MODID).reloadable(registries -> registries
                 .add(Registries.LOOT_TABLE, new LootTableProvider(Set.of(), List.of(
                         new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK))))
-                .add(Registries.ADVANCEMENT, new AdvancementProvider(List.of(ModAdvancements::new)))
                 .add(new MultiRegistryBootstrap() {
                     @Override
                     public Set<ResourceKey<? extends Registry<?>>> requestedRegistries() {

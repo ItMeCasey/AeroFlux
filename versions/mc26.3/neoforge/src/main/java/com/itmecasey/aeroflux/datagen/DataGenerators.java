@@ -31,7 +31,7 @@ public final class DataGenerators {
         event.createProvider(ModModelProvider::new);
     }
 
-    /** Registers the server-side providers: recipes, block tags, loot tables and advancements. */
+    /** Registers the server-side providers: recipes, block tags and loot tables. */
     @SubscribeEvent
     public static void gatherServerData(GatherDataEvent.Server event) {
         event.createProvider(ModBlockTagProvider::new);
@@ -39,14 +39,13 @@ public final class DataGenerators {
     }
 
     /**
-     * Minecraft 26.3 generates recipes, loot tables and advancements as datapack registry
+     * Minecraft 26.3 generates recipes and loot tables as datapack registry
      * entries, so they are gathered here and not through providers of their own.
      */
     @SubscribeEvent
     public static void gatherRegistryEntries(GatherDataRegistryEntriesEvent event) {
         event.add(Registries.LOOT_TABLE, new LootTableProvider(Set.of(), List.of(
                         new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK))))
-                .advancement(ModAdvancements::new)
                 .recipe(ModRecipeProvider::new);
     }
 }

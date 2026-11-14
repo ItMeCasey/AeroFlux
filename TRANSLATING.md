@@ -1,7 +1,7 @@
 # Translating AeroFlux
 
-Thank you for helping. All of AeroFlux's text (item and block names, tooltips, screens, chat
-messages, advancements and the guidebook) goes through language keys, so a translation is one JSON
+Thank you for helping. All of AeroFlux's text (item and block names, tooltips, screens and chat
+messages) goes through language keys, so a translation is one JSON
 file per language.
 
 ## Where the files are

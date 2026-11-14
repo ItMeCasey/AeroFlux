@@ -10,14 +10,12 @@ import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
 import com.itmecasey.aeroflux.client.screen.CollectorScreen;
 import com.itmecasey.aeroflux.client.screen.ConfiguratorScreen;
 import com.itmecasey.aeroflux.client.screen.ConverterScreen;
-import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.client.screen.TankScreen;
 import com.itmecasey.aeroflux.client.sound.MachineSounds;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.machine.configurator.FluxConfiguratorItem;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
@@ -52,10 +50,9 @@ public final class ClientSetup {
         event.registerBlockEntityRenderer(ModBlockEntities.CREATIVE_TANK.get(), FluxTankRenderer::new);
     }
 
-    /** Pairs the menus with their screens, and lets the guidebook open its screen. */
+    /** Pairs the menus with their screens. */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        GuidebookItem.setOpener(GuideScreen::open);
         FluxConfiguratorItem.setOpener(ConfiguratorScreen::open);
         FluxMachineBlock.setClientTicker(MachineSounds::tick);
         event.enqueueWork(() -> {

@@ -113,7 +113,6 @@ public class CollectorScreen extends AbstractContainerScreen<CollectorMenu> {
                     CollectorForecast.shortDuration(CollectorForecast.ticksLeftInPhase(menu.timeOfDay()))));
         }
         if (offered == null) {
-            tooltip.add(Component.translatable("gui.aeroflux.collector.offer.none.tooltip"));
             return new Row("ticks", Glyphs.OFF_COLOR, Component.translatable("gui.aeroflux.collector.offer.none", whenText),
                     MUTED, tooltip);
         }
@@ -121,10 +120,8 @@ public class CollectorScreen extends AbstractContainerScreen<CollectorMenu> {
         int color = offered == FluxType.MOON ? FluxTypeBadge.MOON_COLOR : FluxTypeBadge.AERO_COLOR;
         Component flux = fluxName(offered);
         if (menu.bufferLocked()) {
-            tooltip.add(Component.translatable("gui.aeroflux.collector.offer.locked.tooltip", flux));
             return new Row(glyph, color, Component.translatable("gui.aeroflux.collector.offer.locked", whenText), BAD, tooltip);
         }
-        tooltip.add(Component.translatable("gui.aeroflux.collector.offer.making.tooltip", flux));
         return new Row(glyph, color, Component.translatable("gui.aeroflux.collector.offer.making", whenText, flux),
                 TEXT, tooltip);
     }
@@ -133,35 +130,33 @@ public class CollectorScreen extends AbstractContainerScreen<CollectorMenu> {
     private Row skyRow() {
         if (!menu.needsSky()) {
             return new Row("sky_clear", Glyphs.OFF_COLOR, Component.translatable("gui.aeroflux.collector.sky.not_needed"),
-                    MUTED, List.of(Component.translatable("gui.aeroflux.collector.sky.not_needed.tooltip")));
+                    MUTED, List.of());
         }
         if (menu.skyVisible()) {
             return new Row("sky_clear", GOOD, Component.translatable("gui.aeroflux.collector.sky.open"), TEXT,
-                    List.of(Component.translatable("gui.aeroflux.collector.sky.open.tooltip")));
+                    List.of());
         }
         Block blocker = menu.blocker();
         if (blocker == null) {
             return new Row("mode_blocked", BAD, Component.translatable("gui.aeroflux.collector.sky.blocked"), BAD,
-                    List.of(Component.translatable("gui.aeroflux.collector.sky.blocked.tooltip")));
+                    List.of());
         }
         BlockPos at = menu.blockerPos();
         return new Row("mode_blocked", BAD, Component.translatable("gui.aeroflux.collector.sky.blocked_by", blocker.getName()), BAD,
                 List.of(Component.translatable("gui.aeroflux.collector.sky.blocked_by", blocker.getName()),
-                        Component.translatable("gui.aeroflux.collector.sky.blocked_at", at.getX(), at.getY(), at.getZ()),
-                        Component.translatable("gui.aeroflux.collector.sky.blocked.tooltip")));
+                        Component.translatable("gui.aeroflux.collector.sky.blocked_at", at.getX(), at.getY(), at.getZ())));
     }
 
     /** The weather and what it does to the flux on offer. */
     private Row weatherRow() {
         if (menu.ignoresWeather()) {
             return new Row("weather", Glyphs.OFF_COLOR, Component.translatable("gui.aeroflux.collector.weather.ignored"),
-                    MUTED, List.of(Component.translatable("gui.aeroflux.collector.weather.ignored.tooltip")));
+                    MUTED, List.of());
         }
         String weather = menu.thundering() ? "thunder" : menu.raining() ? "rain" : "clear";
         int percent = (int) Math.round(menu.weatherFactor() * 100.0);
         int color = percent >= 100 ? Glyphs.IMPORT_COLOR : Glyphs.EXPORT_COLOR;
-        return new Row("weather", color, Component.translatable("gui.aeroflux.collector.weather." + weather, percent), TEXT,
-                List.of(Component.translatable("gui.aeroflux.collector.weather.tooltip")));
+        return new Row("weather", color, Component.translatable("gui.aeroflux.collector.weather." + weather, percent), TEXT, List.of());
     }
 
     /** The moon's phase and how strong Moon Flux is under it. */
@@ -170,7 +165,7 @@ public class CollectorScreen extends AbstractContainerScreen<CollectorMenu> {
         int percent = (int) Math.round(CollectionMath.moonPhaseFactor(phase) * 100.0);
         Component name = Component.translatable("gui.aeroflux.collector.moon." + Math.floorMod(phase, 8));
         return new Row("flux_moon", FluxTypeBadge.MOON_COLOR, Component.translatable("gui.aeroflux.collector.moon", name, percent),
-                TEXT, List.of(Component.translatable("gui.aeroflux.collector.moon.tooltip")));
+                TEXT, List.of());
     }
 
     /** What the collector made last tick, and what it passes on to its neighbors. */
@@ -187,7 +182,7 @@ public class CollectorScreen extends AbstractContainerScreen<CollectorMenu> {
     /** When the buffer will be full at the current rates. */
     private Row fullRow() {
         long ticks = menu.ticksToFull();
-        List<Component> tooltip = List.of(Component.translatable("gui.aeroflux.collector.full.tooltip"));
+        List<Component> tooltip = List.of();
         if (ticks == 0) {
             return new Row("ticks", BAD, Component.translatable("gui.aeroflux.collector.full.now"), TEXT, tooltip);
         }

@@ -1,9 +1,12 @@
 package com.itmecasey.aeroflux.devtest;
 
+import com.itmecasey.aeroflux.AeroFlux;
 import com.itmecasey.aeroflux.Ids;
 import com.itmecasey.aeroflux.block.entity.FluxTankBlockEntity;
 import com.itmecasey.aeroflux.compat.ViewerRecipes;
+import com.itmecasey.aeroflux.compat.modjs.AeroFluxScripts;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
+import com.itmecasey.aeroflux.conduit.config.PipeConfigActions;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
 import com.itmecasey.aeroflux.core.conduit.Face;
@@ -11,6 +14,11 @@ import com.itmecasey.aeroflux.core.conduit.PipeType;
 import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.SieveMesh;
+import com.itmecasey.aeroflux.core.script.ModJsBridge;
+import com.itmecasey.aeroflux.core.script.ScriptEvents;
+import com.itmecasey.aeroflux.core.script.ScriptInfo;
+import com.itmecasey.aeroflux.core.script.ScriptWorld;
+import com.itmecasey.aeroflux.machine.FluxMachineBlockEntity;
 import com.itmecasey.aeroflux.machine.RecipeImports;
 import com.itmecasey.aeroflux.machine.RecipeImportsSync;
 import com.itmecasey.aeroflux.machine.SieveRoll;
@@ -20,6 +28,7 @@ import com.itmecasey.aeroflux.registry.ModFluids;
 import com.itmecasey.aeroflux.registry.ModRecipes;
 import com.itmecasey.aeroflux.registry.ModTags;
 import io.netty.buffer.Unpooled;
+import java.util.ArrayList;
 import java.util.List;
 import mcp.mobius.waila.api.IPluginInfo;
 import net.minecraft.core.BlockPos;
@@ -67,6 +76,7 @@ final class CompatSelfTest {
     private static BlockPos inletSource;
     private static BlockPos inletBundle;
     private static BlockPos inletSink;
+    private static BlockPos scriptMachine;
 
     private CompatSelfTest() {
     }
@@ -98,6 +108,7 @@ final class CompatSelfTest {
         }
         checkViewers();
         checkFluids();
+        checkScripts();
         if (ModList.get().isLoaded("wthit")) {
             SelfTest.check("wthit: the AeroFlux plugin is loaded", IPluginInfo.get(Ids.mod("look_info")) != null);
         }
@@ -116,6 +127,70 @@ final class CompatSelfTest {
         bundle().addPipe(PipeType.FLUID, Tier.COPPER);
         setMode(Face.WEST, ConnectionMode.OPEN);
         setMode(Face.EAST, ConnectionMode.EXPORT);
+        scriptMachine = inletSource.south(2);
+        level.setBlock(scriptMachine, ModBlocks.machine(MachineType.GRINDER, Tier.GOLD).get().defaultBlockState(), Block.UPDATE_ALL);
+    }
+
+    // --- Scripts -----------------------------------------------------------------------------
+
+    /**
+     * The ModJS side: the reads the {@code AeroFlux} global answers, the events it listens to, and, when ModJS is in the dev
+     * run ({@code -PmodjsJar=<path>}), a real script through ModJS itself. Without ModJS the bridge must load nothing.
+     */
+    private static void checkScripts() {
+        ScriptWorld world = AeroFluxScripts.world();
+        String dimension = level.dimension().identifier().toString();
+        ScriptInfo.Machine machine = world.machine(dimension, scriptMachine.getX(), scriptMachine.getY(), scriptMachine.getZ());
+        SelfTest.check("scripts: a machine read gives its id, tier, idle status and Flux holder",
+                machine != null && machine.id.equals("grinder") && machine.tier.equals("gold") && machine.status.equals("idle")
+                        && machine.flux != null && machine.flux.holder.equals("machine") && machine.flux.capacity > 0);
+        ScriptInfo.Flux tank = world.flux(dimension, inletSink.getX(), inletSink.getY(), inletSink.getZ());
+        SelfTest.check("scripts: a tank read gives its holder and capacity",
+                tank != null && tank.holder.equals("tank") && tank.capacity > 0);
+        ScriptInfo.Network network = world.network(dimension, inletBundle.getX(), inletBundle.getY(), inletBundle.getZ(), PipeType.FLUID);
+        SelfTest.check("scripts: a pipe read gives its network", network != null && network.pipe.equals("fluid") && network.bundles == 1);
+        SelfTest.check("scripts: a place with no machine reads as nothing",
+                world.machine(dimension, scriptMachine.getX(), scriptMachine.getY() + 5, scriptMachine.getZ()) == null
+                        && world.player("nobody-by-this-name") == null);
+        SelfTest.check("scripts: a read in a chunk that is not loaded gives nothing and loads nothing",
+                world.machine(dimension, 400_000, 64, 400_000) == null && !level.hasChunkAt(new BlockPos(400_000, 64, 400_000)));
+
+        List<ScriptEvents.Event> seen = new ArrayList<>();
+        ScriptEvents.on("selftest", ScriptEvents.PIPE_MODE_CHANGED, seen::add);
+        ScriptEvents.on("selftest", ScriptEvents.MACHINE_FINISHED, seen::add);
+        ScriptEvents.on("selftest", ScriptEvents.MACHINE_FINISHED, e -> {
+            throw new IllegalStateException("a broken listener");
+        });
+        PipeConfigActions.setMode(bundle(), PipeType.FLUID, Face.NORTH, ConnectionMode.OFF);
+        AeroFluxScripts.machineFinished(level, scriptMachine, (FluxMachineBlockEntity) level.getBlockEntity(scriptMachine));
+        ScriptEvents.clear("selftest");
+        SelfTest.check("scripts: a pipe mode change and a finished machine reach their listeners, and a broken listener harms nothing",
+                seen.size() == 2 && seen.get(0).id.equals("fluid") && seen.get(0).face.equals("north")
+                        && seen.get(0).mode.equals("off") && seen.get(1).id.equals("grinder") && seen.get(1).y == scriptMachine.getY());
+
+        if (!ModList.get().isLoaded("modjs")) {
+            SelfTest.check("scripts: without ModJS the bridge loads nothing and fails nothing", !ModJsBridge.install(type -> null));
+            return;
+        }
+        String script = "AeroFlux.type() + ':' + AeroFlux.machine('" + dimension + "', " + scriptMachine.getX() + ", "
+                + scriptMachine.getY() + ", " + scriptMachine.getZ() + ").tier + ':'"
+                + " + AeroFlux.recipe('grinder').input('#c:ores/iron').output('2x minecraft:raw_iron').build().get('type')";
+        SelfTest.check("scripts: ModJS runs a script that reads a machine and builds a recipe through the AeroFlux global",
+                "server:gold:aeroflux:grinder".equals(runInModJs(script)));
+    }
+
+    /** Runs a server script in ModJS through reflection (this class never names ModJS), or returns {@code null}. */
+    private static String runInModJs(String script) {
+        try {
+            Class<?> typeClass = Class.forName("com.itmecasey.modjs.script.ScriptType");
+            Object server = typeClass.getField("SERVER").get(null);
+            Class<?> manager = Class.forName("com.itmecasey.modjs.script.ScriptManager");
+            Object scripts = manager.getMethod("of", typeClass).invoke(null, server);
+            return String.valueOf(manager.getMethod("eval", String.class, String.class).invoke(scripts, script, "aeroflux-selftest.js"));
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            AeroFlux.LOGGER.warn("AEROFLUX-SELFTEST INFO the ModJS script failed: {}", e.toString());
+            return null;
+        }
     }
 
     // --- Recipe viewers ----------------------------------------------------------------------

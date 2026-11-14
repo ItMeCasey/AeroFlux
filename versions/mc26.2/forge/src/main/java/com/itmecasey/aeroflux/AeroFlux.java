@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux;
 
 import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
+import com.itmecasey.aeroflux.compat.modjs.AeroFluxScripts;
 import com.itmecasey.aeroflux.datagen.DataGenerators;
 import com.itmecasey.aeroflux.machine.configurator.ConfiguratorPayload;
 import com.itmecasey.aeroflux.machine.RecipeSync;
@@ -63,6 +64,7 @@ public final class AeroFlux {
         RecipeSync.register();
         ConfiguratorPayload.register();
 
+        AeroFluxScripts.install();
         LOGGER.info("AeroFlux loaded (Forge 26.1.2)");
     }
 }

@@ -92,7 +92,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
             int buttonId = PipeConfigMenu.modeButton(mode);
             addRenderableWidget(GlyphButton.colored(leftPos + rect.x(), topPos + rect.y(), rect.width(),
                     Glyphs.modeGlyph(mode), Glyphs.modeColor(mode), () -> menu.mode() == mode,
-                    () -> pressMenuButton(buttonId), Component.translatable(key), Component.translatable(key + ".tooltip")));
+                    () -> pressMenuButton(buttonId), Component.translatable(key)));
         }
         if (layout.hasDistribution()) {
             for (DistributionMode mode : DistributionMode.values()) {
@@ -102,7 +102,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
                 int buttonId = PipeConfigMenu.distributionButton(mode);
                 addRenderableWidget(GlyphButton.raised(leftPos + rect.x(), topPos + rect.y(), rect.width(),
                         "dist_" + id, accent, () -> menu.distribution() == mode,
-                        () -> pressMenuButton(buttonId), Component.translatable(key), Component.translatable(key + ".tooltip")));
+                        () -> pressMenuButton(buttonId), Component.translatable(key)));
             }
         }
         for (int i = 0; i < layout.channelButtons().size(); i++) {
@@ -114,8 +114,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
                     Glyphs.pipeGlyph(PipeType.REDSTONE), 0xFF000000 | dye.color(), () -> menu.channel() == channel,
                     () -> pressMenuButton(buttonId),
                     Component.translatable("screen.aeroflux.pipe_config.channel", i,
-                            Component.translatable("redstone_channel.aeroflux." + dye.id())),
-                    Component.translatable("screen.aeroflux.pipe_config.channel.tooltip")));
+                            Component.translatable("redstone_channel.aeroflux." + dye.id()))));
         }
         addEndpointWidgets();
         updateSidePanel();
@@ -140,8 +139,7 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
             String filter = "screen.aeroflux.pipe_config.filter_";
             filterMode = addRenderableWidget(new ToggleGlyphButton(leftPos + toggle.x(), topPos + toggle.y(),
                     toggle.width(), menu::isWhitelist, "filter_whitelist", "filter_blacklist",
-                    Component.translatable(filter + "whitelist"), Component.translatable(filter + "whitelist.tooltip"),
-                    Component.translatable(filter + "blacklist"), Component.translatable(filter + "blacklist.tooltip"),
+                    Component.translatable(filter + "whitelist"), Component.translatable(filter + "blacklist"),
                     () -> pressMenuButton(PipeConfigMenu.FILTER_MODE_BUTTON)));
             for (int i = 0; i < layout.filterSlotCount(); i++) {
                 int slot = i;
@@ -163,11 +161,11 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
             PipeConfigLayout.Rect down = layout.priorityDownButton(false);
             priorityDown = addRenderableWidget(GlyphButton.raised(leftPos + down.x(), topPos + down.y(), down.width(),
                     "priority_down", accent, () -> false, () -> pressMenuButton(PipeConfigMenu.PRIORITY_DOWN_BUTTON),
-                    Component.translatable(priority + "down"), Component.translatable(priority + "down.tooltip")));
+                    Component.translatable(priority + "down")));
             PipeConfigLayout.Rect up = layout.priorityUpButton(false);
             priorityUp = addRenderableWidget(GlyphButton.raised(leftPos + up.x(), topPos + up.y(), up.width(),
                     "priority_up", accent, () -> false, () -> pressMenuButton(PipeConfigMenu.PRIORITY_UP_BUTTON),
-                    Component.translatable(priority + "up"), Component.translatable(priority + "up.tooltip")));
+                    Component.translatable(priority + "up")));
         }
     }
 
@@ -363,19 +361,17 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
                     menu.speedUpgrades() + menu.capacityUpgrades(), layout.upgradeSlotCount()));
         }
         if (layout.hasFilterSlot() && layout.filterUpgradeSlot().contains(x, y)) {
-            return upgradePlaceTooltip(filterUpgrade, menu.hasFilter());
+            return upgradePlaceTooltip(filterUpgrade);
         }
         if (layout.hasPrioritySlot() && layout.priorityUpgradeSlot().contains(x, y)) {
-            return upgradePlaceTooltip(priorityUpgrade, menu.hasPriority());
+            return upgradePlaceTooltip(priorityUpgrade);
         }
         return sidePanelTooltip(x, y);
     }
 
-    /** The tooltip of a Filter or Priority upgrade place: its name, then what a click does. */
-    private List<Component> upgradePlaceTooltip(ItemStack upgrade, boolean installed) {
-        String key = "screen.aeroflux.pipe_config." + (installed ? "endpoint_installed" : "endpoint_empty");
-        return List.of(upgrade.getHoverName(), Component.translatable(key, upgrade.getHoverName())
-                .withStyle(ChatFormatting.GRAY));
+    /** The tooltip of a Filter or Priority upgrade place: the upgrade's name. */
+    private List<Component> upgradePlaceTooltip(ItemStack upgrade) {
+        return List.of(upgrade.getHoverName());
     }
 
     /** Tooltips of the side panel's drawn parts; its buttons carry their own. */
@@ -384,24 +380,17 @@ public class PipeConfigScreen extends AbstractContainerScreen<PipeConfigMenu> {
         String screen = "screen.aeroflux.pipe_config.";
         if (filter) {
             if (layout.filterIcon().contains(x, y)) {
-                return List.of(filterUpgrade.getHoverName(),
-                        Component.translatable(screen + "filter.tooltip").withStyle(ChatFormatting.GRAY));
+                return List.of(filterUpgrade.getHoverName());
             }
             for (int i = 0; i < layout.filterSlotCount(); i++) {
                 if (layout.filterSlot(i).contains(x, y)) {
                     ItemStack entry = menu.filterStack(i);
-                    if (entry.isEmpty()) {
-                        String hint = menu.pipe() == PipeType.FLUID ? "filter_slot.fluid" : "filter_slot.item";
-                        return List.of(Component.translatable(screen + hint).withStyle(ChatFormatting.GRAY));
-                    }
-                    return List.of(entry.getHoverName(),
-                            Component.translatable(screen + "filter_slot.clear").withStyle(ChatFormatting.GRAY));
+                    return entry.isEmpty() ? List.of() : List.of(entry.getHoverName());
                 }
             }
         }
         if (menu.hasPriority() && layout.priorityValue(filter).contains(x, y)) {
-            return List.of(Component.translatable(screen + "priority", PipeConfigActions.priorityText(menu.priority())),
-                    Component.translatable(screen + "priority.tooltip").withStyle(ChatFormatting.GRAY));
+            return List.of(Component.translatable(screen + "priority", PipeConfigActions.priorityText(menu.priority())));
         }
         return List.of();
     }

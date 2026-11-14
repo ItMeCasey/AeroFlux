@@ -80,3 +80,10 @@ Checked 2026-11-06 against Modrinth's version lists (the other tables above were
 ## Create (added 2026.11.10)
 
 The Flux Stress converter needs Create, so it exists only where Create has a build: 1.21.1 NeoForge and, since 2026.11.10, 1.20.1 Forge and NeoForge (Create 6.0.8). For 26.3, 26.2, 26.1.2 and Forge 1.21.1 there is no Create build, so nothing is open there.
+
+## ModJS (added 2026.11.12)
+
+ModJS is optional on all ten builds. With it installed, server and startup scripts get the `AeroFlux` global described in
+[scripting.md](scripting.md). It is found by reflection when the mod loads, so AeroFlux has no dependency on it. The bridge
+is unit tested in `shared-core` with real JavaScript in Rhino, and the 26.1.2 NeoForge self test checks the reads and events
+and, with `-PmodjsJar=<path to a ModJS jar>`, runs a script through ModJS itself.

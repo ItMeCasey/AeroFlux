@@ -15,7 +15,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 
@@ -132,17 +131,11 @@ public class UpgradeSlots extends AbstractWidget implements HoverInfo {
         lines.add(Component.translatable("gui.aeroflux.upgrades.capacity", capacity,
                 numbers.format(StorageSizes.machine(tier, capacity))).withStyle(ChatFormatting.GRAY));
         MachineType machine = model.machine();
-        List<Component> takes = new ArrayList<>();
-        takes.add(Component.translatable("upgrade.aeroflux.speed"));
-        takes.add(Component.translatable("upgrade.aeroflux.capacity"));
         for (MachineUpgrades.Special kind : MachineUpgrades.Special.values()) {
             if (kind.fits(machine)) {
                 lines.add(specialLine(kind, machine, model.upgrades(kind)).withStyle(ChatFormatting.GRAY));
-                takes.add(Component.translatable("upgrade.aeroflux." + kind.id()));
             }
         }
-        lines.add(Component.translatable("gui.aeroflux.upgrades.hint", ComponentUtils.formatList(takes, Component.literal(", ")))
-                .withStyle(ChatFormatting.DARK_GRAY));
         return lines;
     }
 

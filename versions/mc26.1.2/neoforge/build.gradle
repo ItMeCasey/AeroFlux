@@ -194,6 +194,11 @@ dependencies {
     // in libs (built by BEI's apiJar task); the viewer itself is an optional dependency.
     // SMWTI (Show Me What This Is), a look-at overlay of ours. Only its API is compiled against, from the jar
     // in libs (the api package of SMWTI's own jar); the overlay itself is an optional dependency.
+    // -PmodjsJar=<path to a ModJS jar> puts ModJS in the dev run, so the self test runs a real script through the AeroFlux global.
+    if (project.hasProperty('modjsJar')) {
+        localRuntime files(project.property('modjsJar'))
+        localRuntime 'org.mozilla:rhino:1.7.15'
+    }
     compileOnly files('libs/smwti-neoforge-26.1.2-2026.11.2-api.jar')
     compileOnly files('libs/bei-neoforge-26.1.2-2026.11.4-api.jar')
     compileOnly "maven.modrinth:wthit:${wthit_version}"

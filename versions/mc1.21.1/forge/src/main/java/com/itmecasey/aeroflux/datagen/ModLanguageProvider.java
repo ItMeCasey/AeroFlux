@@ -11,7 +11,6 @@ import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.conduit.ToolMode;
 import com.itmecasey.aeroflux.core.configurator.Setting;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
-import com.itmecasey.aeroflux.core.guide.GuideBook;
 import com.itmecasey.aeroflux.core.machine.FaceLabel;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
@@ -106,27 +105,18 @@ public class ModLanguageProvider extends LanguageProvider {
         add(collector + "phase.always_both", "Day and night");
         add(collector + "clock", "%s, next change in %s");
         add(collector + "offer.making", "%s: %s");
-        add(collector + "offer.making.tooltip", "The sky gives %s now.");
         add(collector + "offer.none", "%s: nothing");
-        add(collector + "offer.none.tooltip", "Between day and night the sky gives no Flux.");
         add(collector + "offer.locked", "%s: waiting");
-        add(collector + "offer.locked.tooltip", "The sky gives %s, but the buffer still holds the other Flux. Empty it first.");
         add(collector + "sky.open", "Open sky");
-        add(collector + "sky.open.tooltip", "Nothing blocks the sky above.");
         add(collector + "sky.blocked", "Sky blocked");
         add(collector + "sky.blocked_by", "Blocked by %s");
         add(collector + "sky.blocked_at", "At %s, %s, %s");
-        add(collector + "sky.blocked.tooltip", "A collector needs open sky above it. Glass lets the light through.");
         add(collector + "sky.not_needed", "Sky not needed here");
-        add(collector + "sky.not_needed.tooltip", "In this dimension collectors work under a roof.");
         add(collector + "weather.clear", "Clear: %s%%");
         add(collector + "weather.rain", "Rain: %s%%");
         add(collector + "weather.thunder", "Thunder: %s%%");
-        add(collector + "weather.tooltip", "Rain halves Aero Flux and thunder cuts it to a quarter. Moon Flux does not mind.");
         add(collector + "weather.ignored", "Weather ignored here");
-        add(collector + "weather.ignored.tooltip", "In this dimension the weather changes nothing.");
         add(collector + "moon", "%s: %s%%");
-        add(collector + "moon.tooltip", "Moon Flux is strongest at a full moon and weakest at a new moon.");
         add(collector + "moon.0", "Full moon");
         add(collector + "moon.1", "Waning gibbous");
         add(collector + "moon.2", "Last quarter");
@@ -141,7 +131,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add(collector + "full.in", "Full in %s");
         add(collector + "full.now", "Full");
         add(collector + "full.never", "Not filling");
-        add(collector + "full.tooltip", "At the current rates, counting what is passed on.");
 
         add("gui.aeroflux.tank.percent", "%s%%");
         add("gui.aeroflux.tank.in", "In: %s mB/t");
@@ -162,8 +151,6 @@ public class ModLanguageProvider extends LanguageProvider {
                 addItem(ModItems.upgradeCard(tier), displayName(tier) + " Upgrade Card");
             }
         }
-        add("tooltip." + AeroFlux.MODID + ".upgrade_card", "Upgrades a %s machine, collector, tank or converter to %s: sneak and use it on the block");
-        add("tooltip." + AeroFlux.MODID + ".sifter", "Runs the sieve recipes of Ex Deorum and Ex Nihilo Sequentia: put a mesh from either in its mesh slot");
         add("tooltip." + AeroFlux.MODID + ".tank_contents", "Contains %s of %s");
         String holds = "tooltip." + AeroFlux.MODID + ".holds.";
         add(holds + "tank", "Holds %s");
@@ -175,39 +162,6 @@ public class ModLanguageProvider extends LanguageProvider {
         add(holds + "lamp", "Flux tank: %s");
         add("message." + AeroFlux.MODID + ".card_wrong_tier", "This block is %s; this card only upgrades %s");
         add("message." + AeroFlux.MODID + ".card_upgraded", "Upgraded to %s");
-        add("advancements." + AeroFlux.MODID + ".root.title", "AeroFlux");
-        add("advancements." + AeroFlux.MODID + ".root.description", "Make Flux Dust, the start of everything Flux");
-        add("advancements." + AeroFlux.MODID + ".collector.title", "Catching Light");
-        add("advancements." + AeroFlux.MODID + ".collector.description", "Build a Flux Collector");
-        add("advancements." + AeroFlux.MODID + ".aero_flux.title", "Bottled Daylight");
-        add("advancements." + AeroFlux.MODID + ".aero_flux.description", "Fill a bucket with Aero Flux");
-        add("advancements." + AeroFlux.MODID + ".moon_flux.title", "Moonshine");
-        add("advancements." + AeroFlux.MODID + ".moon_flux.description", "Fill a bucket with Moon Flux");
-        add("advancements." + AeroFlux.MODID + ".tank.title", "Hold Everything");
-        add("advancements." + AeroFlux.MODID + ".tank.description", "Build a Flux Tank");
-        add("advancements." + AeroFlux.MODID + ".pipe.title", "Plumbing");
-        add("advancements." + AeroFlux.MODID + ".pipe.description", "Craft your first pipe");
-        add("advancements." + AeroFlux.MODID + ".smart_pipes.title", "Sorted");
-        add("advancements." + AeroFlux.MODID + ".smart_pipes.description", "Make a Filter or Priority Upgrade");
-        add("advancements." + AeroFlux.MODID + ".furnace.title", "Flux-Fired");
-        add("advancements." + AeroFlux.MODID + ".furnace.description", "Build a Furnace");
-        add("advancements." + AeroFlux.MODID + ".alloy_smelter.title", "Better Together");
-        add("advancements." + AeroFlux.MODID + ".alloy_smelter.description", "Build an Alloy Smelter");
-        add("advancements." + AeroFlux.MODID + ".plant_grower.title", "Green Thumb");
-        add("advancements." + AeroFlux.MODID + ".plant_grower.description", "Build a Plant Grower");
-        add("advancements." + AeroFlux.MODID + ".enchanter.title", "Spellbound");
-        add("advancements." + AeroFlux.MODID + ".enchanter.description", "Build an Enchanter");
-        add("advancements." + AeroFlux.MODID + ".speed_upgrade.title", "Overclocked");
-        add("advancements." + AeroFlux.MODID + ".speed_upgrade.description", "Make a Speed Upgrade");
-        add("advancements." + AeroFlux.MODID + ".upgrade_card.title", "Moving Up");
-        add("advancements." + AeroFlux.MODID + ".upgrade_card.description", "Make an Upgrade Card");
-        add("advancements." + AeroFlux.MODID + ".fluxium.title", "Top of the Line");
-        add("advancements." + AeroFlux.MODID + ".fluxium.description", "Own a Fluxium-tier block");
-        add("advancements." + AeroFlux.MODID + ".chunk_loader.title", "Never Sleeps");
-        add("advancements." + AeroFlux.MODID + ".chunk_loader.description", "Build a Flux Chunk Loader");
-        addItem(ModItems.GUIDEBOOK, "AeroFlux Guide");
-        // The book itself is written once, in shared-core.
-        GuideBook.translations().forEach((key, text) -> add(key, text));
         for (ConverterType type : ModBlocks.CONVERTER_TYPES) {
             for (Tier tier : Tier.values()) {
                 addBlock(ModBlocks.converter(type, tier), tier == Tier.COPPER ? type.displayName() : displayName(tier) + " " + type.displayName());
@@ -223,25 +177,17 @@ public class ModLanguageProvider extends LanguageProvider {
             }
         }
         add("gui." + AeroFlux.MODID + ".magnet_mode", "Filter mode");
-        add("gui." + AeroFlux.MODID + ".magnet_mode.on", "Whitelist: only the item in the filter slot is pulled in. Click for blacklist.");
-        add("gui." + AeroFlux.MODID + ".magnet_mode.off", "Blacklist: everything but the item in the filter slot is pulled in. Click for whitelist.");
+        add("gui." + AeroFlux.MODID + ".magnet_mode.on", "Whitelist");
+        add("gui." + AeroFlux.MODID + ".magnet_mode.off", "Blacklist");
         add("gui." + AeroFlux.MODID + ".sky.day", "Day");
-        add("gui." + AeroFlux.MODID + ".sky.day.tooltip", "Moves the clock to morning. Costs Aero Flux.");
         add("gui." + AeroFlux.MODID + ".sky.night", "Night");
-        add("gui." + AeroFlux.MODID + ".sky.night.tooltip", "Moves the clock to nightfall. Costs Moon Flux from the second tank.");
         add("gui." + AeroFlux.MODID + ".sky.weather", "Clear / Rain");
-        add("gui." + AeroFlux.MODID + ".sky.weather.tooltip", "Stops the rain, or starts it. Costs Aero Flux.");
         add("screen." + AeroFlux.MODID + ".side_config.auto_import", "Auto Import");
-        add("screen." + AeroFlux.MODID + ".side_config.auto_import.tooltip",
-                "Pulls items and Flux from the blocks next to every Import or Both face, no pipe needed.");
         add("screen." + AeroFlux.MODID + ".side_config.auto_export", "Auto Export");
-        add("screen." + AeroFlux.MODID + ".side_config.auto_export.tooltip",
-                "Pushes finished products into the blocks next to every Export or Both face, no pipe needed.");
-        add("gui." + AeroFlux.MODID + ".chunk_loader.show_area.tooltip", "Traces the borders of the loaded chunks in the world for ten seconds.");
-        add("gui." + AeroFlux.MODID + ".auto_insert.on", "On: seeds from the outputs are planted again. Click to stop.");
-        add("gui." + AeroFlux.MODID + ".auto_insert.off", "Off: seeds stay in the outputs. Click to replant them.");
-        add("gui." + AeroFlux.MODID + ".converter.output_on", "Power goes out here. Click to stop it.");
-        add("gui." + AeroFlux.MODID + ".converter.output_off", "No power goes out here. Click to send it.");
+        add("gui." + AeroFlux.MODID + ".auto_insert.on", "On");
+        add("gui." + AeroFlux.MODID + ".auto_insert.off", "Off");
+        add("gui." + AeroFlux.MODID + ".converter.output_on", "Output on");
+        add("gui." + AeroFlux.MODID + ".converter.output_off", "Output off");
         add("tooltip." + AeroFlux.MODID + ".look.converter", "Making %s %s per tick");
         // Jade lists every plugin entry in its settings and needs a name for ours.
         add("config.jade.plugin_" + AeroFlux.MODID + ".look_info", "AeroFlux details");
@@ -278,31 +224,19 @@ public class ModLanguageProvider extends LanguageProvider {
 
         String status = "machine." + AeroFlux.MODID + ".status.";
         add(status + "idle", "Idle");
-        add(status + "idle.tooltip", "Nothing to work on.");
         add(status + "running", "Running");
-        add(status + "running.tooltip", "Working. Burning Flux.");
         add(status + "no_flux", "Out of Flux");
-        add(status + "no_flux.tooltip", "Not enough of the right Flux to keep working. Progress is kept.");
         add(status + "output_full", "Output full");
-        add(status + "output_full.tooltip", "The output slots have no room. Take something out to continue.");
         add(status + "disabled", "Disabled");
-        add(status + "disabled.tooltip.high", "Waiting for a redstone signal. Progress is kept.");
-        add(status + "disabled.tooltip.low", "Stopped by a redstone signal. Progress is kept.");
-        add(status + "disabled.tooltip.pulse", "Waiting for a redstone pulse. Each pulse finishes one job.");
 
         addRedstoneAndUpgradeTranslations();
 
         String mode = "machine_mode." + AeroFlux.MODID + ".";
         add(mode + "import", "Import");
-        add(mode + "import.tooltip", "Things may go in through this face.");
         add(mode + "export", "Export");
-        add(mode + "export.tooltip", "Things may come out through this face.");
         add(mode + "open", "Both");
-        add(mode + "open.tooltip", "Things may go in and come out through this face.");
         add(mode + "off", "Off");
-        add(mode + "off.tooltip", "Pipes can attach, but nothing passes.");
         add(mode + "blocked", "Blocked");
-        add(mode + "blocked.tooltip", "Hidden from pipes and hoppers on this face.");
 
         for (SideResource resource : SideResource.values()) {
             add("side_resource." + AeroFlux.MODID + "." + resource.id(), capitalize(resource.name()));
@@ -321,13 +255,9 @@ public class ModLanguageProvider extends LanguageProvider {
 
         String side = "screen." + AeroFlux.MODID + ".side_config.";
         add(side + "title", "Side configuration");
-        add(side + "toggle_hint", "Choose what each face of the machine does.");
         add(side + "all_off", "All Off");
-        add(side + "all_off.tooltip", "Turns every face off for this kind of resource.");
         add(side + "copy_all", "Copy");
-        add(side + "copy_all.tooltip", "Gives every face the mode of the selected face.");
         add(side + "reset", "Reset");
-        add(side + "reset.tooltip", "Puts every face back to its default.");
         add(side + "face_mode", "%s: %s");
         add(side + "neighbor", "Next to: %s");
         add(side + "nothing", "Nothing");
@@ -344,37 +274,20 @@ public class ModLanguageProvider extends LanguageProvider {
                 case LOW -> "Off with signal";
                 case PULSE -> "Pulse";
             });
-            add(redstone + mode.id() + ".tooltip", switch (mode) {
-                case ALWAYS -> "Works whatever the redstone signal.";
-                case HIGH -> "Works only while it gets a redstone signal.";
-                case LOW -> "Works only while it gets no redstone signal.";
-                case PULSE -> "Finishes one job for each new redstone signal.";
-            });
         }
         add("gui.aeroflux.redstone.name", "Redstone control");
         add("gui.aeroflux.redstone.mode", "Redstone: %s");
-        add("gui.aeroflux.redstone.hint", "Click for the next mode, right-click for the one before.");
 
         add("gui.aeroflux.upgrades.name", "Upgrades");
         add("gui.aeroflux.upgrades.title", "Upgrades (%s of %s)");
         add("gui.aeroflux.upgrades.speed", "Speed: %s, working at %s%%, %s mB/t");
         add("gui.aeroflux.upgrades.capacity", "Capacity: %s, tank holds %s mB");
-        add("gui.aeroflux.upgrades.hint", "Takes %s Upgrades, one per slot.");
         add("gui.aeroflux.upgrades.efficiency", "Efficiency: %s, burning %s%% of the Flux");
         add("gui.aeroflux.upgrades.fortune", "Fortune: %s, each a %s%% chance of one more");
         add("gui.aeroflux.upgrades.fortune.sifter", "Fortune: %s, every drop chance up %s points");
         add("gui.aeroflux.upgrades.silk_touch.on", "Silk Touch: harvesting whole blocks");
         add("gui.aeroflux.upgrades.silk_touch.off", "Silk Touch: none");
         add("gui.aeroflux.upgrades.purity", "Purity: %s, each a %s%% chance of one more");
-        String upgrade = "tooltip." + AeroFlux.MODID + ".machine_upgrade.";
-        add(upgrade + "efficiency", "Machines burn less Flux while working");
-        add(upgrade + "efficiency.fits", "Fits every machine");
-        add(upgrade + "fortune", "Grinder: a chance of one more of the main product. Sifter: better drop chances");
-        add(upgrade + "fortune.fits", "Fits the Grinder and the Sifter");
-        add(upgrade + "silk_touch", "Plant Grower: harvests whole blocks, such as leaves, melons and mushroom blocks");
-        add(upgrade + "silk_touch.fits", "Fits the Plant Grower");
-        add(upgrade + "purity", "Purifier: a chance of one more of the main product");
-        add(upgrade + "purity.fits", "Fits the Purifier");
     }
 
     /** Names for the conduit bundle, the pipes, and the wrench's messages. */
@@ -453,12 +366,12 @@ public class ModLanguageProvider extends LanguageProvider {
         String message = "message." + AeroFlux.MODID + ".configurator_";
         add(message + "mode", "Flux Configurator: %s");
         add(message + "copied", "Copied the %s into %s");
-        add(message + "empty", "The selected preset is empty. Sneak-use a machine to copy it.");
+        add(message + "empty", "The selected preset is empty");
         add(message + "not_machine", "That block has no settings to paste");
         add(message + "pasted", "Pasted onto the %s");
         add(message + "pasted_skipped", "Pasted onto the %s; it has no %s");
-        add(message + "corner_first", "First corner marked. Use the Configurator on the opposite corner.");
-        add(message + "area_marked", "%s machines in the area. Use again to paste, or sneak-use the air to cancel.");
+        add(message + "corner_first", "First corner marked");
+        add(message + "area_marked", "%s machines in the area");
         add(message + "area_too_large", "An area can be at most %s blocks along each side");
         add(message + "no_area", "No area marked");
         add(message + "area_empty", "There are no machines in the area");
@@ -466,7 +379,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add(message + "area_pasted", "Pasted onto %s machines (%s changed)");
         add(message + "area_pasted_skipped", "Pasted onto %s machines (%s changed); skipped what some lack: %s");
         add(message + "undone", "Undid the last paste on %s machines");
-        add(message + "nothing_to_undo", "Nothing to undo. A paste can be undone once, for a minute.");
+        add(message + "nothing_to_undo", "Nothing to undo");
         add(message + "selected", "Selected %s");
         add(message + "renamed", "Renamed to %s");
         add(message + "rename_failed", "Only a filled preset can be named, and the name cannot be blank");
@@ -480,7 +393,6 @@ public class ModLanguageProvider extends LanguageProvider {
         String gui = "gui." + AeroFlux.MODID + ".configurator.";
         add(gui + "slot", "Preset %s");
         add(gui + "empty", "Empty");
-        add(gui + "hint", "Sneak-use a machine to copy it here.");
         add(gui + "name", "Preset name");
         add(gui + "rename", "Rename");
         add(gui + "clear", "Clear");
@@ -522,19 +434,10 @@ public class ModLanguageProvider extends LanguageProvider {
         add(screen + "rate_channels", "%s redstone channels");
         add(screen + "rate_me_channels", "%s channels, handled by AE2");
 
-        add(screen + "endpoint_empty", "Click with a %s to install it on this side only.");
-        add(screen + "endpoint_installed", "Installed on this side. Click with an empty hand to take it out; its settings are lost.");
-        add(screen + "filter.tooltip", "Decides what this side lets through, in both directions.");
         add(screen + "filter_whitelist", "Whitelist");
-        add(screen + "filter_whitelist.tooltip", "Only what is listed passes this side. An empty whitelist stops everything.");
         add(screen + "filter_blacklist", "Blacklist");
-        add(screen + "filter_blacklist.tooltip", "Everything except what is listed passes this side.");
         add(screen + "filter_slot", "Filter slot");
-        add(screen + "filter_slot.item", "Click with an item to add it to the filter.");
-        add(screen + "filter_slot.fluid", "Click with a bucket or tank to add its fluid to the filter.");
-        add(screen + "filter_slot.clear", "Click with an empty hand to clear this slot.");
         add(screen + "channel", "Channel %s: %s");
-        add(screen + "channel.tooltip", "Faces on the same channel share one signal. A face only hears faces on its own channel.");
         add("redstone_channel." + AeroFlux.MODID + ".white", "White");
         add("redstone_channel." + AeroFlux.MODID + ".orange", "Orange");
         add("redstone_channel." + AeroFlux.MODID + ".magenta", "Magenta");
@@ -552,24 +455,12 @@ public class ModLanguageProvider extends LanguageProvider {
         add("redstone_channel." + AeroFlux.MODID + ".red", "Red");
         add("redstone_channel." + AeroFlux.MODID + ".black", "Black");
         add(screen + "priority", "Priority: %s");
-        add(screen + "priority.tooltip", "Higher numbers fill first; sides without this upgrade count as 0. Ranges from -5 to +5.");
         add(screen + "priority_down", "Lower priority");
-        add(screen + "priority_down.tooltip", "Lowers this side's priority by one.");
         add(screen + "priority_up", "Raise priority");
-        add(screen + "priority_up.tooltip", "Raises this side's priority by one.");
 
         String mode = "connection_mode." + AeroFlux.MODID + ".";
-        add(mode + "open.tooltip", "Connected. Moves contents both ways.");
-        add(mode + "import.tooltip", "Connected. Only pulls from the neighbor into the network.");
-        add(mode + "export.tooltip", "Connected. Only pushes from the network into the neighbor.");
-        add(mode + "off.tooltip", "Connected but passive. The stub stays visible.");
-        add(mode + "blocked.tooltip", "Not connected. Nothing can attach here.");
 
         String distribution = "distribution_mode." + AeroFlux.MODID + ".";
-        add(distribution + "round_robin.tooltip", "Shares evenly and rotates who gets the leftover.");
-        add(distribution + "first_to_last.tooltip", "Fills the first destination before moving on to the next.");
-        add(distribution + "last_to_first.tooltip", "Fills the last destination first, then works backward.");
-        add(distribution + "random.tooltip", "Fills destinations in a different random order each time.");
     }
 
     /** Names and messages of the Conduit Tool. */
@@ -585,7 +476,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("message." + AeroFlux.MODID + ".tool_mode", "Conduit Tool: %s");
         add("message." + AeroFlux.MODID + ".tool_removed", "Removed the %s pipe");
         add("message." + AeroFlux.MODID + ".tool_removed_bundle", "Removed the bundle (%s pipes)");
-        add("message." + AeroFlux.MODID + ".tool_run_start", "Run started on a %s pipe. Use the tool on the other end of the run.");
+        add("message." + AeroFlux.MODID + ".tool_run_start", "Run started on a %s pipe");
         add("message." + AeroFlux.MODID + ".tool_run_invalid", "A run must be a straight line of at most %s blocks");
         add("message." + AeroFlux.MODID + ".tool_run_removed", "Removed %s of the %s pipe along the run");
         add("message." + AeroFlux.MODID + ".pipe_tier_upgraded", "The %s pipe is now %s");
@@ -595,7 +486,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("message." + AeroFlux.MODID + ".tool_pasted_added", "Pasted settings onto %s pipes and added %s from your inventory");
         add("message." + AeroFlux.MODID + ".tool_pasted_missing",
                 "Pasted settings onto %s pipes and added %s; %s pipes were not in your inventory");
-        add("message." + AeroFlux.MODID + ".tool_paste_run_start", "Run started. Sneak-use the other end to paste along it.");
+        add("message." + AeroFlux.MODID + ".tool_paste_run_start", "Run started");
         add("message." + AeroFlux.MODID + ".tool_paste_run",
                 "Pasted onto %s bundles along the run (%s new); %s pipes were not in your inventory");
         add("message." + AeroFlux.MODID + ".tool_nothing_copied", "Nothing copied yet");
@@ -618,17 +509,11 @@ public class ModLanguageProvider extends LanguageProvider {
 
         String status = "gui.aeroflux.chunk_loader.status.";
         add(status + "active", "Loading");
-        add(status + "active.tooltip", "Keeping its chunks loaded and ticking.");
         add(status + "grace", "Running dry");
-        add(status + "grace.tooltip", "Out of Flux. The chunks stay loaded a few more seconds.");
         add(status + "no_flux", "Out of Flux");
-        add(status + "no_flux.tooltip", "Add Aero or Moon Flux to load its chunks.");
         add(status + "disabled", "Disabled");
-        add(status + "disabled.tooltip", "Chunk loaders are turned off on this server.");
         add(status + "dimension", "Not allowed here");
-        add(status + "dimension.tooltip", "This dimension does not allow chunk loaders.");
         add(status + "cap_reached", "Limit reached");
-        add(status + "cap_reached.tooltip", "The owner or this dimension already runs as many loaders as the server allows.");
         add("gui.aeroflux.chunk_loader.runtime", "Runtime left at the current draw");
         add("gui.aeroflux.chunk_loader.draw", "%s mB/t for %s chunks");
         add("gui.aeroflux.chunk_loader.chunk", "Chunk %s, %s");

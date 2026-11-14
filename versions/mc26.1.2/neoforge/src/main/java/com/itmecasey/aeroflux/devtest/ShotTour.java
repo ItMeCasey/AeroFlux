@@ -102,7 +102,7 @@ public final class ShotTour {
     private static final boolean SMWTI = "smwti".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
     /** With {@code AEROFLUX_SHOTS=guis} the tour opens the screen of every machine, converter, chunk loader, collector and tank. */
     private static final boolean GUIS = "guis".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
-    /** With {@code AEROFLUX_SHOTS=status} the tour checks the Conduit Tool, sounds, advancements and the creative tab. */
+    /** With {@code AEROFLUX_SHOTS=status} the tour checks the Conduit Tool, sounds and the creative tab. */
     private static final boolean STATUS = "status".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS")) || ALL;
     /** With {@code AEROFLUX_SHOTS=jei} the tour opens JEI's recipe screen on the AeroFlux machine pages. */
     private static final boolean JEI = "jei".equalsIgnoreCase(System.getenv("AEROFLUX_SHOTS"));
@@ -445,6 +445,9 @@ public final class ShotTour {
             }
         });
         shoot("screen_machine", 5);
+        // The redstone button's tooltip: the mode and nothing else.
+        then(2, () -> hoverFirst(com.itmecasey.aeroflux.client.screen.widget.RedstoneButton.class));
+        shoot("screen_machine_hover", 40);
 
         then(2, () -> player().closeContainer());
         then(5, () -> onServer(server -> {
@@ -457,6 +460,9 @@ public final class ShotTour {
             }
         }));
         shoot("screen_pipe_item", 10);
+        // A mode button's tooltip: the name and nothing else.
+        then(2, () -> hoverFirst(com.itmecasey.aeroflux.client.screen.widget.GlyphButton.class));
+        shoot("screen_pipe_item_hover", 40);
 
         then(2, () -> player().closeContainer());
         then(5, () -> onServer(server -> {
@@ -825,24 +831,6 @@ public final class ShotTour {
             });
             openShot(pos, "gui_" + name);
         }
-        // The guidebook: its contents page, then three pages (a chapter opener, a middle page, the last).
-        then(2, () -> {
-            player().closeContainer();
-            com.itmecasey.aeroflux.client.screen.GuideScreen.open();
-        });
-        shoot("gui_guide_contents", 20);
-        for (int page : new int[] {1, 9, 22}) {
-            then(5, () -> {
-                try {
-                    java.lang.reflect.Method show = com.itmecasey.aeroflux.client.screen.GuideScreen.class.getDeclaredMethod("show", int.class);
-                    show.setAccessible(true);
-                    show.invoke(Minecraft.getInstance().screen, page);
-                } catch (ReflectiveOperationException e) {
-                    AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not turn the guide page", e);
-                }
-            });
-            shoot("gui_guide_page_" + page, 15);
-        }
         then(2, () -> Minecraft.getInstance().setScreen(null));
     }
 
@@ -925,7 +913,7 @@ public final class ShotTour {
     }
 
     /**
-     * Sounds, the Conduit Tool in every mode, the advancement tab and the creative tab, each
+     * Sounds, the Conduit Tool in every mode and the creative tab, each
      * logged with what the server and client hold, and shot where there is something to see.
      */
     private static void statusShots() {
@@ -998,15 +986,6 @@ public final class ShotTour {
         shoot("tool_remove_run", 4);
         then(2, () -> player().setShiftKeyDown(false));
 
-        // Advancements: one granted, then all, with the AeroFlux tab selected.
-        then(2, () -> server("advancement revoke @a everything", "advancement grant @a only aeroflux:aero_flux"));
-        then(30, () -> openAdvancements("adv_start"));
-        shoot("advancements_start", 20);
-        then(2, () -> server("advancement grant @a everything"));
-        then(30, () -> openAdvancements("adv_all"));
-        shoot("advancements_all", 20);
-        then(2, () -> Minecraft.getInstance().setScreen(null));
-
         // The creative tab, three scroll positions.
         then(5, () -> {
             Minecraft minecraft = Minecraft.getInstance();
@@ -1046,20 +1025,6 @@ public final class ShotTour {
         }
     }
 
-    private static void openAdvancements(String label) {
-        Minecraft minecraft = Minecraft.getInstance();
-        net.minecraft.client.multiplayer.ClientAdvancements advancements = minecraft.getConnection().getAdvancements();
-        int roots = 0;
-        for (net.minecraft.advancements.AdvancementNode node : advancements.getTree().roots()) {
-            roots++;
-            if (node.holder().id().getNamespace().equals(AeroFlux.MODID)) {
-                advancements.setSelectedTab(node.holder(), true);
-            }
-        }
-        log("ADVANCEMENTS " + label + " tabs=" + roots + " nodes=" + advancements.getTree().nodes().size());
-        minecraft.setScreen(new net.minecraft.client.gui.screens.advancements.AdvancementsScreen(advancements));
-    }
-
     /** REI's recipe screen on the Alloy Smelter and Infuser pages. */
     private static void reiShots() {
         MachineType[] pages = {MachineType.ALLOY_SMELTER, MachineType.INFUSER};
@@ -1075,6 +1040,29 @@ public final class ShotTour {
             shoot("rei_" + page.id(), 30);
             then(5, () -> Minecraft.getInstance().setScreen(null));
         }
+    }
+
+    /** Moves the game's own cursor over the first widget of a class on the open screen (twice: the game ignores a first move). */
+    private static void hoverFirst(Class<?> kind) {
+        Minecraft game = Minecraft.getInstance();
+        if (game.screen != null) {
+            for (net.minecraft.client.gui.components.events.GuiEventListener child : game.screen.children()) {
+                if (kind.isInstance(child) && child instanceof net.minecraft.client.gui.components.AbstractWidget widget) {
+                    try {
+                        double sx = (widget.getX() + widget.getWidth() / 2.0) * game.getWindow().getScreenWidth() / game.getWindow().getGuiScaledWidth();
+                        double sy = (widget.getY() + widget.getHeight() / 2.0) * game.getWindow().getScreenHeight() / game.getWindow().getGuiScaledHeight();
+                        java.lang.reflect.Method move = net.minecraft.client.MouseHandler.class.getDeclaredMethod("onMove", long.class, double.class, double.class);
+                        move.setAccessible(true);
+                        move.invoke(game.mouseHandler, game.getWindow().handle(), sx + 3, sy);
+                        move.invoke(game.mouseHandler, game.getWindow().handle(), sx, sy);
+                    } catch (ReflectiveOperationException e) {
+                        AeroFlux.LOGGER.warn("AEROFLUX-SHOTS could not move the game cursor", e);
+                    }
+                    return;
+                }
+            }
+        }
+        AeroFlux.LOGGER.warn("AEROFLUX-SHOTS found no {} to hover", kind.getSimpleName());
     }
 
     private static void shoot(String name, int delay) {

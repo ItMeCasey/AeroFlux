@@ -186,8 +186,8 @@ final class PolishSelfTest {
             AeroFlux.LOGGER.info("AEROFLUX-SELFTEST INFO missing from the creative tab: {}", missing);
         }
         SelfTest.check("creative tab: it lists every AeroFlux item", missing.isEmpty());
-        SelfTest.check("creative tab: the Creative Flux Tank, the upgrades and the guidebook are in it",
-                listed.contains(ModBlocks.CREATIVE_TANK.get().asItem()) && listed.contains(ModItems.GUIDEBOOK.get())
+        SelfTest.check("creative tab: the Creative Flux Tank and the upgrades are in it",
+                listed.contains(ModBlocks.CREATIVE_TANK.get().asItem())
                         && listed.contains(ModItems.SPEED_UPGRADE.get()) && listed.contains(ModItems.upgradeCard(Tier.GOLD).get()));
     }
 

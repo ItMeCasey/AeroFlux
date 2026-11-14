@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux;
 
 import com.itmecasey.aeroflux.chunkloader.ChunkLoaderTickets;
+import com.itmecasey.aeroflux.compat.modjs.AeroFluxScripts;
 import com.itmecasey.aeroflux.machine.RecipeImportsSync;
 import com.itmecasey.aeroflux.machine.configurator.ConfiguratorPayload;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
@@ -62,6 +63,7 @@ public class AeroFlux {
         // Forge checks the chunk loaders' saved tickets as the world loads; this hands it the check.
         ChunkLoaderTickets.register();
 
+        AeroFluxScripts.install();
         LOGGER.info("AeroFlux loaded (Forge 1.21.1)");
     }
 }

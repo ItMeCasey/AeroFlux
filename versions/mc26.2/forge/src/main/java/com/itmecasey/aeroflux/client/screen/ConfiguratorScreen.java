@@ -151,7 +151,6 @@ public class ConfiguratorScreen extends Screen {
         int y = top + 24;
         if (current == null) {
             graphics.text(font, Component.translatable("gui.aeroflux.configurator.empty"), x, y, Panel.TEXT_MUTED, false);
-            graphics.text(font, Component.translatable("gui.aeroflux.configurator.hint"), x, y + 12, Panel.TEXT_MUTED, false);
             return;
         }
 

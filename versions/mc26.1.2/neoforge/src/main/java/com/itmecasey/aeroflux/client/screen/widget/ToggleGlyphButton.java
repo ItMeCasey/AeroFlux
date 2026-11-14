@@ -1,7 +1,6 @@
 package com.itmecasey.aeroflux.client.screen.widget;
 
 import java.util.function.BooleanSupplier;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
@@ -11,8 +10,8 @@ import net.minecraft.network.chat.Component;
 
 /**
  * A raised gray glyph button for a setting with two states, such as a filter's whitelist and
- * blacklist. It shows the glyph of the current state, and its tooltip names that state and says
- * what it does; a click asks for the other one. It looks like a raised {@link GlyphButton}.
+ * blacklist. It shows the glyph of the current state, and its tooltip names that state; a click asks
+ * for the other one. It looks like a raised {@link GlyphButton}.
  */
 public class ToggleGlyphButton extends AbstractButton {
     private static final int HOVER = 0x40FFFFFF;
@@ -33,12 +32,10 @@ public class ToggleGlyphButton extends AbstractButton {
      * @param onGlyph    the glyph for the first state
      * @param offGlyph   the glyph for the second state
      * @param onName     the first state's name; also what narration reads
-     * @param onDetails  what the first state does
      * @param offName    the second state's name
-     * @param offDetails what the second state does
      */
     public ToggleGlyphButton(int x, int y, int size, BooleanSupplier on, String onGlyph, String offGlyph,
-                             Component onName, Component onDetails, Component offName, Component offDetails,
+                             Component onName, Component offName,
                              Runnable press) {
         super(x, y, size, size, onName);
         this.on = on;
@@ -46,17 +43,12 @@ public class ToggleGlyphButton extends AbstractButton {
         this.offGlyph = offGlyph;
         this.onName = onName;
         this.offName = offName;
-        this.onTooltip = tooltip(onName, onDetails);
-        this.offTooltip = tooltip(offName, offDetails);
+        this.onTooltip = Tooltip.create(onName);
+        this.offTooltip = Tooltip.create(offName);
         this.press = press;
         this.shownOn = on.getAsBoolean();
         setTooltip(shownOn ? onTooltip : offTooltip);
         setMessage(shownOn ? onName : offName);
-    }
-
-    private static Tooltip tooltip(Component name, Component details) {
-        return Tooltip.create(Component.empty().append(name).append("\n")
-                .append(details.copy().withStyle(ChatFormatting.GRAY)));
     }
 
     @Override

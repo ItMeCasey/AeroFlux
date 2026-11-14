@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-12
-Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe, tool and guidebook set and pass the in-game self-test, 2026.11.8 and 2026.11.9 are released, and all ten builds at 2026.11.10 are ready to release (2026.11.8 and 2026.11.9 are out); screens, art, sounds, advancements, tools and guidebook have been seen in real clients, what stays open is the balance review, which is Casey's. Mods that have no build for a loader or version are n/a there, not open. Modrinth is on hold.
+Updated: 2026-11-13
+Summary: All ten builds (Forge and NeoForge on 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1) have the full machine, pipe and tool set and pass the in-game self-test; 2026.11.8 and 2026.11.9 are released, and 2026.11.12 (optional ModJS scripting, and no hint text anywhere in the game) is built and waiting for the project manager to release; what stays open is nothing but a possible balance re-check, which is Casey's. Mods that have no build for a loader or version are n/a there, not open. Modrinth is on hold.
 Spend: none
 
 ## Planning
@@ -56,8 +56,7 @@ Spend: none
 - [x] Machine sounds (wired on all ten, registration self-tested; in a real 26.1.2 NeoForge client the sound engine was asked to play start, loop, done and stop of a working furnace, 2026-11-09, log lines AEROFLUX-SHOTS SOUND; the dev client runs muted, so this is the engine call, not the speaker) (w:2)
 - [x] Resources and full recipe set (machine and block recipes on all six; early-game Infuser; Sawdust to Flux Dust) (w:3)
 
-## Phase 8-9: Advancements and compat
-- [x] Advancement tree (15 advancements on all ten; the AeroFlux tab opened in a real 26.1.2 NeoForge client with one and then all advancements granted, frames docs/frames/status-26.1.2-neoforge-advancements-*; Forge 26.3 has no Sifter recipe-unlock advancements, see docs/PORTING_26.2_26.3.md) (w:3)
+## Phase 8-9: Compat
 - [x] Recipe import compat layer (aeroflux/recipe_imports rules on all six for Create, Mekanism, Immersive Engineering, Thermal, Ender IO and others) (w:3)
 - [x] JEI plugin (a page per recipe machine with its tiers as stations; the Alloy Smelter and Infuser pages opened in a real client on 26.1.2, 26.2 and 26.3 NeoForge, 1.21.1 NeoForge and 1.20.1 Forge, 2026-11-09, frames docs/frames/jei-*) (w:2)
 - [x] EMI plugin (a page per recipe machine; the Alloy Smelter and Infuser pages opened in a real client on 1.21.1 NeoForge and 1.20.1 Forge, 2026-11-09, frames docs/frames/emi-*; EMI logs three harmless dev-mode warnings about untranslated #c:aero_flux style fluid tags) (w:2)
@@ -79,7 +78,6 @@ Spend: none
 - [x] Comparator, hopper and dropper support (all ten, self-tested) (w:2)
 - [x] Enchanter and Disenchanter config rules (all ten, self-tested) (w:2)
 - [x] Creative tab, creative blocks, sounds, particles (the AeroFlux tab with its 203 items opened and scrolled in a real client, the Creative Flux Tank feeding a lit furnace, collector sparkles and furnace motes seen; frames docs/frames/status-*) (w:3)
-- [x] In-game guidebook (all ten: 23 pages in six chapters, contents page, wiki buttons; opened in a real client and a page read on all ten builds, 2026-11-09, frames docs/frames/status-*-guide-page-10.png and guide-26.1.2-neoforge-*) (w:3)
 - [x] Per-loader build metadata templates (all six, checked in the built jars) (w:2)
 - [x] Localization pipeline (all text through lang keys and datagen, lang_sync.py, TRANSLATING.md) (w:1)
 - [x] Security pass of packets, menus, claims and saved data (converter reach check, capped recipe-sync lists, 2026.11.4) (w:2)
@@ -109,3 +107,5 @@ Spend: none
 - [x] API jars from the private Maven (all four builds compile against com.itmecasey:bei-api 2026.11.7 and smwti-api 2026.11.3 when IMC_MAVEN_* is set, verified; libs/ jars are the fallback without a login) (w:2)
 - [x] CI and release workflows, CurseForge script, README, changelog, compatibility table and wiki draft cover the four new builds (w:2)
 - [x] 2026.11.11 (Forge and NeoForge 26.3 only): mouse button fix for the 26.3 renumbering; compiled, not yet tried in a client (w:1)
+- [x] ModJS scripting (2026.11.12, all ten builds: the AeroFlux global with machineFinished, pipeModeChanged and tierUpgraded events, reads of machines, Flux, pipe networks and a player's chunk loaders, and a recipe builder for the six recipe machines; docs/scripting.md and the wiki page; 22 unit tests run real JavaScript in Rhino, and the 26.1.2 NeoForge self test checks the reads and events and runs a script through ModJS itself) (w:4)
+- [x] No hints (2026.11.12, all ten builds: the guide book and the advancements are gone, and tooltips and screens show names and values only; the removed texts are listed in the 2026.11.12 changelog notes and in the project manager report; hover frames on 26.1.2 Forge and NeoForge) (w:3)

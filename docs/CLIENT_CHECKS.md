@@ -16,8 +16,8 @@ Use JDK 21 (`JAVA_HOME=C:\Users\casey\tools\jdk-21`) when you run Gradle from a 
 | `tour` (any other value) | scenes and screens | 1.21.1 NeoForge, 1.20.1 (both loaders) |
 | `pipes` | machine side-config panel and the two pipe screens | 1.21.1 Forge |
 | `screens` | the machine and pipe screens | 26.1.2 and newer |
-| `status` | sounds (every AeroFlux sound the engine is asked to play is logged), the Conduit Tool in every mode (results read back from the server), the advancements tab, the creative tab | 26.1.2 NeoForge |
-| `guis` | the screen of every machine, converter, chunk loader, collector and tank, then the guidebook | all ten |
+| `status` | sounds (every AeroFlux sound the engine is asked to play is logged), the Conduit Tool in every mode (results read back from the server), the creative tab | 26.1.2 NeoForge |
+| `guis` | the screen of every machine, converter, chunk loader, collector and tank | all ten |
 | `smwti` | looks at a Copper Furnace and a Copper Flux Collector: shows whichever look-at overlay is in the run (Jade, The One Probe, WTHIT, SMWTI) | all builds |
 | `bei` | Barely Enough Items browser and recipe popups | all builds |
 | `jei`, `emi`, `rei` | opens that viewer's recipe page for the Alloy Smelter and the Infuser | JEI on five builds, EMI on two, REI on four (see `docs/frames`) |

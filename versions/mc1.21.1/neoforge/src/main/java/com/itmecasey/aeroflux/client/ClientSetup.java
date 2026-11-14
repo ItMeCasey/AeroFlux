@@ -8,7 +8,6 @@ import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
 import com.itmecasey.aeroflux.client.screen.CollectorScreen;
 import com.itmecasey.aeroflux.client.screen.ConfiguratorScreen;
 import com.itmecasey.aeroflux.client.screen.ConverterScreen;
-import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
 import com.itmecasey.aeroflux.client.screen.TankScreen;
@@ -18,7 +17,6 @@ import com.itmecasey.aeroflux.compat.create.CreateCompat;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.configurator.FluxConfiguratorItem;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
@@ -105,8 +103,6 @@ public final class ClientSetup {
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_MOON_FLUX.get(), translucent);
             ItemBlockRenderTypes.setRenderLayer(ModFluids.TWILIGHT_FLUX.get(), translucent);
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_TWILIGHT_FLUX.get(), translucent);
-            // The guidebook item opens its screen through here, so the item itself never names a screen.
-            GuidebookItem.setOpener(GuideScreen::open);
             FluxConfiguratorItem.setOpener(ConfiguratorScreen::open);
             // The machines' client tick only starts their running sounds, which exist only here.
             FluxMachineBlock.setClientTicker(MachineSounds::tick);

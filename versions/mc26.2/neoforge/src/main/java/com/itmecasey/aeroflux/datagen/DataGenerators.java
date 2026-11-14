@@ -3,7 +3,6 @@ package com.itmecasey.aeroflux.datagen;
 import com.itmecasey.aeroflux.AeroFlux;
 import java.util.List;
 import java.util.Set;
-import net.minecraft.data.advancements.AdvancementProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -30,7 +29,7 @@ public final class DataGenerators {
         event.createProvider(ModModelProvider::new);
     }
 
-    /** Registers the server-side providers: recipes, block tags, loot tables and advancements. */
+    /** Registers the server-side providers: recipes, block tags and loot tables. */
     @SubscribeEvent
     public static void gatherServerData(GatherDataEvent.Server event) {
         event.createProvider(ModBlockTagProvider::new);
@@ -39,6 +38,5 @@ public final class DataGenerators {
         event.createProvider((output, lookupProvider) -> new LootTableProvider(output, Set.of(), List.of(
                 new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK)),
                 lookupProvider));
-        event.createProvider((output, lookupProvider) -> new AdvancementProvider(output, lookupProvider, List.of(new ModAdvancements())));
     }
 }

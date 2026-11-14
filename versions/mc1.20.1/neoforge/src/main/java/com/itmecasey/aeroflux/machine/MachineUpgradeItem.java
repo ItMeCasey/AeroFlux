@@ -1,14 +1,7 @@
 package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
-import java.util.List;
-import javax.annotation.Nullable;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 
 /**
  * An upgrade only machines take: Efficiency, Fortune, Silk Touch or Purity. It goes into a
@@ -26,13 +19,5 @@ public class MachineUpgradeItem extends Item {
     /** What this upgrade does. */
     public MachineUpgrades.Special kind() {
         return kind;
-    }
-
-    /** Says what the upgrade does and which machines take it. */
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag flag) {
-        String key = "tooltip.aeroflux.machine_upgrade." + kind.id();
-        lines.add(Component.translatable(key).withStyle(ChatFormatting.GRAY));
-        lines.add(Component.translatable(key + ".fits").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

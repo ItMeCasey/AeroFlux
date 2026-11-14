@@ -7,7 +7,6 @@ import com.itmecasey.aeroflux.block.FluxTankBlock;
 import com.itmecasey.aeroflux.chunkloader.FluxChunkLoaderBlock;
 import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
-import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import java.text.NumberFormat;
@@ -54,11 +53,6 @@ public final class StorageTooltips {
                         "tooltip." + AeroFlux.MODID + ".tank_contents", mb(carried.getAmount()), carried.getDisplayName())
                         .withStyle(ChatFormatting.AQUA));
             }
-        }
-        if (item.getBlock() instanceof FluxMachineBlock machine && machine.machine() == MachineType.SIFTER) {
-            // The Sifter does nothing without a sieve mod's mesh, so it says so up front.
-            event.getToolTip().add(Math.min(2, event.getToolTip().size()),
-                    Component.translatable("tooltip." + AeroFlux.MODID + ".sifter").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 

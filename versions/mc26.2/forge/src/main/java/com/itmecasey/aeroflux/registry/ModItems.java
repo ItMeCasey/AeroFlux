@@ -14,7 +14,6 @@ import com.itmecasey.aeroflux.core.conduit.PipeUpgrades;
 import com.itmecasey.aeroflux.core.converter.ConverterType;
 import com.itmecasey.aeroflux.core.machine.MachineType;
 import com.itmecasey.aeroflux.core.machine.MachineUpgrades;
-import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.item.UpgradeCardItem;
 import com.itmecasey.aeroflux.lamp.LampKind;
 import com.itmecasey.aeroflux.machine.MachineUpgradeItem;
@@ -53,9 +52,6 @@ public final class ModItems {
 
     /** The Sawmill's byproduct: a log or plank sometimes leaves a pile of it behind. */
     public static final RegistryObject<Item> SAWDUST = ITEMS.register("sawdust", () -> new Item(new Item.Properties().setId(ITEMS.key("sawdust"))));
-
-    /** The AeroFlux Guide; using it opens the guide screen. */
-    public static final RegistryObject<GuidebookItem> GUIDEBOOK = ITEMS.register("guidebook", () -> new GuidebookItem(new Item.Properties().setId(ITEMS.key("guidebook")).stacksTo(1)));
 
     public static final RegistryObject<BucketItem> AERO_FLUX_BUCKET = ITEMS.register("aero_flux_bucket", () -> new BucketItem(ModFluids.AERO_FLUX, bucketProperties("aero_flux_bucket")));
 

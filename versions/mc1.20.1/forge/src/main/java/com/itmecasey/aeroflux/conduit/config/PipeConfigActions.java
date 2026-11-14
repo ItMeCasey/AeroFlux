@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.conduit.config;
 
 import com.itmecasey.aeroflux.compat.mekanism.MekanismCompat;
+import com.itmecasey.aeroflux.compat.modjs.AeroFluxScripts;
 import com.itmecasey.aeroflux.conduit.ConduitBundleBlockEntity;
 import com.itmecasey.aeroflux.conduit.EndpointUpgradeItem;
 import com.itmecasey.aeroflux.conduit.FluxWrenchItem;
@@ -154,6 +155,7 @@ public final class PipeConfigActions {
         entity.bundle().setMode(type.lane(), face, mode);
         entity.refreshConnections();
         entity.changed();
+        AeroFluxScripts.pipeModeChanged(entity.getLevel(), entity.getBlockPos(), type, face, mode);
         return true;
     }
 

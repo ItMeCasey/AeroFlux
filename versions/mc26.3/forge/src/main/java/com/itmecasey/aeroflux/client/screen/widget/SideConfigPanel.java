@@ -294,8 +294,7 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
     @Override
     public List<Component> tooltip(int mouseX, int mouseY) {
         if (overToggle(mouseX, mouseY)) {
-            return List.of(Component.translatable("screen.aeroflux.side_config.title"),
-                    Component.translatable("screen.aeroflux.side_config.toggle_hint").withStyle(ChatFormatting.GRAY));
+            return List.of(Component.translatable("screen.aeroflux.side_config.title"));
         }
         SidePanelLayout.Hit hit = hitAt(mouseX, mouseY);
         List<Component> lines = new ArrayList<>();
@@ -307,7 +306,6 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
                 ConnectionMode mode = model.mode(resource(), face);
                 lines.add(Component.translatable("face_label.aeroflux." + label.id()));
                 lines.add(modeName(mode).withColor(Glyphs.modeColor(mode) & 0xFFFFFF));
-                lines.add(Component.translatable(modeKey(mode) + ".tooltip").withStyle(ChatFormatting.GRAY));
                 lines.add(Component.translatable("screen.aeroflux.side_config.neighbor", model.neighbor(face))
                         .withStyle(ChatFormatting.DARK_GRAY));
             }
@@ -322,17 +320,15 @@ public class SideConfigPanel extends AbstractWidget implements HoverInfo {
         return lines;
     }
 
-    /** A button's name, then what it does. */
+    /** A button's name. */
     private static void button(List<Component> lines, String key) {
         lines.add(Component.translatable(key));
-        lines.add(Component.translatable(key + ".tooltip").withStyle(ChatFormatting.GRAY));
     }
 
-    /** A switch's name with On or Off, then what it does. */
+    /** A switch's name with On or Off. */
     private static void autoSwitch(List<Component> lines, String key, boolean on) {
         lines.add(Component.translatable(key).append(": ").append(Component.translatable(on ? "options.on" : "options.off")
                 .withColor(on ? Glyphs.OPEN_COLOR & 0xFFFFFF : 0xAAAAAA)));
-        lines.add(Component.translatable(key + ".tooltip").withStyle(ChatFormatting.GRAY));
     }
 
     @Override

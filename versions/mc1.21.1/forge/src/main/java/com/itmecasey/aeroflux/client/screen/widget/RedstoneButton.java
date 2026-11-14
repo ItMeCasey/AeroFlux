@@ -4,7 +4,6 @@ import com.itmecasey.aeroflux.core.machine.RedstoneMode;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -75,10 +74,7 @@ public class RedstoneButton extends AbstractWidget implements HoverInfo {
             return List.of();
         }
         RedstoneMode current = mode.get();
-        return List.of(
-                Component.translatable("gui.aeroflux.redstone.mode", modeName(current)),
-                Component.translatable("redstone_mode.aeroflux." + current.id() + ".tooltip").withStyle(ChatFormatting.GRAY),
-                Component.translatable("gui.aeroflux.redstone.hint").withStyle(ChatFormatting.DARK_GRAY));
+        return List.of(Component.translatable("gui.aeroflux.redstone.mode", modeName(current)));
     }
 
     @Override

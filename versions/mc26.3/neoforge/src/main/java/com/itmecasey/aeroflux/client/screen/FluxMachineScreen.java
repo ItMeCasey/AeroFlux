@@ -172,7 +172,7 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
      * A square button with an item for an icon, for the settings a single kind of machine has: the
      * Plant Grower's seed refill, the Magnet's whitelist and the Sky Controller's three buttons. A
      * switch is outlined in green while it is on; a plain button (whose state is {@code null}) is not.
-     * The tooltip is the name, then the matching {@code .on}, {@code .off} or {@code .tooltip} line.
+     * The tooltip is the name, then the state of a switch: the matching {@code .on} or {@code .off} line.
      */
     private final class IconButton extends AbstractButton {
         private static final int SIZE = 18;
@@ -204,9 +204,8 @@ public abstract class FluxMachineScreen<M extends FluxMachineMenu> extends Abstr
             }
             if (isHovered()) {
                 graphics.fill(getX(), getY(), getX() + SIZE, getY() + SIZE, 0x40FFFFFF);
-                String detail = on == null ? key + ".tooltip" : on ? key + ".on" : key + ".off";
-                setTooltip(Tooltip.create(getMessage().copy().append(CommonComponents.NEW_LINE).append(
-                        Component.translatable(detail))));
+                setTooltip(Tooltip.create(on == null ? getMessage() : getMessage().copy().append(CommonComponents.NEW_LINE).append(
+                        Component.translatable(on ? key + ".on" : key + ".off"))));
             }
         }
 

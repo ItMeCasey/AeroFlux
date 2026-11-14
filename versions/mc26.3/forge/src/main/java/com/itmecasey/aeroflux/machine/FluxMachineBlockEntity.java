@@ -1,6 +1,7 @@
 package com.itmecasey.aeroflux.machine;
 
 import com.itmecasey.aeroflux.StorageSizes;
+import com.itmecasey.aeroflux.compat.modjs.AeroFluxScripts;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.conduit.ConnectionMode;
@@ -948,6 +949,7 @@ public abstract class FluxMachineBlockEntity extends BlockEntity implements Menu
             drainFlux(cost, false);
             if (timer.advance()) {
                 job.complete();
+                AeroFluxScripts.machineFinished(level, worldPosition, this);
                 playSound(level, ModSounds.MACHINE_DONE.get());
                 timer.reset();
                 activeKey = null;

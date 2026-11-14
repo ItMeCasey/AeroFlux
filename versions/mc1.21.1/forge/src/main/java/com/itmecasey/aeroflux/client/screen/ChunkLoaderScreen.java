@@ -14,7 +14,6 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -83,8 +82,7 @@ public class ChunkLoaderScreen extends AbstractContainerScreen<ChunkLoaderMenu> 
 
         ShowAreaButton(int x, int y) {
             super(x, y, SHOW_AREA_SIZE, SHOW_AREA_SIZE, Component.translatable("gui.aeroflux.chunk_loader.show_area"));
-            setTooltip(Tooltip.create(getMessage().copy().append(CommonComponents.NEW_LINE)
-                    .append(Component.translatable("gui.aeroflux.chunk_loader.show_area.tooltip"))));
+            setTooltip(Tooltip.create(getMessage()));
         }
 
         @Override
@@ -231,8 +229,7 @@ public class ChunkLoaderScreen extends AbstractContainerScreen<ChunkLoaderMenu> 
         int x = mouseX - leftPos;
         int y = mouseY - topPos;
         if (inside(x, y, INFO_X, CONTENT_Y, STATUS_SIZE, STATUS_SIZE)) {
-            return List.of(Component.translatable("gui.aeroflux.chunk_loader.status." + status.id()),
-                    Component.translatable("gui.aeroflux.chunk_loader.status." + status.id() + ".tooltip"));
+            return List.of(Component.translatable("gui.aeroflux.chunk_loader.status." + status.id()));
         }
         if (inside(x, y, INFO_X, TIME_GLYPH_Y - 8, WIDTH - INFO_X - 4, RATE_TEXT_Y + 9 - (TIME_GLYPH_Y - 8))) {
             return List.of(Component.translatable("gui.aeroflux.chunk_loader.runtime"),

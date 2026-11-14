@@ -9,7 +9,6 @@ import com.itmecasey.aeroflux.client.screen.ChunkLoaderScreen;
 import com.itmecasey.aeroflux.client.screen.CollectorScreen;
 import com.itmecasey.aeroflux.client.screen.ConverterScreen;
 import com.itmecasey.aeroflux.client.screen.ConfiguratorScreen;
-import com.itmecasey.aeroflux.client.screen.GuideScreen;
 import com.itmecasey.aeroflux.machine.configurator.FluxConfiguratorItem;
 import com.itmecasey.aeroflux.client.screen.MachineScreen;
 import com.itmecasey.aeroflux.client.screen.PipeConfigScreen;
@@ -18,7 +17,6 @@ import com.itmecasey.aeroflux.client.sound.MachineSounds;
 import com.itmecasey.aeroflux.core.FluxType;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.core.machine.MachineType;
-import com.itmecasey.aeroflux.item.GuidebookItem;
 import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.machine.MachineRecipes;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
@@ -79,10 +77,9 @@ public final class ClientSetup {
         }
     }
 
-    /** Lets the guidebook and the Configurator open their screens and the machines play their running sounds, all client only. */
+    /** Lets the Configurator open its screen and the machines play their running sounds, all client only. */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        GuidebookItem.setOpener(GuideScreen::open);
         FluxConfiguratorItem.setOpener(ConfiguratorScreen::open);
         FluxMachineBlock.setClientTicker(MachineSounds::tick);
     }

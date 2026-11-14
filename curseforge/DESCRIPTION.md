@@ -87,7 +87,7 @@ One pipe sits in the middle of the block. Two sit side by side, three make a tri
 
 ## Getting started
 
-There are no new ores. Chop a tree and you'll shake loose some Sawdust; two make a Flux Dust. Work up through crystals to Fluxsteel. Your first collector, tank, pipe, furnace, Infuser and wrench don't need any machine to make. The in-game **guidebook** has 23 pages in six chapters, a contents page, and buttons that open the wiki.
+There are no new ores. Chop a tree and you'll shake loose some Sawdust; two make a Flux Dust. Work up through crystals to Fluxsteel. Your first collector, tank, pipe, furnace, Infuser and wrench don't need any machine to make.
 
 ## Other mods
 
@@ -97,7 +97,7 @@ AeroFlux doesn't need any other mod. If you have them, it works with:
 - **Mekanism** gas pipes (on the versions Mekanism exists for), **Applied Energistics 2** channels and power, and **Create** stress.
 - **Recipe viewers:** BEI, JEI, EMI and REI list the machines' recipes, including imported ones.
 - **Overlays:** Jade, The One Probe, WTHIT and our own **Show Me What This Is** show Flux levels and machine status.
-- **Scripting:** KubeJS and CraftTweaker can add, remove and change machine recipes.
+- **Scripting:** KubeJS and CraftTweaker can add, remove and change machine recipes, and ModJS scripts also get machine, pipe and tier-upgrade events and read access to machines, Flux and pipe networks.
 
 ## Versions
 
@@ -111,7 +111,7 @@ Minecraft 26.3, 26.2, 26.1.2, 1.21.1 and 1.20.1, on both NeoForge and Forge. Whi
 
 **Can I change the speeds?** Yes. Speeds, capacities, enchanting rules and limits are all in the config, and tank and buffer sizes are sent from the server to the players.
 
-**Can I add my own machine recipes?** Yes, with a data pack, KubeJS or CraftTweaker.
+**Can I add my own machine recipes?** Yes, with a data pack, KubeJS, CraftTweaker or ModJS.
 
 ## For server owners and pack makers
 

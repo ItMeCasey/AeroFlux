@@ -36,7 +36,6 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.AERO_FLUX_BUCKET.get());
                         output.accept(ModItems.MOON_FLUX_BUCKET.get());
                         output.accept(ModItems.TWILIGHT_FLUX_BUCKET.get());
-                        output.accept(ModItems.GUIDEBOOK.get());
                         output.accept(ModItems.FLUX_WRENCH.get());
                         output.accept(ModItems.CONDUIT_TOOL.get());
                         output.accept(ModItems.FLUX_CONFIGURATOR.get());

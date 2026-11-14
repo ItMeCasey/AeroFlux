@@ -1,5 +1,6 @@
 package com.itmecasey.aeroflux;
 
+import com.itmecasey.aeroflux.compat.modjs.AeroFluxScripts;
 import com.itmecasey.aeroflux.registry.ModBlockEntities;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import com.itmecasey.aeroflux.registry.ModCreativeTabs;
@@ -53,6 +54,7 @@ public class AeroFlux {
         // Sound and particle settings only matter where the game is drawn.
         modContainer.registerConfig(ModConfig.Type.CLIENT, AeroFluxClientConfig.SPEC);
 
+        AeroFluxScripts.install();
         LOGGER.info("AeroFlux loaded (NeoForge 26.1.2)");
     }
 }

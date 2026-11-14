@@ -1,0 +1,5 @@
+## 2026.11.12
+
+- **ModJS scripting (all ten builds).** With ModJS installed, server and startup scripts get an `AeroFlux` global: events for a machine finishing a job, a pipe face changing its mode and an Upgrade Card raising a block a tier; read access to machines, the Flux a block holds, pipe networks (fluid, item, energy, gas, redstone) and a player's chunk loaders; and a recipe builder for the six recipe machines that produces the JSON `event.custom(...)` takes. Without ModJS nothing changes.
+- **No more hints.** The guide book, its recipe and its screen are gone, and so are the advancements and their toasts. Tooltips and screens show names and values only: the explanations on pipe faces, redstone modes, machine faces, the side panel buttons, the collector sky and weather rows, the chunk loader and sky controller buttons, the filter and priority controls, and the upgrade items are removed, and so are the usage lines in the Configurator and Conduit Tool messages. Short facts stay: what a face is set to, how much a tank holds, why a machine is idle.
+- Other: the Sifter no longer carries a line about needing a mesh.

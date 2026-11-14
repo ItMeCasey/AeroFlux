@@ -2,6 +2,7 @@ package com.itmecasey.aeroflux.item;
 
 import com.itmecasey.aeroflux.block.FluxCollectorBlock;
 import com.itmecasey.aeroflux.block.FluxTankBlock;
+import com.itmecasey.aeroflux.compat.modjs.AeroFluxScripts;
 import com.itmecasey.aeroflux.converter.FluxConverterBlock;
 import com.itmecasey.aeroflux.core.Tier;
 import com.itmecasey.aeroflux.lamp.FluxLampBlock;
@@ -9,7 +10,6 @@ import com.itmecasey.aeroflux.machine.FluxMachineBlock;
 import com.itmecasey.aeroflux.registry.ModBlocks;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,8 +21,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -81,6 +79,7 @@ public class UpgradeCardItem extends Item {
             return InteractionResult.FAIL;
         }
         swap((ServerLevel) level, pos, state, next);
+        AeroFluxScripts.tierUpgraded(level, pos, next, tierOf(next), player);
         if (!player.getAbilities().instabuild) {
             context.getItemInHand().shrink(1);
         }
@@ -164,15 +163,5 @@ public class UpgradeCardItem extends Item {
 
     private static Component tierName(Tier tier) {
         return Component.translatable("tier.aeroflux." + tier.id().toLowerCase(Locale.ROOT));
-    }
-
-    /**
-     * Says what the card does. Vanilla marked this hook deprecated in favor of tooltip data
-     * components, but the text depends only on the card's tier, and the hook is still called.
-     */
-    @Override
-    @SuppressWarnings("deprecation")
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag flag) {
-        lines.add(Component.translatable("tooltip.aeroflux.upgrade_card", tierName(from()), tierName(tier)));
     }
 }

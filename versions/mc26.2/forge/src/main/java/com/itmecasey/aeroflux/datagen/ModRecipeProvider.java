@@ -140,11 +140,6 @@ public class ModRecipeProvider extends RecipeProvider {
      * iron and quartz for Capacity.
      */
     private void tools() {
-        shapeless(RecipeCategory.MISC, ModItems.GUIDEBOOK.get())
-                .requires(Items.BOOK)
-                .requires(ModItems.FLUX_DUST.get())
-                .unlockedBy(getHasName(ModItems.FLUX_DUST.get()), has(ModItems.FLUX_DUST.get()))
-                .save(output);
         shaped(RecipeCategory.TOOLS, ModItems.FLUX_WRENCH.get())
                 .define('C', Tags.Items.INGOTS_COPPER)
                 .define('D', ModItems.FLUX_DUST.get())
